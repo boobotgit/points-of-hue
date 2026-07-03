@@ -1,0 +1,4402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="points of hue" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="theme-color" content="#f9f6f1" />
+  <title>points of hue</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <style>
+    /* ============================================================
+       DESIGN SYSTEM — Luxury Warm Minimal (Four Seasons aesthetic)
+    ============================================================ */
+    :root {
+      --bg-main:      #f9f6f1;
+      --bg-sidebar:   #f3ede4;
+      --bg-panel:     #fefcf8;
+      --bg-modal:     #fefcf8;
+      --bg-input:     #f3ede4;
+      --border:       #e5ddd0;
+      --border-light: #ede8e0;
+      --accent:       #8c7355;
+      --accent-hover: #7a6248;
+      --accent-light: #f0e8dc;
+      --text-primary: #2c2620;
+      --text-muted:   #9c8e7e;
+      --text-dim:     #c8bdb0;
+      --danger:       #8a6e6e;
+      --success:      #6e7e74;
+      --warning:      #c9a84c;
+      --shadow-sm:    0 1px 3px rgba(44,38,32,0.06);
+      --shadow-md:    0 4px 16px rgba(44,38,32,0.08);
+      --radius-sm:    6px;
+      --radius-md:    10px;
+      --radius-lg:    16px;
+      --sidebar-w:    220px;
+      --panel-w:      360px;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    .hidden { display: none !important; }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg-main);
+      color: var(--text-primary);
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ============================================================
+       APP SHELL
+    ============================================================ */
+    #app {
+      display: flex;
+      height: 100vh;
+    }
+
+    /* ============================================================
+       SIDEBAR
+    ============================================================ */
+    #sidebar {
+      width: var(--sidebar-w);
+      min-width: var(--sidebar-w);
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+      overflow: hidden;
+    }
+    #logo {
+      padding: 28px 24px 20px;
+      border-bottom: 1px solid var(--border-light);
+    }
+    #logo-name {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--text-primary);
+      letter-spacing: 0.02em;
+    }
+    #logo-sub {
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.12em;
+      text-transform: none;
+      margin-top: 2px;
+    }
+    #nav-links {
+      flex: 1;
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .nav-btn {
+      width: 100%;
+      text-align: left;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      padding: 9px 14px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 13.5px;
+      font-family: inherit;
+      font-weight: 400;
+      letter-spacing: 0.01em;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+    .nav-btn .nav-icon { font-size: 15px; width: 18px; text-align: center; }
+    .nav-btn:hover { background: var(--bg-panel); color: var(--text-primary); }
+    .nav-btn.active { background: var(--accent); color: #fefcf8; font-weight: 500; }
+    #nav-divider { height: 1px; background: var(--border-light); margin: 10px 0; }
+    #sidebar-footer {
+      padding: 16px 12px;
+      border-top: 1px solid var(--border-light);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .footer-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 7px 14px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 12px;
+      font-family: inherit;
+      text-align: left;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      transition: all 0.15s;
+    }
+    .footer-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ============================================================
+       MAIN CONTENT
+    ============================================================ */
+    #mainContent {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: var(--bg-main);
+    }
+    .view {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .view.hidden { display: none !important; }
+
+    /* ============================================================
+       VIEW HEADER
+    ============================================================ */
+    .view-header {
+      padding: 24px 28px 16px;
+      border-bottom: 1px solid var(--border-light);
+      flex-shrink: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .view-header h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 22px;
+      font-weight: 400;
+      color: var(--text-primary);
+      letter-spacing: 0.01em;
+    }
+    .view-header p {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-top: 3px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ============================================================
+       SHARED CONTROLS
+    ============================================================ */
+    .filter-select {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 6px 10px;
+      font-size: 12px;
+      font-family: inherit;
+      color: var(--text-muted);
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .filter-select:focus { border-color: var(--accent); }
+    .zoom-controls {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 10;
+    }
+    .zoom-btn {
+      width: 34px;
+      height: 34px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 18px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.15s;
+    }
+    .zoom-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ============================================================
+       TIMELINE VIEW
+    ============================================================ */
+    #timelineView { flex-direction: column; }
+    #timelineArea {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: var(--bg-main);
+    }
+    #timelineSvg { width: 100%; height: 100%; cursor: grab; }
+    #timelineSvg:active { cursor: grabbing; }
+    .tl-movement-label {
+      font-family: 'Inter', sans-serif;
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .tl-year-label {
+      font-family: 'Inter', sans-serif;
+      font-size: 10px;
+      fill: var(--text-dim);
+    }
+    .tl-node { cursor: pointer; }
+    .tl-node:hover .tl-ring { stroke-width: 3; }
+    .tl-title-label {
+      font-family: 'Inter', sans-serif;
+      font-size: 10px;
+      fill: var(--text-muted);
+    }
+    .tl-date-label {
+      font-family: 'Inter', sans-serif;
+      font-size: 9px;
+      fill: var(--text-dim);
+    }
+    .tl-event-label {
+      font-family: 'Inter', sans-serif;
+      font-size: 8px;
+      letter-spacing: 0.02em;
+    }
+    .tl-event-node { cursor: default; }
+    .tl-event-node:hover .tl-event-marker { r: 5; }
+    .tl-context-label {
+      font-family: 'Inter', sans-serif;
+      font-size: 9px;
+      fill: var(--text-dim);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .tl-legend-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 4px;
+    }
+
+    /* ============================================================
+       CLUSTER VIEW
+    ============================================================ */
+    #clusterView { flex-direction: column; }
+    #clusterFilters {
+      padding: 0 28px 10px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+    #clusterSearch {
+      flex: 1;
+      min-width: 140px;
+      max-width: 240px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 7px 10px;
+      font-size: 12px;
+      font-family: inherit;
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    #clusterSearch:focus { border-color: var(--accent); }
+    #clusterSearch::placeholder { color: var(--text-dim); }
+    .cl-filter-select {
+      padding: 7px 10px;
+      font-size: 12px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      color: var(--text-primary);
+      outline: none;
+      cursor: pointer;
+      min-width: 0;
+    }
+    #clClearFilters {
+      padding: 6px 12px;
+      font-size: 11px;
+      font-family: inherit;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      display: none;
+    }
+    #clClearFilters:hover { opacity: 0.85; }
+    #clusterArea {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: var(--bg-main);
+    }
+    #clusterSvg { width: 100%; height: 100%; cursor: grab; }
+    #clusterSvg:active { cursor: grabbing; }
+    .cl-node { cursor: pointer; }
+    .cl-node:hover circle { stroke-width: 2.5; }
+    #clusterLegend {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      box-shadow: var(--shadow-sm);
+      z-index: 10;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .legend-title {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 2px 0;
+    }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .legend-label {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* ============================================================
+       GALLERY VIEW
+    ============================================================ */
+    #galleryView { flex-direction: column; }
+    #galleryControls {
+      padding: 12px 28px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-shrink: 0;
+      border-bottom: 1px solid var(--border-light);
+    }
+    #gallerySearch {
+      flex: 1;
+      max-width: 320px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    #gallerySearch:focus { border-color: var(--accent); }
+    #gallerySearch::placeholder { color: var(--text-dim); }
+    #galleryScroll {
+      flex: 1;
+      overflow-y: auto;
+      min-height: 0;
+    }
+    #galleryGrid {
+      padding: 20px 28px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      align-content: start;
+    }
+    .art-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .art-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    .art-card-img {
+      width: 100%;
+      height: 160px;
+      background-size: cover;
+      background-position: center;
+      background-color: var(--bg-input);
+    }
+    .art-card-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .art-card-placeholder span {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 28px;
+      color: var(--text-dim);
+    }
+    .art-card-body {
+      padding: 12px 14px;
+    }
+    .art-card-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+      line-height: 1.3;
+      margin-bottom: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .art-card-artist {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .art-card-desc {
+      font-size: 12px;
+      color: var(--text-secondary, var(--text-muted));
+      line-height: 1.45;
+      margin-bottom: 8px;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .art-card-movement {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .card-tags {
+      margin-top: 6px;
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+    .tag-pill {
+      background: var(--accent-light);
+      color: var(--accent);
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      letter-spacing: 0.03em;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      grid-column: 1 / -1;
+    }
+    .empty-state-icon {
+      font-size: 40px;
+      margin-bottom: 12px;
+      color: var(--text-dim);
+    }
+    .empty-state-text {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    /* ============================================================
+       DETAIL PANEL
+    ============================================================ */
+    #detailPanel {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: var(--panel-w);
+      background: var(--bg-panel);
+      border-left: 1px solid var(--border);
+      overflow-y: auto;
+      z-index: 50;
+      box-shadow: -4px 0 16px rgba(44,38,32,0.06);
+    }
+    #detailPanel.hidden { display: none; }
+    .panel-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 20px;
+      cursor: pointer;
+      z-index: 2;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      transition: all 0.15s;
+    }
+    .panel-close:hover { background: var(--bg-input); color: var(--text-primary); }
+    .panel-image {
+      width: 100%;
+      min-height: 200px;
+      max-height: 300px;
+      overflow: hidden;
+      background: var(--bg-input);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .panel-image img {
+      width: 100%;
+      height: auto;
+      max-height: 300px;
+      object-fit: contain;
+      display: block;
+    }
+    .panel-no-image {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 40px;
+      color: var(--text-dim);
+      padding: 40px;
+    }
+    .panel-body {
+      padding: 20px 22px;
+    }
+    .panel-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--text-primary);
+      line-height: 1.3;
+      margin-bottom: 4px;
+    }
+    .panel-artist {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+    .panel-section-title {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+      margin-top: 18px;
+    }
+    .panel-section-title:first-child { margin-top: 0; }
+    .panel-detail-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 0;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .panel-detail-icon {
+      font-size: 10px;
+      width: 16px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .panel-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .panel-description {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .panel-notes {
+      font-size: 13px;
+      color: var(--text-primary);
+      line-height: 1.6;
+      background: var(--accent-light);
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      font-style: italic;
+    }
+    .panel-source a {
+      font-size: 12px;
+      color: var(--accent);
+      text-decoration: none;
+      word-break: break-all;
+    }
+    .panel-source a:hover { text-decoration: underline; }
+    .panel-actions {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-light);
+      display: flex;
+      gap: 8px;
+    }
+    .btn-edit, .btn-delete {
+      padding: 7px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-family: inherit;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+      transition: all 0.15s;
+    }
+    .btn-edit {
+      background: var(--accent);
+      color: #fefcf8;
+      border: none;
+    }
+    .btn-edit:hover { background: var(--accent-hover); }
+    .btn-delete {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--danger);
+    }
+    .btn-delete:hover { border-color: var(--danger); background: rgba(138,110,110,0.05); }
+
+    /* ============================================================
+       MODAL
+    ============================================================ */
+    #modalOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(44,38,32,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+    }
+    #modalOverlay.hidden { display: none; }
+    #modalBox {
+      background: var(--bg-modal);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 20px 60px rgba(44,38,32,0.15);
+      width: 580px;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 28px;
+    }
+    #modalTitle {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 20px;
+      font-weight: 400;
+      margin-bottom: 20px;
+    }
+    .modal-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    /* Wikipedia import section */
+    .wiki-section {
+      background: var(--accent-light);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .wiki-section-title {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+      font-weight: 500;
+    }
+    .wiki-row {
+      display: flex;
+      gap: 8px;
+    }
+    .wiki-url-input {
+      flex: 1;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text-primary);
+      outline: none;
+    }
+    .wiki-url-input:focus { border-color: var(--accent); }
+    .wiki-url-input::placeholder { color: var(--text-dim); }
+    .btn-extract {
+      background: var(--accent);
+      color: #fefcf8;
+      border: none;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-family: inherit;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    .btn-extract:hover { background: var(--accent-hover); }
+    .btn-extract:disabled { opacity: 0.5; cursor: not-allowed; }
+    .wiki-status {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 8px;
+    }
+    .wiki-status.error { color: var(--danger); }
+    .wiki-preview {
+      margin-top: 12px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      background: var(--bg-panel);
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-light);
+    }
+    .wiki-preview.hidden { display: none; }
+    .wiki-preview img {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: var(--radius-sm);
+    }
+    .wiki-preview-info {
+      flex: 1;
+    }
+    .wiki-preview-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .wiki-preview-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Form grid */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .form-field.full { grid-column: 1 / -1; }
+    .form-label {
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+    .form-input, .form-textarea, .form-select {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--accent); }
+    .form-textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+    .form-select { cursor: pointer; }
+    .form-actions {
+      margin-top: 20px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .btn-cancel {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 8px 20px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-cancel:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-save {
+      background: var(--accent);
+      color: #fefcf8;
+      border: none;
+      padding: 8px 24px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.15s;
+    }
+    .btn-save:hover { background: var(--accent-hover); }
+
+    /* ============================================================
+       MUSEUMS VIEW (also used by ARTISTS VIEW)
+    ============================================================ */
+    #museumsView, #artistsView { flex-direction: column; }
+    #museumsScroll, #artistsScroll {
+      flex: 1;
+      overflow-y: auto;
+      min-height: 0;
+    }
+    #museumsGrid, #artistsGrid {
+      padding: 20px 28px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      align-content: start;
+    }
+    .museum-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .museum-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    .museum-card-header {
+      padding: 16px 18px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .museum-card-name {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--text-primary);
+      line-height: 1.3;
+    }
+    .museum-card-city {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .museum-card-date {
+      font-size: 11px;
+      color: var(--text-dim);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .museum-card-notes {
+      padding: 0 18px 12px;
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      font-style: italic;
+    }
+    .museum-card-founded {
+      padding: 0 18px 14px;
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .museum-card-founded .founded-label {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      display: block;
+      margin-bottom: 2px;
+    }
+    .museum-card-artworks {
+      padding: 0 18px 16px;
+    }
+    .museum-artworks-title {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+    .museum-artwork-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 0;
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+      transition: background 0.15s;
+    }
+    .museum-artwork-row:hover { background: var(--accent-light); margin: 0 -6px; padding: 5px 6px; }
+    .museum-artwork-thumb {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+      background: var(--bg-input);
+    }
+    .museum-artwork-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .museum-artwork-name {
+      font-size: 12px;
+      color: var(--text-primary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .museum-artwork-artist {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    .museum-card-actions {
+      padding: 10px 18px 14px;
+      border-top: 1px solid var(--border-light);
+      display: flex;
+      gap: 8px;
+    }
+    .museum-card-actions button {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 11px;
+      font-family: inherit;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 2px 0;
+      transition: color 0.15s;
+    }
+    .museum-card-actions button:hover { color: var(--accent); }
+    .museum-card-actions .del-btn:hover { color: var(--danger); }
+    .museum-empty-artworks {
+      font-size: 12px;
+      color: var(--text-dim);
+      font-style: italic;
+    }
+
+    /* Museum Modal */
+    #museumModalOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(44,38,32,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+    }
+    #museumModalOverlay.hidden { display: none; }
+    #museumModalBox {
+      background: var(--bg-modal);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 20px 60px rgba(44,38,32,0.15);
+      width: 460px;
+      max-height: 80vh;
+      overflow-y: auto;
+      padding: 28px;
+    }
+
+    /* Point-of-hue note modal */
+    #hueModalOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(44,38,32,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 300;
+    }
+    #hueModalOverlay.hidden { display: none; }
+    #hueModalBox {
+      background: var(--bg-modal);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 20px 60px rgba(44,38,32,0.15);
+      width: 460px;
+      max-width: 92vw;
+      max-height: 80vh;
+      overflow-y: auto;
+      padding: 28px;
+    }
+    /* Personal "point of hue" note blocks on cards & panel */
+    .museum-card-hue { padding: 0 18px 16px; }
+    .hue-label {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 3px;
+    }
+    .hue-text {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 8px;
+      white-space: pre-wrap;
+    }
+    .btn-hue {
+      background: none;
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sm);
+      padding: 5px 12px;
+      font-family: inherit;
+      font-size: 11px;
+      color: var(--accent);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-hue:hover { background: var(--accent-light); }
+
+    /* ============================================================
+       TOOLTIP
+    ============================================================ */
+    .tooltip {
+      position: fixed;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      box-shadow: var(--shadow-md);
+      pointer-events: none;
+      z-index: 100;
+      max-width: 220px;
+    }
+    .tooltip.hidden { display: none; }
+    .tooltip-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    .tooltip-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* ============================================================
+       SCROLLBAR
+    ============================================================ */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+    /* ============================================================
+       MOBILE / iPHONE OPTIMIZATION
+    ============================================================ */
+    #mobile-header { display: none; }
+    #mobile-backdrop { display: none; }
+
+    @media (max-width: 768px) {
+      html, body {
+        overflow: auto;
+        height: auto;
+        -webkit-text-size-adjust: 100%;
+      }
+      /* App shell stacks vertically */
+      #app {
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+        min-height: 100dvh;
+      }
+
+      /* Fixed top bar with hamburger */
+      #mobile-header {
+        display: flex;
+        position: sticky;
+        top: 0;
+        z-index: 90;
+        background: var(--bg-sidebar);
+        border-bottom: 1px solid var(--border);
+        padding: max(env(safe-area-inset-top, 0px), 8px) 14px 8px;
+        align-items: center;
+        gap: 10px;
+      }
+      #mobile-menu-btn {
+        background: none;
+        border: none;
+        font-size: 26px;
+        line-height: 1;
+        color: var(--text-primary);
+        cursor: pointer;
+        padding: 6px 10px;
+        border-radius: var(--radius-sm);
+      }
+      #mobile-menu-btn:active { background: var(--bg-panel); }
+      #mobile-header-title {
+        font-family: 'Playfair Display', Georgia, serif;
+        font-size: 19px;
+        color: var(--text-primary);
+        letter-spacing: 0.02em;
+      }
+
+      /* Sidebar becomes a slide-in drawer */
+      #sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        height: 100dvh;
+        width: 260px;
+        max-width: 82vw;
+        z-index: 100;
+        transform: translateX(-100%);
+        transition: transform 0.28s ease;
+        padding-top: env(safe-area-inset-top, 0px);
+        box-shadow: 0 0 30px rgba(0,0,0,0.15);
+      }
+      body.mobile-nav-open #sidebar { transform: translateX(0); }
+      #mobile-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(44,38,32,0.4);
+        z-index: 95;
+      }
+      body.mobile-nav-open #mobile-backdrop { display: block; }
+
+      /* Main content takes full width */
+      #mainContent {
+        flex: 1;
+        overflow-y: visible;
+        -webkit-overflow-scrolling: touch;
+      }
+      .view, .view.hidden { position: static; }
+      .view { min-height: calc(100vh - 60px); }
+
+      /* View headers */
+      .view-header {
+        padding: 16px 18px 8px !important;
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 8px;
+      }
+      .view-header h1 { font-size: 22px; }
+      .header-controls { width: 100%; display: flex; flex-wrap: wrap; gap: 6px; }
+
+      /* Card grids: single column */
+      #galleryGrid, #museumsGrid, #artistsGrid, #recentGrid {
+        grid-template-columns: 1fr !important;
+        gap: 14px !important;
+        padding: 12px 16px calc(env(safe-area-inset-bottom, 0px) + 40px) !important;
+      }
+      #galleryScroll, #museumsScroll, #artistsScroll, #recentScroll {
+        overflow: visible !important;
+        height: auto !important;
+      }
+
+      /* Gallery filters stack */
+      #galleryControls {
+        flex-direction: column;
+        gap: 8px;
+        padding: 8px 16px 4px;
+      }
+      #galleryControls > * { width: 100%; }
+      #clusterFilters {
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 8px 16px;
+      }
+
+      /* Cards: bigger cover art */
+      .museum-card-cover { height: 180px !important; }
+      .museum-card-cover img { height: 180px !important; }
+
+      /* Detail panel: full-screen slide-up */
+      #detailPanel {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        height: 100vh;
+        height: 100dvh;
+        top: 0;
+        right: 0;
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        z-index: 150;
+      }
+
+      /* Modals: near-full-width */
+      #modalBox, #museumModalBox, #hueModalBox {
+        width: 94vw !important;
+        max-width: 460px !important;
+        max-height: 90vh !important;
+        max-height: 90dvh !important;
+      }
+
+      /* Form grid single column on mobile */
+      .form-grid { grid-template-columns: 1fr !important; }
+
+      /* Bigger touch targets, no iOS zoom on focus */
+      .nav-btn { padding: 12px 16px; font-size: 15px; }
+      .btn-save, .btn-cancel, .btn-edit, .btn-delete, .btn-hue { min-height: 40px; }
+      input, select, textarea { font-size: 16px !important; }
+
+      /* Timeline & Cluster: SVGs shrink to width */
+      #timelineSvg, #clusterSvg { width: 100% !important; }
+      #timelineArea, #clusterArea { touch-action: pan-x pan-y pinch-zoom; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Mobile-only top bar (hidden on desktop via media query) -->
+<header id="mobile-header">
+  <button id="mobile-menu-btn" aria-label="Open menu">&#9776;</button>
+  <div id="mobile-header-title">points of hue</div>
+</header>
+<div id="mobile-backdrop"></div>
+
+<div id="app">
+  <!-- ============================================================
+       SIDEBAR
+  ============================================================ -->
+  <nav id="sidebar">
+    <div id="logo">
+      <div id="logo-name">points of hue</div>
+    </div>
+    <div id="nav-links">
+      <button class="nav-btn active" data-view="museums">
+        <span class="nav-icon">&#9750;</span> Museums
+      </button>
+      <button class="nav-btn" data-view="gallery">
+        <span class="nav-icon">&#9638;</span> Gallery
+      </button>
+      <button class="nav-btn" data-view="artists">
+        <span class="nav-icon">&#9672;</span> Artists
+      </button>
+      <button class="nav-btn" data-view="cluster">
+        <span class="nav-icon">&#9678;</span> Clusters
+      </button>
+      <button class="nav-btn" data-view="timeline">
+        <span class="nav-icon">&#8212;</span> Timeline
+      </button>
+      <button class="nav-btn" data-view="recent">
+        <span class="nav-icon">&#9737;</span> Recently Added
+      </button>
+      <div id="nav-divider"></div>
+      <button class="nav-btn" data-view="add">
+        <span class="nav-icon">+</span> Add Artwork
+      </button>
+    </div>
+  </nav>
+
+  <!-- ============================================================
+       MAIN CONTENT
+  ============================================================ -->
+  <main id="mainContent">
+    <!-- RECENTLY ADDED VIEW -->
+    <section id="recentView" class="view">
+      <div class="view-header">
+        <div>
+          <h1>Recently Added</h1>
+          <p id="recentCount"></p>
+        </div>
+      </div>
+      <div id="recentScroll" style="flex:1;overflow-y:auto;min-height:0;padding:0 28px 28px;">
+        <div id="recentGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;"></div>
+        <div id="recentEmpty" class="hidden" style="text-align:center;padding:60px 20px;">
+          <div class="empty-state">
+            <div class="empty-state-icon">&#9737;</div>
+            <div class="empty-state-text">No artworks yet. Add artworks to see them here.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TIMELINE VIEW -->
+    <section id="timelineView" class="view hidden">
+      <div class="view-header">
+        <div>
+          <h1>Timeline</h1>
+          <p id="timelineCount">Artworks through the ages</p>
+        </div>
+        <div class="header-controls">
+          <select class="filter-select" id="eraJump">
+            <option value="">Jump to era...</option>
+            <option value="-3000">Ancient</option>
+            <option value="500">Medieval</option>
+            <option value="1400">Renaissance</option>
+            <option value="1600">Baroque</option>
+            <option value="1780">Romanticism</option>
+            <option value="1860">Impressionism</option>
+            <option value="1900">Modern</option>
+            <option value="1970">Contemporary</option>
+          </select>
+        </div>
+      </div>
+      <div id="timelineArea">
+        <svg id="timelineSvg"></svg>
+        <div class="zoom-controls" id="tlZoomControls">
+          <button class="zoom-btn" id="tlZoomIn">+</button>
+          <button class="zoom-btn" id="tlZoomOut">&minus;</button>
+          <button class="zoom-btn" id="tlFit" title="Fit to view">&#9634;</button>
+        </div>
+        <div id="timelineEmpty" class="hidden" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+          <div class="empty-state">
+            <div class="empty-state-icon">&#9697;</div>
+            <div class="empty-state-text">No artworks yet. Add your first artwork to see the timeline.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CLUSTER VIEW -->
+    <section id="clusterView" class="view hidden">
+      <div class="view-header">
+        <div>
+          <h1>Clusters</h1>
+          <p id="clusterSubtitle">Explore connections between artworks</p>
+        </div>
+        <div class="header-controls">
+          <select class="filter-select" id="groupBySelect">
+            <option value="movement">By Movement</option>
+            <option value="medium">By Medium</option>
+            <option value="artist">By Artist</option>
+            <option value="century">By Century</option>
+          </select>
+        </div>
+      </div>
+      <div id="clusterFilters">
+        <input id="clusterSearch" type="text" placeholder="Search artworks..." />
+        <select class="cl-filter-select" id="clFilterMovement"><option value="">All movements</option></select>
+        <select class="cl-filter-select" id="clFilterMedium"><option value="">All mediums</option></select>
+        <select class="cl-filter-select" id="clFilterArtist"><option value="">All artists</option></select>
+        <select class="cl-filter-select" id="clFilterMuseum"><option value="">All museums</option></select>
+        <select class="cl-filter-select" id="clFilterCentury"><option value="">All centuries</option></select>
+        <button id="clClearFilters">Clear</button>
+      </div>
+      <div id="clusterArea">
+        <svg id="clusterSvg"></svg>
+        <div id="clusterLegend"></div>
+        <div class="zoom-controls" id="clZoomControls">
+          <button class="zoom-btn" id="clZoomIn">+</button>
+          <button class="zoom-btn" id="clZoomOut">&minus;</button>
+          <button class="zoom-btn" id="clFit" title="Fit to view">&#9634;</button>
+        </div>
+        <div id="clusterEmpty" class="hidden" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+          <div class="empty-state">
+            <div class="empty-state-icon">&#9678;</div>
+            <div class="empty-state-text">No artworks yet. Add artworks to explore clusters.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GALLERY VIEW -->
+    <section id="galleryView" class="view hidden">
+      <div class="view-header">
+        <div>
+          <h1>Gallery</h1>
+          <p id="galleryCount">Your collection</p>
+        </div>
+        <div class="header-controls">
+          <button class="btn-save" id="galleryAddBtn" style="font-size:12px;padding:6px 14px">+ Add Artwork</button>
+        </div>
+      </div>
+      <div id="galleryControls">
+        <input id="gallerySearch" type="text" placeholder="Search by title, artist, movement..." />
+        <select class="filter-select" id="filterMovement"><option value="">All movements</option></select>
+        <select class="filter-select" id="filterMedium"><option value="">All mediums</option></select>
+        <select class="filter-select" id="sortBy">
+          <option value="title">Title (A–Z)</option>
+          <option value="artist">Artist (A–Z)</option>
+          <option value="year-asc">Oldest first</option>
+          <option value="year-desc">Newest first</option>
+          <option value="added">Recently added</option>
+        </select>
+      </div>
+      <div id="galleryScroll"><div id="galleryGrid"></div></div>
+    </section>
+
+    <!-- ARTISTS VIEW -->
+    <section id="artistsView" class="view hidden">
+      <div class="view-header">
+        <div>
+          <h1>Artists</h1>
+          <p id="artistsCount">The hands behind the work</p>
+        </div>
+      </div>
+      <div id="artistsScroll"><div id="artistsGrid"></div></div>
+    </section>
+
+    <!-- MUSEUMS VIEW -->
+    <section id="museumsView" class="view hidden">
+      <div class="view-header">
+        <div>
+          <h1>Museums</h1>
+          <p id="museumsCount">Places you've explored</p>
+        </div>
+        <div class="header-controls">
+          <button class="btn-save" id="addMuseumBtn" style="font-size:12px;padding:6px 14px">+ Add Museum</button>
+        </div>
+      </div>
+      <div id="museumsScroll"><div id="museumsGrid"></div></div>
+    </section>
+  </main>
+
+  <!-- ============================================================
+       DETAIL PANEL
+  ============================================================ -->
+  <div id="detailPanel" class="hidden">
+    <button class="panel-close" id="closePanel">&times;</button>
+    <div class="panel-image" id="panelImage"></div>
+    <div class="panel-body">
+      <div class="panel-title" id="panelTitle"></div>
+      <div class="panel-artist" id="panelArtist"></div>
+      <div id="panelDetails"></div>
+      <div id="panelDescription"></div>
+      <div id="panelTagsSection"></div>
+      <div id="panelNotesSection"></div>
+      <div id="panelSource"></div>
+      <div class="panel-actions">
+        <button class="btn-edit" id="editArtworkBtn">Edit</button>
+        <button class="btn-delete" id="deleteArtworkBtn">Remove</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL
+============================================================ -->
+<div id="modalOverlay" class="hidden">
+  <div id="modalBox">
+    <div id="modalTitle">Add Artwork</div>
+
+    <div class="wiki-section" id="wikiSection">
+      <div class="wiki-section-title">Import from Wikipedia</div>
+      <div class="wiki-row">
+        <input class="wiki-url-input" id="wikiUrl" type="text" placeholder="Paste a Wikipedia URL..." />
+        <button class="btn-extract" id="extractBtn">Extract</button>
+      </div>
+      <div class="wiki-status hidden" id="wikiStatus"></div>
+      <div class="wiki-preview hidden" id="wikiPreview">
+        <img id="wikiPreviewImg" src="" alt="" />
+        <div class="wiki-preview-info">
+          <div class="wiki-preview-title" id="wikiPreviewTitle"></div>
+          <div class="wiki-preview-sub" id="wikiPreviewSub"></div>
+        </div>
+      </div>
+    </div>
+
+    <form id="artworkForm">
+      <div class="form-grid">
+        <div class="form-field">
+          <label class="form-label">Title *</label>
+          <input class="form-input" id="f-title" type="text" required />
+        </div>
+        <div class="form-field">
+          <label class="form-label">Artist</label>
+          <input class="form-input" id="f-artist" type="text" />
+        </div>
+        <div class="form-field">
+          <label class="form-label">Year</label>
+          <input class="form-input" id="f-year" type="number" placeholder="e.g. 1503" />
+        </div>
+        <div class="form-field">
+          <label class="form-label">Year End (optional)</label>
+          <input class="form-input" id="f-yearEnd" type="number" placeholder="e.g. 1519" />
+        </div>
+        <div class="form-field">
+          <label class="form-label">Medium</label>
+          <select class="form-select" id="f-medium">
+            <option value="">Select...</option>
+            <option value="Oil on canvas">Oil on canvas</option>
+            <option value="Oil on panel">Oil on panel</option>
+            <option value="Watercolor">Watercolor</option>
+            <option value="Fresco">Fresco</option>
+            <option value="Tempera">Tempera</option>
+            <option value="Acrylic">Acrylic</option>
+            <option value="Sculpture">Sculpture</option>
+            <option value="Bronze">Bronze</option>
+            <option value="Marble">Marble</option>
+            <option value="Ink">Ink</option>
+            <option value="Pastel">Pastel</option>
+            <option value="Mixed media">Mixed media</option>
+            <option value="Woodcut">Woodcut</option>
+            <option value="Etching">Etching</option>
+            <option value="Lithograph">Lithograph</option>
+            <option value="Photography">Photography</option>
+            <option value="Digital">Digital</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Movement</label>
+          <select class="form-select" id="f-movement">
+            <option value="">Select...</option>
+          </select>
+        </div>
+        <div class="form-field full">
+          <label class="form-label">Location</label>
+          <input class="form-input" id="f-location" type="text" placeholder="Museum, city" />
+        </div>
+        <div class="form-field full">
+          <label class="form-label">Image URL</label>
+          <input class="form-input" id="f-imageUrl" type="text" placeholder="https://..." />
+        </div>
+        <div class="form-field full">
+          <label class="form-label">Description</label>
+          <textarea class="form-textarea" id="f-description" rows="3"></textarea>
+        </div>
+        <div class="form-field full">
+          <label class="form-label">Tags (comma-separated)</label>
+          <input class="form-input" id="f-tags" type="text" placeholder="portrait, iconic, favorite" />
+        </div>
+        <div class="form-field full">
+          <label class="form-label">Personal Notes</label>
+          <textarea class="form-textarea" id="f-notes" rows="2" placeholder="Your thoughts..."></textarea>
+        </div>
+      </div>
+      <input type="hidden" id="f-source" value="manual" />
+      <input type="hidden" id="f-thumbUrl" value="" />
+      <input type="hidden" id="f-coordLat" value="" />
+      <input type="hidden" id="f-coordLng" value="" />
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" id="modalCancelBtn">Cancel</button>
+        <button type="submit" class="btn-save" id="modalSaveBtn">Save Artwork</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Museum Modal -->
+<div id="museumModalOverlay" class="hidden">
+  <div id="museumModalBox">
+    <div id="museumModalTitle" style="font-family:'Playfair Display',Georgia,serif;font-size:20px;font-weight:400;margin-bottom:20px">Add Museum</div>
+    <form id="museumForm">
+      <div class="form-grid">
+        <div class="form-field full">
+          <label class="form-label">Museum Name *</label>
+          <input class="form-input" id="m-name" type="text" required placeholder="e.g. The Louvre" />
+        </div>
+        <div class="form-field">
+          <label class="form-label">City</label>
+          <input class="form-input" id="m-city" type="text" placeholder="Paris" />
+        </div>
+        <div class="form-field">
+          <label class="form-label">Country</label>
+          <input class="form-input" id="m-country" type="text" placeholder="France" />
+        </div>
+        <div class="form-field">
+          <label class="form-label">Date Visited</label>
+          <input class="form-input" id="m-dateVisited" type="date" />
+        </div>
+        <div class="form-field">
+          <label class="form-label">Rating</label>
+          <select class="form-select" id="m-rating">
+            <option value="">No rating</option>
+            <option value="5">Must-see</option>
+            <option value="4">Loved it</option>
+            <option value="3">Good</option>
+            <option value="2">Okay</option>
+            <option value="1">Skip it</option>
+          </select>
+        </div>
+        <div class="form-field full">
+          <label class="form-label">Image URL</label>
+          <input class="form-input" id="m-imageUrl" type="text" placeholder="https://..." />
+        </div>
+        <div class="form-field full">
+          <label class="form-label">Notes</label>
+          <textarea class="form-textarea" id="m-notes" rows="3" placeholder="What did you see? What stood out?"></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" id="museumCancelBtn">Cancel</button>
+        <button type="submit" class="btn-save">Save Museum</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Point of Hue note modal -->
+<div id="hueModalOverlay" class="hidden">
+  <div id="hueModalBox">
+    <div id="hueModalTitle" style="font-family:'Playfair Display',Georgia,serif;font-size:20px;font-weight:400;margin-bottom:4px">Your point of hue</div>
+    <div id="hueModalSubtitle" style="font-size:13px;color:var(--text-muted);margin-bottom:18px"></div>
+    <textarea class="form-textarea" id="hueModalText" rows="6" placeholder="Your thoughts, reactions, memories — what's your point of hue?"></textarea>
+    <div class="form-actions">
+      <button type="button" class="btn-cancel" id="hueCancelBtn">Cancel</button>
+      <button type="button" class="btn-save" id="hueSaveBtn">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Tooltip -->
+<div class="tooltip hidden" id="tooltip">
+  <div class="tooltip-title" id="tooltipTitle"></div>
+  <div class="tooltip-sub" id="tooltipSub"></div>
+</div>
+
+<script>
+/* ================================================================
+   SECTION 1: CONSTANTS & CONFIG
+================================================================ */
+const MOVEMENTS = {
+  'Ancient':                { color: '#8a7a6a', start: -3000, end: 500 },
+  'Medieval':               { color: '#6a6a5a', start: 500,   end: 1400 },
+  'Renaissance':            { color: '#b8976a', start: 1400,  end: 1600 },
+  'Mannerism':              { color: '#a08a6a', start: 1520,  end: 1600 },
+  'Baroque':                { color: '#8a5a5a', start: 1600,  end: 1750 },
+  'Rococo':                 { color: '#c4a882', start: 1720,  end: 1780 },
+  'Neoclassicism':          { color: '#7a8a7a', start: 1750,  end: 1850 },
+  'Romanticism':            { color: '#8a6e8a', start: 1780,  end: 1850 },
+  'Realism':                { color: '#7a7064', start: 1840,  end: 1880 },
+  'Impressionism':          { color: '#7a8aaa', start: 1860,  end: 1890 },
+  'Post-Impressionism':     { color: '#b8886a', start: 1880,  end: 1910 },
+  'Art Nouveau':            { color: '#6a8a7a', start: 1890,  end: 1910 },
+  'Expressionism':          { color: '#aa6a5a', start: 1905,  end: 1930 },
+  'Cubism':                 { color: '#7a7a8a', start: 1907,  end: 1930 },
+  'Dada':                   { color: '#7a5a6a', start: 1916,  end: 1924 },
+  'Surrealism':             { color: '#8a7a9a', start: 1920,  end: 1960 },
+  'Abstract Expressionism': { color: '#5a7a8a', start: 1940,  end: 1960 },
+  'Pop Art':                { color: '#aa8a5a', start: 1955,  end: 1975 },
+  'Minimalism':             { color: '#6a7a7a', start: 1960,  end: 1980 },
+  'Contemporary':           { color: '#7a7a74', start: 1970,  end: 2030 },
+  'Ukiyo-e':                { color: '#8a9a7a', start: 1600,  end: 1900 },
+  'High Renaissance':       { color: '#d4b870', start: 1490,  end: 1530 },
+  'Northern Renaissance':   { color: '#9a8a6a', start: 1430,  end: 1580 },
+  'Mexican Muralism':       { color: '#c46a45', start: 1920,  end: 1960 },
+  'Other':                  { color: '#9e9890', start: -3000, end: 2030 }
+};
+
+const HISTORY_EVENTS = [
+  // Inventions
+  { year: -3500, label: 'Wheel', category: 'invention' },
+  { year: -3200, label: 'Writing', category: 'invention' },
+  { year: 105,   label: 'Paper (China)', category: 'invention' },
+  { year: 1440,  label: 'Printing Press', category: 'invention' },
+  { year: 1608,  label: 'Telescope', category: 'invention' },
+  { year: 1769,  label: 'Steam Engine', category: 'invention' },
+  { year: 1826,  label: 'Photography', category: 'invention' },
+  { year: 1876,  label: 'Telephone', category: 'invention' },
+  { year: 1879,  label: 'Light Bulb', category: 'invention' },
+  { year: 1895,  label: 'Radio', category: 'invention' },
+  { year: 1903,  label: 'Airplane', category: 'invention' },
+  { year: 1927,  label: 'Television', category: 'invention' },
+  { year: 1969,  label: 'Internet (ARPANET)', category: 'invention' },
+  // Wars
+  { year: -1200, label: 'Trojan War', category: 'war' },
+  { year: -431,  label: 'Peloponnesian War', category: 'war' },
+  { year: 476,   label: 'Fall of Rome', category: 'war' },
+  { year: 1096,  label: 'First Crusade', category: 'war' },
+  { year: 1337,  label: "Hundred Years' War", category: 'war' },
+  { year: 1618,  label: "Thirty Years' War", category: 'war' },
+  { year: 1775,  label: 'American Revolution', category: 'war' },
+  { year: 1803,  label: 'Napoleonic Wars', category: 'war' },
+  { year: 1914,  label: 'World War I', category: 'war' },
+  { year: 1939,  label: 'World War II', category: 'war' },
+  // Politics
+  { year: -508,  label: 'Athenian Democracy', category: 'politics' },
+  { year: 1215,  label: 'Magna Carta', category: 'politics' },
+  { year: 1492,  label: 'Columbus reaches Americas', category: 'politics' },
+  { year: 1776,  label: 'US Declaration of Independence', category: 'politics' },
+  { year: 1789,  label: 'French Revolution', category: 'politics' },
+  { year: 1865,  label: 'Abolition of Slavery (US)', category: 'politics' },
+  { year: 1920,  label: "Women's Suffrage (US)", category: 'politics' },
+  { year: 1945,  label: 'United Nations Founded', category: 'politics' },
+  { year: 1969,  label: 'Moon Landing', category: 'politics' },
+];
+
+const EVENT_COLORS = {
+  invention: '#7a8aaa',
+  war: '#aa6a5a',
+  politics: '#8a7a9a'
+};
+
+/* ================================================================
+   SECTION 2: DATA CRUD
+================================================================ */
+const STORAGE_KEY = 'artatlas_artworks';
+const META_KEY = 'artatlas_meta';
+
+function getArtworks() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+  catch(e) { return []; }
+}
+function saveArtworks(arr) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+}
+function getMeta() {
+  try { return JSON.parse(localStorage.getItem(META_KEY) || '{}'); }
+  catch(e) { return {}; }
+}
+function saveMeta(obj) {
+  localStorage.setItem(META_KEY, JSON.stringify(obj));
+}
+function generateId() {
+  if (crypto.randomUUID) return crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
+function getArtworkById(id) {
+  return getArtworks().find(a => a.id === id) || null;
+}
+function addArtwork(data) {
+  const artworks = getArtworks();
+  artworks.push({ ...data, id: generateId(), createdAt: new Date().toISOString() });
+  saveArtworks(artworks);
+  return artworks;
+}
+function updateArtwork(id, data) {
+  const artworks = getArtworks();
+  const idx = artworks.findIndex(a => a.id === id);
+  if (idx === -1) return artworks;
+  artworks[idx] = { ...artworks[idx], ...data };
+  saveArtworks(artworks);
+  return artworks;
+}
+function deleteArtwork(id) {
+  const artworks = getArtworks().filter(a => a.id !== id);
+  saveArtworks(artworks);
+  return artworks;
+}
+
+/* ================================================================
+   SECTION 2b: MUSEUM CRUD
+================================================================ */
+const MUSEUMS_KEY = 'artatlas_museums';
+
+// Personal "point of hue" notes for artists (artists are derived from artworks, not stored
+// entities, so their notes live in a separate map keyed by artist name).
+const ARTIST_NOTES_KEY = 'artatlas_artist_notes';
+function getArtistNotes() {
+  try { return JSON.parse(localStorage.getItem(ARTIST_NOTES_KEY) || '{}'); }
+  catch(e) { return {}; }
+}
+function getArtistNote(name) { return getArtistNotes()[name] || ''; }
+function setArtistNote(name, text) {
+  const notes = getArtistNotes();
+  if (text) notes[name] = text; else delete notes[name];
+  localStorage.setItem(ARTIST_NOTES_KEY, JSON.stringify(notes));
+}
+
+function getMuseums() {
+  try { return JSON.parse(localStorage.getItem(MUSEUMS_KEY) || '[]'); }
+  catch(e) { return []; }
+}
+function saveMuseums(arr) {
+  localStorage.setItem(MUSEUMS_KEY, JSON.stringify(arr));
+}
+function getMuseumById(id) {
+  return getMuseums().find(m => m.id === id) || null;
+}
+function addMuseum(data) {
+  const museums = getMuseums();
+  museums.push({ ...data, id: generateId(), createdAt: new Date().toISOString() });
+  saveMuseums(museums);
+  return museums;
+}
+function updateMuseum(id, data) {
+  const museums = getMuseums();
+  const idx = museums.findIndex(m => m.id === id);
+  if (idx === -1) return museums;
+  museums[idx] = { ...museums[idx], ...data };
+  saveMuseums(museums);
+  return museums;
+}
+function deleteMuseum(id) {
+  const museums = getMuseums().filter(m => m.id !== id);
+  saveMuseums(museums);
+  return museums;
+}
+
+// Match artworks to a museum by checking if artwork.location contains the museum name
+function getArtworksForMuseum(museum) {
+  const artworks = getArtworks();
+  const name = museum.name.toLowerCase();
+  return artworks.filter(a => {
+    if (!a.location) return false;
+    const loc = a.location.toLowerCase();
+    return loc.includes(name) || name.includes(loc.split(',')[0].trim());
+  });
+}
+
+/* ================================================================
+   SECTION 3: DEMO DATA
+================================================================ */
+function seedDemoData() {
+  const SEED_VERSION = 10;
+  const meta = getMeta();
+  if (meta.seeded && meta.seedVersion >= SEED_VERSION) return;
+
+  const demos = [
+    {
+      title: 'Lascaux Cave Paintings',
+      artist: 'Unknown',
+      year: -15000,
+      yearEnd: null,
+      medium: 'Other',
+      movement: 'Ancient',
+      location: 'Lascaux, France',
+      coordinates: { lat: 45.0544, lng: 1.1686 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Lascaux_painting.jpg/400px-Lascaux_painting.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Lascaux_painting.jpg/200px-Lascaux_painting.jpg',
+      description: 'Paleolithic cave paintings estimated to be over 17,000 years old, featuring large animals and abstract signs.',
+      tags: ['prehistoric', 'cave art'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/Lascaux'
+    },
+    {
+      title: 'Venus de Milo',
+      artist: 'Alexandros of Antioch',
+      year: -130,
+      yearEnd: null,
+      medium: 'Marble',
+      movement: 'Ancient',
+      location: 'Louvre, Paris',
+      coordinates: { lat: 48.8606, lng: 2.3376 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Front_views_of_the_Venus_de_Milo.jpg/800px-Front_views_of_the_Venus_de_Milo.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Front_views_of_the_Venus_de_Milo.jpg/500px-Front_views_of_the_Venus_de_Milo.jpg',
+      description: 'Ancient Greek sculpture depicting the goddess Aphrodite, famous for its missing arms.',
+      tags: ['sculpture', 'greek', 'iconic'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/Venus_de_Milo'
+    },
+    {
+      title: 'The Birth of Venus',
+      artist: 'Sandro Botticelli',
+      year: 1485,
+      yearEnd: null,
+      medium: 'Tempera',
+      movement: 'Renaissance',
+      location: 'Uffizi Gallery, Florence',
+      coordinates: { lat: 43.7687, lng: 11.2551 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Sandro_Botticelli_-_La_nascita_di_Venere_-_Google_Art_Project_-_edited.jpg/500px-Sandro_Botticelli_-_La_nascita_di_Venere_-_Google_Art_Project_-_edited.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Sandro_Botticelli_-_La_nascita_di_Venere_-_Google_Art_Project_-_edited.jpg/250px-Sandro_Botticelli_-_La_nascita_di_Venere_-_Google_Art_Project_-_edited.jpg',
+      description: 'Depicts the goddess Venus arriving at the shore after her birth, fully grown.',
+      tags: ['mythology', 'iconic', 'renaissance'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/The_Birth_of_Venus'
+    },
+    {
+      title: 'Mona Lisa',
+      artist: 'Leonardo da Vinci',
+      year: 1503,
+      yearEnd: 1519,
+      medium: 'Oil on panel',
+      movement: 'Renaissance',
+      location: 'Louvre, Paris',
+      coordinates: { lat: 48.8606, lng: 2.3376 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg/400px-Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg/200px-Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg',
+      description: 'Half-length portrait of a woman, widely considered the most famous painting in the world.',
+      tags: ['portrait', 'iconic', 'da vinci'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/Mona_Lisa'
+    },
+    {
+      title: 'Girl with a Pearl Earring',
+      artist: 'Johannes Vermeer',
+      year: 1665,
+      yearEnd: null,
+      medium: 'Oil on canvas',
+      movement: 'Baroque',
+      location: 'Mauritshuis, The Hague',
+      coordinates: { lat: 52.0805, lng: 4.3142 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/1665_Girl_with_a_Pearl_Earring.jpg/400px-1665_Girl_with_a_Pearl_Earring.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/1665_Girl_with_a_Pearl_Earring.jpg/200px-1665_Girl_with_a_Pearl_Earring.jpg',
+      description: 'A tronie of a girl wearing an exotic dress and a large pearl earring.',
+      tags: ['portrait', 'dutch golden age', 'iconic'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/Girl_with_a_Pearl_Earring'
+    },
+    {
+      title: 'The Great Wave off Kanagawa',
+      artist: 'Katsushika Hokusai',
+      year: 1831,
+      yearEnd: null,
+      medium: 'Woodcut',
+      movement: 'Ukiyo-e',
+      location: 'Various collections worldwide',
+      coordinates: { lat: 35.6762, lng: 139.6503 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Tsunami_by_hokusai_19th_century.jpg/500px-Tsunami_by_hokusai_19th_century.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Tsunami_by_hokusai_19th_century.jpg/250px-Tsunami_by_hokusai_19th_century.jpg',
+      description: 'A woodblock print depicting a towering wave threatening boats near Kanagawa, with Mount Fuji in the background.',
+      tags: ['japanese', 'iconic', 'landscape', 'woodblock'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/The_Great_Wave_off_Kanagawa'
+    },
+    {
+      title: 'The Starry Night',
+      artist: 'Vincent van Gogh',
+      year: 1889,
+      yearEnd: null,
+      medium: 'Oil on canvas',
+      movement: 'Post-Impressionism',
+      location: 'MoMA, New York',
+      coordinates: { lat: 40.7614, lng: -73.9776 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/500px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/250px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg',
+      description: 'A swirling night sky over a village, painted during van Gogh\'s stay at the asylum in Saint-Remy-de-Provence.',
+      tags: ['landscape', 'iconic', 'van gogh'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/The_Starry_Night'
+    },
+    {
+      title: 'The Persistence of Memory',
+      artist: 'Salvador Dali',
+      year: 1931,
+      yearEnd: null,
+      medium: 'Oil on canvas',
+      movement: 'Surrealism',
+      location: 'MoMA, New York',
+      coordinates: { lat: 40.7614, lng: -73.9776 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/en/d/dd/The_Persistence_of_Memory.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/en/d/dd/The_Persistence_of_Memory.jpg',
+      description: 'Depicts melting pocket watches in a dreamlike landscape, one of the most recognizable works of Surrealism.',
+      tags: ['surreal', 'iconic', 'dali'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/The_Persistence_of_Memory'
+    },
+    {
+      title: "Campbell's Soup Cans",
+      artist: 'Andy Warhol',
+      year: 1962,
+      yearEnd: null,
+      medium: 'Acrylic',
+      movement: 'Pop Art',
+      location: 'MoMA, New York',
+      coordinates: { lat: 40.7614, lng: -73.9776 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/9/95/Campbell%27s_Soup_Cans_MOMA_reduced_80%25.jpg/440px-Campbell%27s_Soup_Cans_MOMA_reduced_80%25.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/9/95/Campbell%27s_Soup_Cans_MOMA_reduced_80%25.jpg/220px-Campbell%27s_Soup_Cans_MOMA_reduced_80%25.jpg',
+      description: 'Thirty-two canvases each depicting a different variety of Campbell\'s Soup, a foundational work of Pop Art.',
+      tags: ['pop art', 'iconic', 'warhol'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/Campbell%27s_Soup_Cans'
+    },
+    {
+      title: 'Las Meninas',
+      artist: 'Diego Velázquez',
+      year: 1656,
+      yearEnd: null,
+      medium: 'Oil on canvas',
+      movement: 'Baroque',
+      location: 'Museo del Prado, Madrid',
+      coordinates: { lat: 40.4138, lng: -3.6921 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Las_Meninas%2C_by_Diego_Vel%C3%A1zquez%2C_from_Prado_in_Google_Earth.jpg/450px-Las_Meninas%2C_by_Diego_Vel%C3%A1zquez%2C_from_Prado_in_Google_Earth.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Las_Meninas%2C_by_Diego_Vel%C3%A1zquez%2C_from_Prado_in_Google_Earth.jpg/220px-Las_Meninas%2C_by_Diego_Vel%C3%A1zquez%2C_from_Prado_in_Google_Earth.jpg',
+      description: 'A complex composition depicting the Infanta Margarita surrounded by attendants, with Velázquez himself painting at a large canvas.',
+      tags: ['baroque', 'spanish golden age', 'velazquez'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/Las_Meninas'
+    },
+    {
+      title: 'The Garden of Earthly Delights',
+      artist: 'Hieronymus Bosch',
+      year: 1505,
+      yearEnd: null,
+      medium: 'Oil on oak panels',
+      movement: 'Northern Renaissance',
+      location: 'Museo del Prado, Madrid',
+      coordinates: { lat: 40.4138, lng: -3.6921 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/The_Garden_of_earthly_delights.jpg/500px-The_Garden_of_earthly_delights.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/The_Garden_of_earthly_delights.jpg/220px-The_Garden_of_earthly_delights.jpg',
+      description: 'A triptych depicting Paradise, earthly pleasures, and Hell, filled with fantastical imagery and surreal creatures.',
+      tags: ['triptych', 'surreal', 'bosch'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/The_Garden_of_Earthly_Delights'
+    },
+    {
+      title: 'The Third of May 1808',
+      artist: 'Francisco Goya',
+      year: 1814,
+      yearEnd: null,
+      medium: 'Oil on canvas',
+      movement: 'Romanticism',
+      location: 'Museo del Prado, Madrid',
+      coordinates: { lat: 40.4138, lng: -3.6921 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/El_Tres_de_Mayo%2C_by_Francisco_de_Goya%2C_from_Prado_thin_black_margin.jpg/450px-El_Tres_de_Mayo%2C_by_Francisco_de_Goya%2C_from_Prado_thin_black_margin.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/El_Tres_de_Mayo%2C_by_Francisco_de_Goya%2C_from_Prado_thin_black_margin.jpg/220px-El_Tres_de_Mayo%2C_by_Francisco_de_Goya%2C_from_Prado_thin_black_margin.jpg',
+      description: 'A powerful depiction of the execution of Spanish resisters by Napoleon\'s soldiers, a landmark of anti-war art.',
+      tags: ['war', 'goya', 'romanticism'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/The_Third_of_May_1808'
+    },
+    {
+      title: 'Washington Crossing the Delaware',
+      artist: 'Emanuel Leutze',
+      year: 1851,
+      yearEnd: null,
+      medium: 'Oil on canvas',
+      movement: 'Romanticism',
+      location: 'The Met, New York',
+      coordinates: { lat: 40.7794, lng: -73.9632 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Washington_Crossing_the_Delaware_by_Emanuel_Leutze%2C_MMA-NYC%2C_1851.jpg/500px-Washington_Crossing_the_Delaware_by_Emanuel_Leutze%2C_MMA-NYC%2C_1851.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Washington_Crossing_the_Delaware_by_Emanuel_Leutze%2C_MMA-NYC%2C_1851.jpg/500px-Washington_Crossing_the_Delaware_by_Emanuel_Leutze%2C_MMA-NYC%2C_1851.jpg',
+      description: 'An iconic depiction of George Washington\'s surprise crossing of the Delaware River during the American Revolution.',
+      tags: ['american history', 'romanticism', 'leutze'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/Washington_Crossing_the_Delaware_(1851_painting)'
+    },
+    {
+      title: 'The Great Red Dragon and the Woman Clothed with the Sun',
+      artist: 'William Blake',
+      year: 1805,
+      yearEnd: null,
+      medium: 'Watercolor',
+      movement: 'Romanticism',
+      location: 'The Met, New York',
+      coordinates: { lat: 40.7794, lng: -73.9632 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/William_Blake_003.jpg/400px-William_Blake_003.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/William_Blake_003.jpg/220px-William_Blake_003.jpg',
+      description: 'A dramatic watercolor from Blake\'s series illustrating the Book of Revelation, showing a massive red dragon.',
+      tags: ['watercolor', 'blake', 'biblical'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/The_Great_Red_Dragon_Paintings'
+    },
+    {
+      title: 'Guernica',
+      artist: 'Pablo Picasso',
+      year: 1937,
+      yearEnd: null,
+      medium: 'Oil on canvas',
+      movement: 'Cubism',
+      location: 'Museo Reina Sofía, Madrid',
+      coordinates: { lat: 40.4086, lng: -3.6944 },
+      imageUrl: '',
+      thumbnailUrl: '',
+      description: 'Picasso\'s monumental anti-war masterpiece responding to the bombing of Guernica during the Spanish Civil War.',
+      tags: ['cubism', 'anti-war', 'picasso'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/Guernica_(Picasso)'
+    },
+    {
+      title: 'Sistine Chapel Ceiling',
+      artist: 'Michelangelo',
+      year: 1512,
+      yearEnd: null,
+      medium: 'Fresco',
+      movement: 'High Renaissance',
+      location: 'Vatican Museums, Vatican City',
+      coordinates: { lat: 41.9029, lng: 12.4545 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Creaci%C3%B3n_de_Ad%C3%A1m.jpg/500px-Creaci%C3%B3n_de_Ad%C3%A1m.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Creaci%C3%B3n_de_Ad%C3%A1m.jpg/220px-Creaci%C3%B3n_de_Ad%C3%A1m.jpg',
+      description: 'The ceiling of the Sistine Chapel, featuring the iconic Creation of Adam and scenes from Genesis.',
+      tags: ['fresco', 'michelangelo', 'renaissance'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/Sistine_Chapel_ceiling'
+    },
+    {
+      title: 'The School of Athens',
+      artist: 'Raphael',
+      year: 1511,
+      yearEnd: null,
+      medium: 'Fresco',
+      movement: 'High Renaissance',
+      location: 'Vatican Museums, Vatican City',
+      coordinates: { lat: 41.9029, lng: 12.4545 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/%22The_School_of_Athens%22_by_Raffaello_Sanzio_da_Urbino.jpg/500px-%22The_School_of_Athens%22_by_Raffaello_Sanzio_da_Urbino.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/%22The_School_of_Athens%22_by_Raffaello_Sanzio_da_Urbino.jpg/220px-%22The_School_of_Athens%22_by_Raffaello_Sanzio_da_Urbino.jpg',
+      description: 'A fresco depicting ancient Greek philosophers gathered in a grand classical hall, with Plato and Aristotle at center.',
+      tags: ['fresco', 'raphael', 'philosophy'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/The_School_of_Athens'
+    },
+    {
+      title: 'La Fornarina',
+      artist: 'Raphael',
+      year: 1520,
+      yearEnd: null,
+      medium: 'Oil on panel',
+      movement: 'High Renaissance',
+      location: 'Galleria Nazionale d\'Arte Antica, Rome',
+      coordinates: { lat: 41.8919, lng: 12.4922 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Raffaello_-_La_velata.jpg/400px-Raffaello_-_La_velata.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Raffaello_-_La_velata.jpg/200px-Raffaello_-_La_velata.jpg',
+      description: 'A portrait of a young woman believed to be Margherita Luti, Raphael\'s companion and muse, rendered with extraordinary tenderness and sensuality.',
+      tags: ['portrait', 'raphael', 'renaissance'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/La_Fornarina'
+    },
+    {
+      title: 'The Two Fridas',
+      artist: 'Frida Kahlo',
+      year: 1939,
+      yearEnd: null,
+      medium: 'Oil on canvas',
+      movement: 'Surrealism',
+      location: 'Museo de Arte Moderno, Mexico City',
+      coordinates: { lat: 19.4168, lng: -99.1794 },
+      imageUrl: '',
+      thumbnailUrl: '',
+      description: 'A double self-portrait depicting two versions of Frida Kahlo seated together — one in European dress with a broken heart, the other in traditional Tehuana dress with a whole heart — symbolizing her dual heritage and emotional turmoil during her divorce from Diego Rivera.',
+      tags: ['self-portrait', 'kahlo', 'surrealism', 'identity'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/The_Two_Fridas'
+    },
+    {
+      title: 'Self-Portrait with Thorn Necklace and Hummingbird',
+      artist: 'Frida Kahlo',
+      year: 1940,
+      yearEnd: null,
+      medium: 'Oil on canvas',
+      movement: 'Surrealism',
+      location: 'Harry Ransom Center, Austin',
+      coordinates: { lat: 30.2849, lng: -97.7341 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/1/1e/Frida_Kahlo_%28self_portrait%29.jpg/360px-Frida_Kahlo_%28self_portrait%29.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/1/1e/Frida_Kahlo_%28self_portrait%29.jpg/360px-Frida_Kahlo_%28self_portrait%29.jpg',
+      description: 'One of Kahlo\'s most iconic self-portraits, showing her wearing a thorn necklace that draws blood, with a hummingbird pendant, black cat, and monkey — each a symbol laden with personal and Mexican cultural meaning.',
+      tags: ['self-portrait', 'kahlo', 'symbolism', 'surrealism'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/Self-Portrait_with_Thorn_Necklace_and_Hummingbird'
+    },
+    {
+      title: 'Man, Controller of the Universe',
+      artist: 'Diego Rivera',
+      year: 1934,
+      yearEnd: null,
+      medium: 'Fresco',
+      movement: 'Mexican Muralism',
+      location: 'Palacio de Bellas Artes, Mexico City',
+      coordinates: { lat: 19.4352, lng: -99.1412 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Man%2C_Controller_of_the_Universe_%28Diego_Rivera%2C_Palacio_de_Bellas_Artes%29.jpg/500px-Man%2C_Controller_of_the_Universe_%28Diego_Rivera%2C_Palacio_de_Bellas_Artes%29.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Man%2C_Controller_of_the_Universe_%28Diego_Rivera%2C_Palacio_de_Bellas_Artes%29.jpg/250px-Man%2C_Controller_of_the_Universe_%28Diego_Rivera%2C_Palacio_de_Bellas_Artes%29.jpg',
+      description: 'A sweeping mural placing humanity at the center of scientific progress, industrial power, and political conflict — originally commissioned for Rockefeller Center, then destroyed and recreated in Mexico City after Rivera included a portrait of Lenin.',
+      tags: ['mural', 'rivera', 'mexican muralism', 'political'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/Man,_Controller_of_the_Universe'
+    },
+    {
+      title: 'Dream of a Sunday Afternoon in Alameda Park',
+      artist: 'Diego Rivera',
+      year: 1947,
+      yearEnd: null,
+      medium: 'Fresco',
+      movement: 'Mexican Muralism',
+      location: 'Museo Mural Diego Rivera, Mexico City',
+      coordinates: { lat: 19.4357, lng: -99.1446 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Sue%C3%B1o_de_una_tarde_dominical_en_la_Alameda_Central.jpg/500px-Sue%C3%B1o_de_una_tarde_dominical_en_la_Alameda_Central.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Sue%C3%B1o_de_una_tarde_dominical_en_la_Alameda_Central.jpg/250px-Sue%C3%B1o_de_una_tarde_dominical_en_la_Alameda_Central.jpg',
+      description: 'A panoramic mural depicting 500 years of Mexican history through figures strolling in Alameda Park — from the Aztecs and the Conquest through the Reform War to the Revolution — with Rivera himself as a child at center.',
+      tags: ['mural', 'rivera', 'mexican history', 'panoramic'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/Dream_of_a_Sunday_Afternoon_in_Alameda_Park'
+    },
+    {
+      title: 'Echo of a Scream',
+      artist: 'David Alfaro Siqueiros',
+      year: 1937,
+      yearEnd: null,
+      medium: 'Enamel on wood',
+      movement: 'Mexican Muralism',
+      location: 'MoMA, New York',
+      coordinates: { lat: 40.7614, lng: -73.9776 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/c/c9/Echo_of_a_Scream.jpg/350px-Echo_of_a_Scream.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/c/c9/Echo_of_a_Scream.jpg/350px-Echo_of_a_Scream.jpg',
+      description: 'An anguished infant\'s scream reverberates across a wasteland of industrial wreckage, the face doubling and echoing in a disturbing loop — Siqueiros\'s visceral protest against Fascism and war painted during the Spanish Civil War.',
+      tags: ['siqueiros', 'anti-war', 'expressionism', 'protest'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/Echo_of_a_Scream'
+    },
+    {
+      title: 'Prometheus',
+      artist: 'José Clemente Orozco',
+      year: 1930,
+      yearEnd: null,
+      medium: 'Fresco',
+      movement: 'Mexican Muralism',
+      location: 'Pomona College, Claremont',
+      coordinates: { lat: 34.0999, lng: -117.7116 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Orozco_Prometheus.jpg/400px-Orozco_Prometheus.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Orozco_Prometheus.jpg/200px-Orozco_Prometheus.jpg',
+      description: 'The first fresco painted in the United States by Orozco, depicting the Titan Prometheus straining to deliver fire to humanity — a heroic yet tormented figure that became a touchstone of the Mexican mural movement in America.',
+      tags: ['fresco', 'orozco', 'mythology', 'mural'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/Prometheus_(Orozco)'
+    },
+    {
+      title: 'Cubes in Color on Color',
+      artist: 'Sol LeWitt',
+      year: 1991,
+      yearEnd: null,
+      medium: 'Mixed media',
+      movement: 'Minimalism',
+      location: 'MASS MoCA, North Adams',
+      coordinates: { lat: 42.7012, lng: -73.1088 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Sol_LeWitt_Isometric%2C_Dimetric%2C_and_Trimetric_Drawings_%281980%29.jpg/400px-Sol_LeWitt_Isometric%2C_Dimetric%2C_and_Trimetric_Drawings_%281980%29.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Sol_LeWitt_Isometric%2C_Dimetric%2C_and_Trimetric_Drawings_%281980%29.jpg/200px-Sol_LeWitt_Isometric%2C_Dimetric%2C_and_Trimetric_Drawings_%281980%29.jpg',
+      description: 'One of LeWitt\'s signature modular sculptures built from painted open cubes arranged in systematic variations — a landmark of Minimalism and Conceptual Art that proves complex visual experience can emerge from simple rules repeated rigorously.',
+      tags: ['minimalism', 'conceptual', 'lewitt', 'sculpture'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/Sol_LeWitt'
+    },
+    {
+      title: 'Girl Interrupted at Her Music',
+      artist: 'Johannes Vermeer',
+      year: 1658,
+      yearEnd: 1659,
+      medium: 'Oil on canvas',
+      movement: 'Baroque',
+      location: 'The Frick Collection, New York',
+      coordinates: { lat: 40.7711, lng: -73.9674 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Vermeer_Girl_Interrupted_at_Her_Music.jpg/500px-Vermeer_Girl_Interrupted_at_Her_Music.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Vermeer_Girl_Interrupted_at_Her_Music.jpg/250px-Vermeer_Girl_Interrupted_at_Her_Music.jpg',
+      description: 'An early Vermeer genre scene of a young woman and a man pausing over a music lesson as she glances toward the viewer.',
+      tags: ['portrait', 'dutch golden age', 'genre'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/Girl_Interrupted_at_Her_Music'
+    },
+    {
+      title: 'Nude Descending a Staircase, No. 2',
+      artist: 'Marcel Duchamp',
+      year: 1912,
+      yearEnd: null,
+      medium: 'Oil on canvas',
+      movement: 'Cubism',
+      location: 'Philadelphia Museum of Art, Philadelphia',
+      coordinates: { lat: 39.9656, lng: -75.1810 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/c/c0/Duchamp_-_Nude_Descending_a_Staircase.jpg/330px-Duchamp_-_Nude_Descending_a_Staircase.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/c/c0/Duchamp_-_Nude_Descending_a_Staircase.jpg/330px-Duchamp_-_Nude_Descending_a_Staircase.jpg',
+      description: 'A mechanical figure caught mid-motion fusing Cubist facets with Futurist dynamism; caused a scandal at the 1913 Armory Show and became a defining image of early modernism.',
+      tags: ['cubism', 'futurism', 'iconic'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/Nude_Descending_a_Staircase,_No._2'
+    },
+    {
+      title: 'The Bride Stripped Bare by Her Bachelors, Even',
+      artist: 'Marcel Duchamp',
+      year: 1915,
+      yearEnd: 1923,
+      medium: 'Mixed media on glass',
+      movement: 'Dada',
+      location: 'Philadelphia Museum of Art, Philadelphia',
+      coordinates: { lat: 39.9656, lng: -75.1810 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/b/be/Duchamp_LargeGlass.jpg/330px-Duchamp_LargeGlass.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/b/be/Duchamp_LargeGlass.jpg/330px-Duchamp_LargeGlass.jpg',
+      description: 'Also known as The Large Glass — a monumental two-panel work depicting a mechanical bride and her nine bachelors, which Duchamp declared finished after it cracked in transit.',
+      tags: ['dada', 'conceptual', 'iconic'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/The_Bride_Stripped_Bare_by_Her_Bachelors,_Even'
+    },
+    {
+      title: 'Fountain',
+      artist: 'Marcel Duchamp',
+      year: 1917,
+      yearEnd: null,
+      medium: 'Readymade (porcelain)',
+      movement: 'Dada',
+      location: 'Various (original lost)',
+      coordinates: { lat: 0, lng: 0 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Marcel_Duchamp%2C_1917%2C_Fountain%2C_photograph_by_Alfred_Stieglitz.jpg/330px-Marcel_Duchamp%2C_1917%2C_Fountain%2C_photograph_by_Alfred_Stieglitz.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Marcel_Duchamp%2C_1917%2C_Fountain%2C_photograph_by_Alfred_Stieglitz.jpg/330px-Marcel_Duchamp%2C_1917%2C_Fountain%2C_photograph_by_Alfred_Stieglitz.jpg',
+      description: 'A porcelain urinal signed \'R. Mutt 1917\' — the most notorious readymade and a foundational moment for Conceptual Art; the original was lost and only later replicas survive.',
+      tags: ['dada', 'readymade', 'conceptual', 'iconic'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/Fountain_(Duchamp)'
+    },
+    {
+      title: 'L.H.O.O.Q.',
+      artist: 'Marcel Duchamp',
+      year: 1919,
+      yearEnd: null,
+      medium: 'Readymade (postcard)',
+      movement: 'Dada',
+      location: 'Centre Pompidou, Paris',
+      coordinates: { lat: 48.8607, lng: 2.3522 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/7/74/Marcel_Duchamp%2C_1919%2C_L.H.O.O.Q.jpg/330px-Marcel_Duchamp%2C_1919%2C_L.H.O.O.Q.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/7/74/Marcel_Duchamp%2C_1919%2C_L.H.O.O.Q.jpg/330px-Marcel_Duchamp%2C_1919%2C_L.H.O.O.Q.jpg',
+      description: 'A Mona Lisa postcard defaced with a mustache and goatee; the title\'s letters, read aloud in French, form a bawdy pun — a witty assault on artistic reverence.',
+      tags: ['dada', 'readymade', 'iconic'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/L.H.O.O.Q.'
+    },
+    {
+      title: 'Étant donnés',
+      artist: 'Marcel Duchamp',
+      year: 1946,
+      yearEnd: 1966,
+      medium: 'Mixed-media installation',
+      movement: 'Surrealism',
+      location: 'Philadelphia Museum of Art, Philadelphia',
+      coordinates: { lat: 39.9656, lng: -75.1810 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/en/2/25/Etant_donnes.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/en/2/25/Etant_donnes.jpg',
+      description: 'A secretive final work: a peephole in a weathered wooden door reveals a hyperrealistic tableau of a nude figure in a landscape, constructed over twenty years and only unveiled after Duchamp\'s death.',
+      tags: ['surrealism', 'installation', 'conceptual'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/%C3%89tant_donn%C3%A9s'
+    }
+  ];
+
+  const demoMuseums = [
+    { name: 'Museo del Prado', city: 'Madrid', country: 'Spain', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Museo_del_Prado_2016_%2825185969599%29.jpg/500px-Museo_del_Prado_2016_%2825185969599%29.jpg', notes: 'Spain\'s national art museum, home to the finest collection of Spanish masters including Velázquez, Goya, and El Greco.' },
+    { name: 'Louvre', city: 'Paris', country: 'France', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Louvre_Museum_Wikimedia_Commons.jpg/500px-Louvre_Museum_Wikimedia_Commons.jpg', notes: 'The world\'s most-visited museum, set in a former royal palace on the Seine and home to the Mona Lisa and the Venus de Milo.' },
+    { name: 'The Met', city: 'New York', country: 'United States', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Metropolitan_Museum_of_Art_%28The_Met%29_-_Central_Park%2C_NYC.jpg/500px-Metropolitan_Museum_of_Art_%28The_Met%29_-_Central_Park%2C_NYC.jpg', notes: 'The largest art museum in the Americas, spanning over 5,000 years of world culture along the edge of Central Park.' },
+    { name: 'MoMA', city: 'New York', country: 'United States', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/MoMa_NY_USA_1.jpg/500px-MoMa_NY_USA_1.jpg', notes: 'The Museum of Modern Art, holding a defining collection of modern and contemporary work from Post-Impressionism to today.' },
+    { name: 'Museo Reina Sofía', city: 'Madrid', country: 'Spain', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Edificio_Sabatini._Museo_Nacional_Centro_de_Arte_Reina_Sof%C3%ADa.jpg/500px-Edificio_Sabatini._Museo_Nacional_Centro_de_Arte_Reina_Sof%C3%ADa.jpg', notes: 'Spain\'s national museum of 20th-century art, centered on Picasso\'s Guernica with major works by Dalí and Miró.' },
+    { name: 'Uffizi Gallery', city: 'Florence', country: 'Italy', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Florence%2C_Italy_-_panoramio_%28125%29.jpg/500px-Florence%2C_Italy_-_panoramio_%28125%29.jpg', notes: 'One of the world\'s oldest galleries, holding an unrivalled collection of Italian Renaissance painting in the heart of Florence.' },
+    { name: 'Vatican Museums', city: 'Vatican City', country: 'Vatican City', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Vatican_Museums_Spiral_Staircase_2012.jpg/500px-Vatican_Museums_Spiral_Staircase_2012.jpg', notes: 'The papal museums of Vatican City, displaying centuries of art amassed by the Church and crowned by the Sistine Chapel.' },
+    { name: 'Museo de Arte Moderno', city: 'Mexico City', country: 'Mexico', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Museo_de_Arte_Moderno_Chapultepec.jpg/500px-Museo_de_Arte_Moderno_Chapultepec.jpg', notes: 'Home of Frida Kahlo\'s The Two Fridas.' },
+    { name: 'Palacio de Bellas Artes', city: 'Mexico City', country: 'Mexico', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/Palacio_de_Bellas_Artes%2C_M%C3%A9xico%2C_2013-10-11%2C_DD_01.jpg/500px-Palacio_de_Bellas_Artes%2C_M%C3%A9xico%2C_2013-10-11%2C_DD_01.jpg', notes: 'Houses murals by Rivera, Orozco, and Siqueiros.' },
+    { name: 'Museo Nacional de Antropología', city: 'Mexico City', country: 'Mexico', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Museo_Nacional_de_Antropolog%C3%ADa_%28El_Paragua%29_%288263441535%29.jpg/500px-Museo_Nacional_de_Antropolog%C3%ADa_%28El_Paragua%29_%288263441535%29.jpg', notes: 'Houses the Aztec Sun Stone and one of the world\'s great pre-Columbian collections.' },
+    { name: 'Musée d\'Orsay', city: 'Paris', country: 'France', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/MuseeDOrsay.jpg/500px-MuseeDOrsay.jpg', notes: 'Housed in a Beaux-Arts railway station; world\'s largest collection of Impressionist and Post-Impressionist masterpieces.' },
+    { name: 'Centre Pompidou', city: 'Paris', country: 'France', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Centre_Pompidou_%40_Beaubourg_%40_Paris_%2815448205062%29.jpg/500px-Centre_Pompidou_%40_Beaubourg_%40_Paris_%2815448205062%29.jpg', notes: 'High-tech architecture by Piano and Rogers; home to Europe\'s largest collection of modern and contemporary art.' },
+    { name: 'National Portrait Gallery', city: 'Washington D.C.', country: 'United States', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/USA-National_Portrait_Gallery0.jpg/500px-USA-National_Portrait_Gallery0.jpg', notes: 'Smithsonian museum home to presidential portraits including Kehinde Wiley\'s Barack Obama and Amy Sherald\'s Michelle Obama.' },
+    { name: 'Ghost Ranch', city: 'Abiquiú', country: 'United States', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Ghost_Ranch_redrock_cliffs.jpg/500px-Ghost_Ranch_redrock_cliffs.jpg', notes: 'Georgia O\'Keeffe\'s beloved high-desert retreat; 21,000-acre education center in the Piedra Lumbre valley of New Mexico.' },
+    { name: 'Palace of Versailles', city: 'Versailles', country: 'France', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Chateau_Versailles_Galerie_des_Glaces.jpg/500px-Chateau_Versailles_Galerie_des_Glaces.jpg', notes: 'Royal château and UNESCO World Heritage Site; centerpiece of French Baroque art, architecture, and garden design.' },
+    { name: 'Art Omi', city: 'Ghent', country: 'United States', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Art_Omi_%289236813787%29.jpg/500px-Art_Omi_%289236813787%29.jpg', notes: '120-acre international arts center with an outdoor sculpture field and artist residency programs in the Hudson Valley.' },
+    { name: 'Dia Beacon', city: 'Beacon', country: 'United States', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Diabeacon_2006.jpg/500px-Diabeacon_2006.jpg', notes: 'Dia Art Foundation\'s riverfront museum in a converted Nabisco factory; major works by Serra, Judd, and Heizer.' },
+    { name: 'Peggy Guggenheim Collection', city: 'Venice', country: 'Italy', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Palazzo_Venier_dei_Leoni_a_Dorsoduro_Venezia.jpg/500px-Palazzo_Venier_dei_Leoni_a_Dorsoduro_Venezia.jpg', notes: 'Peggy Guggenheim\'s former home on the Grand Canal; one of Europe\'s most important modern art museums.' },
+    { name: 'Guggenheim Museum Bilbao', city: 'Bilbao', country: 'Spain', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/GuggenheimBilbao.jpg/500px-GuggenheimBilbao.jpg', notes: 'Frank Gehry\'s titanium-clad masterpiece; credited with transforming Bilbao\'s economy and global profile.' },
+    { name: 'Summer Palace', city: 'Beijing', country: 'China', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Long_Corridor%2C_Summer_Palace.jpg/500px-Long_Corridor%2C_Summer_Palace.jpg', notes: 'Imperial garden palace and UNESCO World Heritage Site; ensemble of lakes, gardens, and palaces on the outskirts of Beijing.' },
+    { name: 'The Frick Collection', city: 'New York', country: 'United States', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Frick_Collection_New_York_entr%C3%A9e.jpg/500px-Frick_Collection_New_York_entr%C3%A9e.jpg', notes: 'Industrialist Henry Clay Frick\'s Gilded Age mansion on Fifth Avenue, displaying his intimate collection of Old Master paintings, sculpture, and decorative arts.' },
+    { name: 'Neue Galerie', city: 'New York', country: 'United States', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Neue_Gallery_%2848059179353%29.jpg/500px-Neue_Gallery_%2848059179353%29.jpg', notes: 'A museum of early-20th-century German and Austrian art set in a Fifth Avenue mansion; home to Klimt\'s golden portrait of Adele Bloch-Bauer.' },
+    { name: 'Philadelphia Museum of Art', city: 'Philadelphia', country: 'United States', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/PhiladelphiaMuseumOfArt2017.jpg/500px-PhiladelphiaMuseumOfArt2017.jpg', notes: 'One of the largest art museums in the United States, housed in a Greek Revival landmark on Fairmount overlooking the Benjamin Franklin Parkway (of Rocky-steps fame); holds the world\'s greatest Duchamp collection.' },
+  ];
+
+  // Founding year + the people behind each museum. Single source of truth: applied to the
+  // demoMuseums seed below (for first-time users) and reused by the v9 patch (existing users).
+  const MUSEUM_FOUNDING = {
+    'Museo del Prado': { founded: '1819', founders: 'King Ferdinand VII, at the urging of Queen María Isabel de Braganza' },
+    'Louvre': { founded: '1793', founders: 'Established as a public museum by the French Revolutionary government' },
+    'The Met': { founded: '1870', founders: 'A group of civic leaders, artists, and financiers led by John Taylor Johnston and John Jay' },
+    'MoMA': { founded: '1929', founders: 'Abby Aldrich Rockefeller, Lillie P. Bliss & Mary Quinn Sullivan' },
+    'Museo Reina Sofía': { founded: '1990 (inaugurated 1992)', founders: 'Created by the Spanish government and named for Queen Sofía' },
+    'Uffizi Gallery': { founded: '1581 (opened to the public 1769)', founders: 'Built for Cosimo I de\' Medici; collection bequeathed by Anna Maria Luisa de\' Medici' },
+    'Vatican Museums': { founded: '1506', founders: 'Pope Julius II' },
+    'Palacio de Bellas Artes': { founded: '1934', founders: 'Begun under President Porfirio Díaz; architects Adamo Boari & Federico Mariscal' },
+    'Museo de Arte Moderno': { founded: '1964', founders: 'Founded under Mexico\'s Instituto Nacional de Bellas Artes; building by architect Pedro Ramírez Vázquez' },
+    'Museo Nacional de Antropología': { founded: '1964 (origins 1825)', founders: 'Built under President Adolfo López Mateos; architect Pedro Ramírez Vázquez' },
+    'Musée d\'Orsay': { founded: '1986', founders: 'Created under Presidents Valéry Giscard d\'Estaing and François Mitterrand' },
+    'Centre Pompidou': { founded: '1977', founders: 'Commissioned by President Georges Pompidou; architects Renzo Piano & Richard Rogers' },
+    'National Portrait Gallery': { founded: '1962 (opened 1968)', founders: 'Established by the U.S. Congress as part of the Smithsonian Institution' },
+    'Ghost Ranch': { founded: '1955', founders: 'Donated to the Presbyterian Church by conservationist Arthur Pack; longtime home of Georgia O\'Keeffe' },
+    'Palace of Versailles': { founded: '1837 (palace built from 1682)', founders: 'Built by King Louis XIV; opened as a museum by King Louis-Philippe I' },
+    'Art Omi': { founded: '1992', founders: 'Francis Greenburger' },
+    'Dia Beacon': { founded: '2003', founders: 'Dia Art Foundation, founded by Heiner Friedrich, Philippa de Menil & Helen Winkler' },
+    'Peggy Guggenheim Collection': { founded: '1951 (opened as a museum 1980)', founders: 'Collector Peggy Guggenheim' },
+    'Guggenheim Museum Bilbao': { founded: '1997', founders: 'The Solomon R. Guggenheim Foundation and the Basque government; architect Frank Gehry' },
+    'Summer Palace': { founded: '1750', founders: 'Built by the Qianlong Emperor; rebuilt by Empress Dowager Cixi in 1888' },
+    'The Frick Collection': { founded: '1935', founders: 'Industrialist Henry Clay Frick' },
+    'Neue Galerie': { founded: '2001', founders: 'Ronald S. Lauder & Serge Sabarsky' },
+    'Philadelphia Museum of Art': { founded: '1876 (Fairmount building opened 1928)', founders: 'Chartered by the Pennsylvania legislature after the 1876 Centennial Exhibition; Fairmount building by architects Horace Trumbauer, Zantzinger, Borie & Medary' },
+  };
+  demoMuseums.forEach(m => { const f = MUSEUM_FOUNDING[m.name]; if (f) { m.founded = f.founded; m.founders = f.founders; } });
+
+  const stamp = d => ({ ...d, id: generateId(), createdAt: new Date().toISOString() });
+
+  if (!meta.seeded) {
+    // First-time seed: load all demo artworks and museums
+    saveArtworks(demos.map(stamp));
+    saveMuseums(demoMuseums.map(stamp));
+  } else {
+    // Version upgrade: add only artworks/museums not already in the collection
+    const existingArtworks = getArtworks();
+    const existingTitles = new Set(existingArtworks.map(a => a.title.toLowerCase()));
+    const newArtworks = demos.filter(d => !existingTitles.has(d.title.toLowerCase())).map(stamp);
+    if (newArtworks.length > 0) saveArtworks([...existingArtworks, ...newArtworks]);
+
+    const existingMuseums = getMuseums();
+    const existingMuseumNames = new Set(existingMuseums.map(m => m.name.toLowerCase()));
+    const newMuseums = demoMuseums.filter(m => !existingMuseumNames.has(m.name.toLowerCase())).map(stamp);
+    if (newMuseums.length > 0) saveMuseums([...existingMuseums, ...newMuseums]);
+
+    // v5: patch stale seed URLs so they auto-fetch correct versions on next load
+    if (meta.seedVersion < 5) {
+      const all = getArtworks();
+      let changed = false;
+      for (const a of all) {
+        // Guernica file renamed on Wikimedia — clear so Summary API auto-fills
+        if (a.title === 'Guernica') {
+          a.imageUrl = ''; a.thumbnailUrl = ''; changed = true;
+        }
+        // Two Fridas file moved on Wikimedia — clear so Summary API auto-fills
+        if (a.title === 'The Two Fridas') {
+          a.imageUrl = ''; a.thumbnailUrl = ''; changed = true;
+        }
+        // Venus de Milo: per-image minimum is ~500px; old seed had 300px/150px which return HTTP 400
+        if (a.title === 'Venus de Milo') {
+          a.imageUrl = 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Front_views_of_the_Venus_de_Milo.jpg/800px-Front_views_of_the_Venus_de_Milo.jpg';
+          a.thumbnailUrl = 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Front_views_of_the_Venus_de_Milo.jpg/500px-Front_views_of_the_Venus_de_Milo.jpg';
+          changed = true;
+        }
+        // Washington Crossing: old 220px thumbnail was below per-image minimum
+        if (a.title === 'Washington Crossing the Delaware') {
+          const url500 = 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Washington_Crossing_the_Delaware_by_Emanuel_Leutze%2C_MMA-NYC%2C_1851.jpg/500px-Washington_Crossing_the_Delaware_by_Emanuel_Leutze%2C_MMA-NYC%2C_1851.jpg';
+          a.imageUrl = url500; a.thumbnailUrl = url500; changed = true;
+        }
+      }
+      if (changed) saveArtworks(all);
+
+      // v5: patch museum cover images to show iconic artworks instead of building photos
+      const museumUpdates = {
+        'MoMA': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Henri_Rousseau_-_Le_R%C3%AAve_-_Google_Art_Project.jpg/500px-Henri_Rousseau_-_Le_R%C3%AAve_-_Google_Art_Project.jpg',
+        'Museo Reina Sofía': 'https://upload.wikimedia.org/wikipedia/en/thumb/7/74/PicassoGuernica.jpg/500px-PicassoGuernica.jpg',
+        'Uffizi Gallery': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Sandro_Botticelli_-_La_nascita_di_Venere_-_Google_Art_Project_-_edited.jpg/500px-Sandro_Botticelli_-_La_nascita_di_Venere_-_Google_Art_Project_-_edited.jpg',
+        'Museo de Arte Moderno': 'https://upload.wikimedia.org/wikipedia/en/f/f9/The_Two_Fridas.jpg',
+        'Museo Nacional de Antropología': 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/Monolito_de_la_Piedra_del_Sol.jpg/500px-Monolito_de_la_Piedra_del_Sol.jpg',
+        'Musée d\'Orsay': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/Paul_Gauguin_-_Deux_Tahitiennes.jpg/500px-Paul_Gauguin_-_Deux_Tahitiennes.jpg',
+        'Centre Pompidou': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Pompidou-Eiffel.jpg/500px-Pompidou-Eiffel.jpg',
+        'National Portrait Gallery': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Kehinde_Wiley_sculpture.jpg/500px-Kehinde_Wiley_sculpture.jpg',
+        'Ghost Ranch': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Georgia_O%27Keeffe%2C_Canyon_with_Crows.tif/lossless-page1-500px-Georgia_O%27Keeffe%2C_Canyon_with_Crows.tif.png',
+        'Palace of Versailles': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Chateau_Versailles_Galerie_des_Glaces.jpg/500px-Chateau_Versailles_Galerie_des_Glaces.jpg',
+        'Dia Beacon': 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/John_Chamberlain_at_the_Hirshhorn.jpg/500px-John_Chamberlain_at_the_Hirshhorn.jpg',
+        'Peggy Guggenheim Collection': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Welcome_to_the_Guggenheim_in_Venice_%2852205003044%29.jpg/500px-Welcome_to_the_Guggenheim_in_Venice_%2852205003044%29.jpg',
+        'Summer Palace': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Long_Corridor%2C_Summer_Palace.jpg/500px-Long_Corridor%2C_Summer_Palace.jpg',
+        'Art Omi': '',
+      };
+      const allMuseums = getMuseums();
+      let museumsChanged = false;
+      for (const m of allMuseums) {
+        if (museumUpdates[m.name]) { m.imageUrl = museumUpdates[m.name]; museumsChanged = true; }
+      }
+      if (museumsChanged) saveMuseums(allMuseums);
+    }
+
+    // v6: museum covers should show the BUILDING (facade or famous photo of the museum),
+    // not an artwork. Overwrite by name so users seeded at v5 (artwork covers) get buildings.
+    if (meta.seedVersion < 6) {
+      const museumFacades = {
+        'MoMA': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/MoMa_NY_USA_1.jpg/500px-MoMa_NY_USA_1.jpg',
+        'Vatican Museums': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Vatican_Museums_Spiral_Staircase_2012.jpg/500px-Vatican_Museums_Spiral_Staircase_2012.jpg',
+        'Museo Reina Sofía': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Edificio_Sabatini._Museo_Nacional_Centro_de_Arte_Reina_Sof%C3%ADa.jpg/500px-Edificio_Sabatini._Museo_Nacional_Centro_de_Arte_Reina_Sof%C3%ADa.jpg',
+        'Uffizi Gallery': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Florence%2C_Italy_-_panoramio_%28125%29.jpg/500px-Florence%2C_Italy_-_panoramio_%28125%29.jpg',
+        'Museo de Arte Moderno': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Museo_de_Arte_Moderno_Chapultepec.jpg/500px-Museo_de_Arte_Moderno_Chapultepec.jpg',
+        'Museo Nacional de Antropología': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Musee_National_Anthropologie-Entree.jpg/500px-Musee_National_Anthropologie-Entree.jpg',
+        'Musée d\'Orsay': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/MuseeDOrsay.jpg/500px-MuseeDOrsay.jpg',
+        'National Portrait Gallery': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/USA-National_Portrait_Gallery0.jpg/500px-USA-National_Portrait_Gallery0.jpg',
+        'Ghost Ranch': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Ghost_Ranch_redrock_cliffs.jpg/500px-Ghost_Ranch_redrock_cliffs.jpg',
+        'Dia Beacon': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Diabeacon_2006.jpg/500px-Diabeacon_2006.jpg',
+      };
+      const facadeMuseums = getMuseums();
+      let facadesChanged = false;
+      for (const m of facadeMuseums) {
+        if (museumFacades[m.name]) { m.imageUrl = museumFacades[m.name]; facadesChanged = true; }
+      }
+      if (facadesChanged) saveMuseums(facadeMuseums);
+    }
+
+    // v7: per-museum cover refinements — Antropología's courtyard fountain (El Paraguas),
+    // Pompidou's exterior, a nicer Peggy Guggenheim canal view, and Art Omi's grounds.
+    if (meta.seedVersion < 7) {
+      const coverRefinements = {
+        'Museo Nacional de Antropología': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Museo_Nacional_de_Antropolog%C3%ADa_%28El_Paragua%29_%288263441535%29.jpg/500px-Museo_Nacional_de_Antropolog%C3%ADa_%28El_Paragua%29_%288263441535%29.jpg',
+        'Centre Pompidou': 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Centre_Pompidou_%40_Beaubourg_%40_Paris_%2815448205062%29.jpg/500px-Centre_Pompidou_%40_Beaubourg_%40_Paris_%2815448205062%29.jpg',
+        'Peggy Guggenheim Collection': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Palazzo_Venier_dei_Leoni_a_Dorsoduro_Venezia.jpg/500px-Palazzo_Venier_dei_Leoni_a_Dorsoduro_Venezia.jpg',
+        'Art Omi': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Art_Omi_%289236813787%29.jpg/500px-Art_Omi_%289236813787%29.jpg',
+      };
+      const refineMuseums = getMuseums();
+      let refinedChanged = false;
+      for (const m of refineMuseums) {
+        if (coverRefinements[m.name]) { m.imageUrl = coverRefinements[m.name]; refinedChanged = true; }
+      }
+      if (refinedChanged) saveMuseums(refineMuseums);
+    }
+
+    // v8: backfill descriptions for museums that were seeded without notes.
+    // Only fills empty notes so user-edited descriptions are preserved.
+    if (meta.seedVersion < 8) {
+      const museumNotes = {
+        'Museo del Prado': 'Spain\'s national art museum, home to the finest collection of Spanish masters including Velázquez, Goya, and El Greco.',
+        'Louvre': 'The world\'s most-visited museum, set in a former royal palace on the Seine and home to the Mona Lisa and the Venus de Milo.',
+        'The Met': 'The largest art museum in the Americas, spanning over 5,000 years of world culture along the edge of Central Park.',
+        'MoMA': 'The Museum of Modern Art, holding a defining collection of modern and contemporary work from Post-Impressionism to today.',
+        'Museo Reina Sofía': 'Spain\'s national museum of 20th-century art, centered on Picasso\'s Guernica with major works by Dalí and Miró.',
+        'Uffizi Gallery': 'One of the world\'s oldest galleries, holding an unrivalled collection of Italian Renaissance painting in the heart of Florence.',
+        'Vatican Museums': 'The papal museums of Vatican City, displaying centuries of art amassed by the Church and crowned by the Sistine Chapel.',
+      };
+      const noteMuseums = getMuseums();
+      let notesChanged = false;
+      for (const m of noteMuseums) {
+        if (museumNotes[m.name] && !m.notes) { m.notes = museumNotes[m.name]; notesChanged = true; }
+      }
+      if (notesChanged) saveMuseums(noteMuseums);
+    }
+
+    // v9: backfill founding year + founders for existing museums (reuses MUSEUM_FOUNDING).
+    if (meta.seedVersion < 9) {
+      const fnd = getMuseums();
+      let foundedChanged = false;
+      for (const m of fnd) {
+        const f = MUSEUM_FOUNDING[m.name];
+        if (f && (!m.founded || !m.founders)) { m.founded = f.founded; m.founders = f.founders; foundedChanged = true; }
+      }
+      if (foundedChanged) saveMuseums(fnd);
+    }
+  }
+
+  saveMeta({ seeded: true, seedVersion: SEED_VERSION });
+}
+
+/* ================================================================
+   SECTION 4: UI STATE & NAVIGATION
+================================================================ */
+let currentView = 'recent';
+let activePanelArtworkId = null;
+let editingArtworkId = null;
+let timelineZoom = null;
+let timelineSvgG = null;
+let clusterSimulation = null;
+let clusterSvgG = null;
+let clusterZoom = null;
+
+function switchView(name) {
+  if (name === 'add') { openAddModal(null); return; }
+  currentView = name;
+  document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const viewEl = document.getElementById(name + 'View');
+  if (viewEl) viewEl.classList.remove('hidden');
+  const navBtn = document.querySelector(`[data-view="${name}"]`);
+  if (navBtn) navBtn.classList.add('active');
+  if (name === 'recent') renderRecent();
+  if (name === 'timeline') renderTimeline();
+  if (name === 'cluster') renderCluster();
+  if (name === 'gallery') renderGallery();
+  if (name === 'artists') renderArtists();
+  if (name === 'museums') renderMuseums();
+}
+
+function formatYear(year) {
+  if (year == null) return '';
+  if (year < 0) return Math.abs(year).toLocaleString() + ' BCE';
+  return String(year);
+}
+
+/* ================================================================
+   SECTION 5: WIKIPEDIA INTEGRATION
+================================================================ */
+function extractPageTitle(input) {
+  const trimmed = input.trim();
+  const urlMatch = trimmed.match(/(?:en\.(?:m\.)?wikipedia\.org\/wiki\/)([^#?]+)/);
+  if (urlMatch) return decodeURIComponent(urlMatch[1]);
+  if (!trimmed.includes('/') && !trimmed.includes(':')) {
+    return trimmed.replace(/ /g, '_');
+  }
+  return null;
+}
+
+function cleanWikitext(str) {
+  return str
+    .replace(/\[\[(?:[^\]|]*\|)?([^\]]+)\]\]/g, '$1')
+    .replace(/\{\{[^}]*\}\}/g, '')
+    .replace(/<[^>]+>/g, '')
+    .replace(/'{2,}/g, '')
+    .trim();
+}
+
+function parseInfobox(wikitext) {
+  const result = {};
+  const artistMatch = wikitext.match(/\|\s*artist\s*=\s*\[\[([^\]|]+)/i)
+                   || wikitext.match(/\|\s*artist\s*=\s*(.+)/im);
+  if (artistMatch) result.artist = cleanWikitext(artistMatch[1]);
+
+  const yearMatch = wikitext.match(/\|\s*year\s*=\s*(.+)/im);
+  if (yearMatch) {
+    const years = yearMatch[1].match(/(\d{3,4})/g);
+    if (years && years.length >= 1) result.year = parseInt(years[0]);
+    if (years && years.length >= 2) result.yearEnd = parseInt(years[1]);
+  }
+
+  const mediumMatch = wikitext.match(/\|\s*medium\s*=\s*(.+)/im);
+  if (mediumMatch) result.medium = cleanWikitext(mediumMatch[1]);
+
+  const museumMatch = wikitext.match(/\|\s*museum\s*=\s*(.+)/im)
+                   || wikitext.match(/\|\s*location\s*=\s*(.+)/im);
+  if (museumMatch) result.museum = cleanWikitext(museumMatch[1]);
+
+  const cityMatch = wikitext.match(/\|\s*city\s*=\s*(.+)/im);
+  if (cityMatch) {
+    const city = cleanWikitext(cityMatch[1]);
+    result.location = result.museum ? `${result.museum}, ${city}` : city;
+  } else if (result.museum) {
+    result.location = result.museum;
+  }
+
+  const moveMatch = wikitext.match(/\|\s*(?:movement|style|type)\s*=\s*(.+)/im);
+  if (moveMatch) result.movementRaw = cleanWikitext(moveMatch[1]);
+
+  return result;
+}
+
+function guessMovement(infobox, description) {
+  if (infobox.movementRaw) {
+    const raw = infobox.movementRaw.toLowerCase();
+    for (const name of Object.keys(MOVEMENTS)) {
+      if (raw.includes(name.toLowerCase())) return name;
+    }
+  }
+  const text = (description || '').toLowerCase();
+  const keywords = {
+    'Impressionism': ['impressionist', 'impressionism'],
+    'Post-Impressionism': ['post-impressionist', 'post-impressionism'],
+    'Renaissance': ['renaissance'],
+    'Baroque': ['baroque'],
+    'Surrealism': ['surrealist', 'surrealism'],
+    'Cubism': ['cubist', 'cubism'],
+    'Pop Art': ['pop art'],
+    'Abstract Expressionism': ['abstract expressionism'],
+    'Expressionism': ['expressionist', 'expressionism'],
+    'Romanticism': ['romantic', 'romanticism'],
+    'Neoclassicism': ['neoclassical', 'neoclassicism'],
+    'Realism': ['realism', 'realist'],
+    'Art Nouveau': ['art nouveau'],
+    'Ukiyo-e': ['ukiyo-e', 'ukiyo'],
+    'Minimalism': ['minimalism', 'minimalist'],
+  };
+  for (const [movement, words] of Object.entries(keywords)) {
+    if (words.some(w => text.includes(w))) return movement;
+  }
+  const year = infobox.year;
+  if (year) {
+    if (year < 500) return 'Ancient';
+    if (year < 1400) return 'Medieval';
+    if (year < 1600) return 'Renaissance';
+    if (year < 1750) return 'Baroque';
+    if (year < 1850) return 'Romanticism';
+    if (year < 1900) return 'Impressionism';
+    if (year < 1970) return 'Contemporary';
+    return 'Contemporary';
+  }
+  return 'Other';
+}
+
+function stripHtml(html) {
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  return div.textContent || '';
+}
+
+async function extractFromWikipedia(url) {
+  const pageTitle = extractPageTitle(url);
+  if (!pageTitle) throw new Error('Not a valid Wikipedia URL or article name');
+
+  // Run all three API calls in parallel for speed
+  const [summaryResult, parseResult, imgResult] = await Promise.allSettled([
+    fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(pageTitle)}`),
+    fetch(`https://en.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(pageTitle)}&format=json&origin=*&prop=wikitext&section=0`),
+    fetch(`https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(pageTitle)}&prop=pageimages&piprop=original|thumbnail&pithumbsize=800&format=json&origin=*`)
+  ]);
+
+  if (summaryResult.status !== 'fulfilled' || !summaryResult.value.ok) throw new Error('Wikipedia page not found');
+  const summary = await summaryResult.value.json();
+
+  let infobox = {};
+  if (parseResult.status === 'fulfilled') {
+    try {
+      const parsed = await parseResult.value.json();
+      const wikitext = parsed?.parse?.wikitext?.['*'] || '';
+      infobox = parseInfobox(wikitext);
+    } catch(e) {}
+  }
+
+  // Images: prefer pageimages API, fallback to summary API
+  // Never manually rescale URLs — Wikimedia enforces per-image minimum sizes
+  let imageUrl = '';
+  let thumbnailUrl = '';
+
+  if (imgResult.status === 'fulfilled') {
+    try {
+      const imgJson = await imgResult.value.json();
+      const page = Object.values(imgJson?.query?.pages || {})[0];
+      const src = page?.thumbnail?.source || page?.original?.source || '';
+      if (src) { imageUrl = src; thumbnailUrl = src; }
+    } catch(e) {}
+  }
+
+  if (!imageUrl) {
+    const src = summary.thumbnail?.source || summary.originalimage?.source || '';
+    imageUrl = src; thumbnailUrl = src;
+  }
+
+  const desc = summary.extract_html
+    ? stripHtml(summary.extract_html).slice(0, 300)
+    : (summary.extract || '').slice(0, 300);
+
+  return {
+    title: summary.title || pageTitle.replace(/_/g, ' '),
+    artist: infobox.artist || '',
+    year: infobox.year || null,
+    yearEnd: infobox.yearEnd || null,
+    medium: infobox.medium || '',
+    movement: guessMovement(infobox, summary.description || desc),
+    location: infobox.location || infobox.museum || '',
+    coordinates: summary.coordinates || null,
+    imageUrl,
+    thumbnailUrl,
+    description: desc,
+    source: url.trim()
+  };
+}
+
+/* ================================================================
+   SECTION 5b: RECENTLY ADDED VIEW
+================================================================ */
+
+async function autoFetchArtworkImage(artworkId) {
+  const artwork = getArtworkById(artworkId);
+  if (!artwork || !artwork.source) return null;
+  const pageTitle = extractPageTitle(artwork.source);
+  if (!pageTitle) return null;
+  try {
+    // Summary API first — returns thumbnails for free AND non-free (copyrighted) artworks.
+    // pageimages API deliberately excludes non-free files, so Summary must come first.
+    const summaryRes = await fetch(
+      `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(pageTitle)}`
+    );
+    if (summaryRes.ok) {
+      const summary = await summaryRes.json();
+      const thumb = summary.thumbnail?.source || '';
+      const orig = summary.originalimage?.source || '';
+      if (thumb || orig) {
+        const imageUrl = orig || thumb;
+        const thumbnailUrl = thumb || orig;
+        const all = getArtworks();
+        const idx = all.findIndex(a => a.id === artworkId);
+        if (idx >= 0) { all[idx].imageUrl = imageUrl; all[idx].thumbnailUrl = thumbnailUrl; saveArtworks(all); }
+        return { imageUrl, thumbnailUrl };
+      }
+    }
+    // Fallback: pageimages API (free/Commons images only, but returns original resolution)
+    const res = await fetch(
+      `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(pageTitle)}&prop=pageimages&piprop=original|thumbnail&pithumbsize=800&format=json&origin=*`
+    );
+    const json = await res.json();
+    const page = Object.values(json?.query?.pages || {})[0];
+    const orig = page?.original?.source || '';
+    const thumb = page?.thumbnail?.source || '';
+    const imageUrl = orig || thumb;
+    const thumbnailUrl = thumb || orig;
+    if (!imageUrl && !thumbnailUrl) return null;
+    const all = getArtworks();
+    const idx = all.findIndex(a => a.id === artworkId);
+    if (idx >= 0) { all[idx].imageUrl = imageUrl; all[idx].thumbnailUrl = thumbnailUrl; saveArtworks(all); }
+    return { imageUrl, thumbnailUrl };
+  } catch(e) { return null; }
+}
+
+function attachArtCardListeners(grid) {
+  grid.querySelectorAll('.art-card-thumb').forEach(img => {
+    img.addEventListener('error', function onThumbError() {
+      img.removeEventListener('error', onThumbError); // fire once only — prevent loops
+      autoFetchArtworkImage(img.dataset.id).then(r => {
+        if (!r) return;
+        // Prefer thumbnail; if it's the same broken URL, fall back to original
+        const next = (r.thumbnailUrl && r.thumbnailUrl !== img.src) ? r.thumbnailUrl : r.imageUrl;
+        if (next && next !== img.src) img.src = next;
+      });
+    });
+  });
+  grid.querySelectorAll('.art-card-placeholder[data-id]').forEach(el => {
+    const id = el.dataset.id;
+    autoFetchArtworkImage(id).then(r => {
+      if (!r) return;
+      const src = r.thumbnailUrl || r.imageUrl;
+      if (src) el.outerHTML = `<div class="art-card-img"><img src="${src}" class="art-card-thumb" data-id="${id}" style="width:100%;height:100%;object-fit:cover;display:block" /></div>`;
+    });
+  });
+}
+
+function renderRecent() {
+  const artworks = getArtworks();
+  const grid = document.getElementById('recentGrid');
+  const emptyEl = document.getElementById('recentEmpty');
+  const countEl = document.getElementById('recentCount');
+
+  if (artworks.length === 0) {
+    grid.innerHTML = '';
+    emptyEl.classList.remove('hidden');
+    countEl.textContent = '';
+    return;
+  }
+  emptyEl.classList.add('hidden');
+
+  const sorted = [...artworks].sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+  countEl.textContent = sorted.length + ' artwork' + (sorted.length !== 1 ? 's' : '');
+
+  grid.innerHTML = sorted.map(a => {
+    const mvColor = MOVEMENTS[a.movement]?.color || '#9e9890';
+    const imgHtml = a.thumbnailUrl
+      ? `<div class="art-card-img"><img src="${a.thumbnailUrl}" class="art-card-thumb" data-id="${a.id}" style="width:100%;height:100%;object-fit:cover;display:block" /></div>`
+      : `<div class="art-card-img art-card-placeholder" data-id="${a.id}"><span>${a.title.slice(0, 2).toUpperCase()}</span></div>`;
+    const tagHtml = (a.tags || []).slice(0, 3).map(t => `<span class="tag-pill">${t}</span>`).join('');
+    return `<div class="art-card" data-id="${a.id}">
+      ${imgHtml}
+      <div class="art-card-body">
+        <div class="art-card-title">${a.title}</div>
+        <div class="art-card-artist">${a.artist || 'Unknown artist'}${a.year != null ? ' &middot; ' + formatYear(a.year) : ''}</div>
+        <div class="art-card-movement" style="color:${mvColor}">${a.movement || ''}</div>
+        ${tagHtml ? `<div class="card-tags">${tagHtml}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  grid.querySelectorAll('.art-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const a = getArtworkById(card.dataset.id);
+      if (a) openDetailPanel(a);
+    });
+  });
+  attachArtCardListeners(grid);
+}
+
+/* ================================================================
+   SECTION 6: TIMELINE VIEW
+================================================================ */
+function getActiveMovements(artworks) {
+  const present = new Set(artworks.map(a => a.movement).filter(Boolean));
+  return Object.entries(MOVEMENTS)
+    .filter(([name]) => present.has(name) && name !== 'Other')
+    .map(([name, data]) => ({ name, ...data }))
+    .sort((a, b) => a.start - b.start);
+}
+
+function assignNodePositions(sorted, xScale, baseY) {
+  const positions = [];
+  const occupied = [];
+  sorted.forEach(artwork => {
+    const x = xScale(artwork.year);
+    let y = baseY;
+    let attempts = 0;
+    while (occupied.some(o => Math.abs(o.x - x) < 58 && Math.abs(o.y - y) < 72) && attempts < 8) {
+      y += 78;
+      attempts++;
+    }
+    occupied.push({ x, y });
+    positions.push({ x, y, artwork });
+  });
+  return positions;
+}
+
+function renderTimeline() {
+  const artworks = getArtworks();
+  const svgEl = document.getElementById('timelineSvg');
+  const emptyEl = document.getElementById('timelineEmpty');
+
+  d3.select(svgEl).selectAll('*').remove();
+
+  const withYear = artworks.filter(a => a.year != null);
+  if (withYear.length === 0) {
+    emptyEl.classList.remove('hidden');
+    document.getElementById('timelineCount').textContent = 'No artworks with dates';
+    return;
+  }
+  emptyEl.classList.add('hidden');
+  document.getElementById('timelineCount').textContent = `${withYear.length} artwork${withYear.length !== 1 ? 's' : ''} through the ages`;
+
+  const width = svgEl.clientWidth || 1200;
+  const height = svgEl.clientHeight || 600;
+  const margin = { top: 30, right: 60, bottom: 40, left: 60 };
+
+  const years = withYear.map(a => a.year);
+  const minYear = Math.min(...years) - 100;
+  const maxYear = Math.max(...years) + 100;
+
+  // Use a hybrid scale: position artworks with proportional spacing, then scale to fit viewport.
+  // This compresses huge time gaps (like -15000 to 1485) using sqrt, keeping things readable.
+  const sortedUniqueYears = [...new Set(years)].sort((a, b) => a - b);
+  // First pass: compute raw spacings using sqrt compression
+  const rawSpacings = [];
+  for (let i = 1; i < sortedUniqueYears.length; i++) {
+    const gap = Math.abs(sortedUniqueYears[i] - sortedUniqueYears[i - 1]);
+    rawSpacings.push(Math.sqrt(gap));
+  }
+  // Target total width: enough to be scrollable but readable
+  const targetWidth = Math.max(width * 1.5, sortedUniqueYears.length * 100);
+  const usableWidth = targetWidth - margin.left - margin.right;
+  const rawTotal = rawSpacings.reduce((a, b) => a + b, 0) || 1;
+  const minNodeSpacing = 80; // minimum px between nodes
+  // Scale raw spacings to fit target width, with minimum per gap
+  const scaledSpacings = rawSpacings.map(r => Math.max(minNodeSpacing, (r / rawTotal) * usableWidth));
+  const scaledTotal = scaledSpacings.reduce((a, b) => a + b, 0);
+  // If scaled total exceeds target, that's fine (we zoom to fit)
+
+  const yearPositions = {};
+  let currentX = margin.left;
+  sortedUniqueYears.forEach((yr, i) => {
+    if (i === 0) {
+      yearPositions[yr] = currentX;
+    } else {
+      currentX += scaledSpacings[i - 1];
+      yearPositions[yr] = currentX;
+    }
+  });
+  const contentWidth = currentX + margin.right;
+  const xScale = (year) => {
+    // Interpolate between nearest known years
+    if (yearPositions[year] != null) return yearPositions[year];
+    // For movement bands / axis ticks, find bracketing years
+    let lower = sortedUniqueYears[0], upper = sortedUniqueYears[sortedUniqueYears.length - 1];
+    for (let i = 0; i < sortedUniqueYears.length - 1; i++) {
+      if (sortedUniqueYears[i] <= year && sortedUniqueYears[i + 1] >= year) {
+        lower = sortedUniqueYears[i];
+        upper = sortedUniqueYears[i + 1];
+        break;
+      }
+    }
+    if (lower === upper) return yearPositions[lower];
+    const t = (year - lower) / (upper - lower);
+    return yearPositions[lower] + t * (yearPositions[upper] - yearPositions[lower]);
+  };
+  // Extend scale for values outside data range
+  const xScaleExt = (year) => {
+    if (year <= sortedUniqueYears[0]) {
+      const ratio = (sortedUniqueYears[0] - year) / Math.max(1, Math.abs(sortedUniqueYears[0]));
+      return yearPositions[sortedUniqueYears[0]] - ratio * 100;
+    }
+    if (year >= sortedUniqueYears[sortedUniqueYears.length - 1]) {
+      const last = sortedUniqueYears[sortedUniqueYears.length - 1];
+      const ratio = (year - last) / Math.max(1, 100);
+      return yearPositions[last] + ratio * 100;
+    }
+    return xScale(year);
+  };
+
+  const svg = d3.select(svgEl);
+
+  timelineZoom = d3.zoom()
+    .scaleExtent([0.05, 8])
+    .on('zoom', e => { timelineSvgG.attr('transform', e.transform); });
+  svg.call(timelineZoom);
+
+  timelineSvgG = svg.append('g');
+
+  // Movement bands
+  const activeMovements = getActiveMovements(artworks);
+  const bandHeight = 22;
+  const bandGap = 3;
+  const bandY = margin.top;
+
+  activeMovements.forEach((mv, i) => {
+    const y = bandY + i * (bandHeight + bandGap);
+    const x1 = xScaleExt(mv.start);
+    const x2 = xScaleExt(mv.end);
+    timelineSvgG.append('rect')
+      .attr('x', x1)
+      .attr('y', y)
+      .attr('width', Math.max(60, x2 - x1))
+      .attr('height', bandHeight)
+      .attr('fill', mv.color)
+      .attr('opacity', 0.15)
+      .attr('rx', 3);
+    timelineSvgG.append('text')
+      .attr('x', x1 + 6)
+      .attr('y', y + bandHeight / 2 + 3.5)
+      .text(mv.name)
+      .attr('class', 'tl-movement-label')
+      .attr('fill', mv.color)
+      .attr('fill-opacity', 0.8);
+  });
+
+  // Axis
+  const axisY = bandY + activeMovements.length * (bandHeight + bandGap) + 20;
+  const axisX1 = xScaleExt(minYear);
+  const axisX2 = xScaleExt(maxYear);
+  timelineSvgG.append('line')
+    .attr('x1', axisX1).attr('x2', axisX2)
+    .attr('y1', axisY).attr('y2', axisY)
+    .attr('stroke', '#e5ddd0').attr('stroke-width', 1);
+
+  // Year labels at each artwork position
+  sortedUniqueYears.forEach(yr => {
+    const x = xScale(yr);
+    timelineSvgG.append('line')
+      .attr('x1', x).attr('x2', x)
+      .attr('y1', axisY - 6).attr('y2', axisY + 6)
+      .attr('stroke', '#e5ddd0').attr('stroke-width', 1);
+    timelineSvgG.append('text')
+      .attr('x', x).attr('y', axisY + 18)
+      .attr('text-anchor', 'middle')
+      .attr('class', 'tl-year-label')
+      .text(formatYear(yr));
+  });
+
+  // Artwork nodes
+  const nodeBaseY = axisY + 40;
+  const sorted = [...withYear].sort((a, b) => a.year - b.year);
+  const positions = assignNodePositions(sorted, yr => xScale(yr), nodeBaseY);
+
+  const nodes = timelineSvgG.selectAll('.tl-node')
+    .data(positions)
+    .join('g')
+    .attr('class', 'tl-node')
+    .attr('transform', d => `translate(${d.x}, ${d.y})`)
+    .on('click', (e, d) => { e.stopPropagation(); openDetailPanel(d.artwork); })
+    .on('mouseenter', (e, d) => showTooltip(e, d.artwork))
+    .on('mouseleave', hideTooltip);
+
+  // Lollipop stem
+  nodes.append('line')
+    .attr('x1', 0).attr('x2', 0)
+    .attr('y1', d => -(d.y - axisY)).attr('y2', -24)
+    .attr('stroke', '#e5ddd0').attr('stroke-width', 1)
+    .attr('stroke-dasharray', '2 2');
+
+  // Thumbnail or fallback circle
+  const nodeR = 22;
+  nodes.each(function(d) {
+    const g = d3.select(this);
+    const mvColor = MOVEMENTS[d.artwork.movement]?.color || '#9e9890';
+    if (d.artwork.thumbnailUrl) {
+      const clipId = 'tl-clip-' + d.artwork.id;
+      g.append('clipPath').attr('id', clipId)
+        .append('circle').attr('r', nodeR);
+      g.append('image')
+        .attr('href', d.artwork.thumbnailUrl)
+        .attr('x', -nodeR).attr('y', -nodeR)
+        .attr('width', nodeR * 2).attr('height', nodeR * 2)
+        .attr('clip-path', `url(#${clipId})`)
+        .attr('preserveAspectRatio', 'xMidYMid slice');
+    } else {
+      g.append('circle').attr('r', nodeR)
+        .attr('fill', '#ede8e0')
+        .attr('stroke', mvColor).attr('stroke-width', 1.5);
+      g.append('text')
+        .text(d.artwork.title.slice(0, 2).toUpperCase())
+        .attr('text-anchor', 'middle').attr('dominant-baseline', 'central')
+        .attr('font-size', '11px').attr('fill', mvColor)
+        .attr('font-family', "'Playfair Display', serif");
+    }
+    // Ring border
+    g.append('circle').attr('r', nodeR)
+      .attr('fill', 'none')
+      .attr('stroke', mvColor).attr('stroke-width', 1.5)
+      .attr('class', 'tl-ring');
+    // Title label
+    const title = d.artwork.title;
+    g.append('text')
+      .text(title.length > 16 ? title.slice(0, 14) + '...' : title)
+      .attr('y', nodeR + 14).attr('text-anchor', 'middle')
+      .attr('class', 'tl-title-label');
+    // Year label
+    g.append('text')
+      .text(formatYear(d.artwork.year))
+      .attr('y', nodeR + 26).attr('text-anchor', 'middle')
+      .attr('class', 'tl-date-label');
+  });
+
+  // ── Historical context events ──
+  const maxNodeY = positions.length > 0 ? Math.max(...positions.map(p => p.y)) : nodeBaseY;
+  const eventsGap = 50;
+  const eventsAxisY = maxNodeY + 80 + eventsGap;
+
+  // Separator line
+  timelineSvgG.append('line')
+    .attr('x1', axisX1).attr('x2', axisX2)
+    .attr('y1', eventsAxisY).attr('y2', eventsAxisY)
+    .attr('stroke', '#e5ddd0').attr('stroke-width', 0.5)
+    .attr('stroke-dasharray', '4 4');
+
+  // Section label
+  timelineSvgG.append('text')
+    .attr('x', axisX1 + 4).attr('y', eventsAxisY - 8)
+    .attr('class', 'tl-context-label')
+    .text('HISTORICAL CONTEXT');
+
+  // Category legend next to label
+  const legendX = axisX1 + 160;
+  [['invention', 'Inventions'], ['war', 'Wars'], ['politics', 'Politics']].forEach(([cat, label], i) => {
+    const lx = legendX + i * 90;
+    timelineSvgG.append('circle')
+      .attr('cx', lx).attr('cy', eventsAxisY - 11)
+      .attr('r', 3.5)
+      .attr('fill', EVENT_COLORS[cat]);
+    timelineSvgG.append('text')
+      .attr('x', lx + 7).attr('y', eventsAxisY - 7)
+      .attr('class', 'tl-context-label')
+      .attr('font-size', '8px')
+      .text(label);
+  });
+
+  // Filter events to visible range and position them
+  const visibleEvents = HISTORY_EVENTS.filter(ev => ev.year >= minYear && ev.year <= maxYear);
+  const eventNodeY = eventsAxisY + 20;
+
+  // Assign positions with collision avoidance (stagger into 3 rows)
+  const eventPositions = [];
+  const eventOccupied = [];
+  visibleEvents.sort((a, b) => a.year - b.year).forEach(ev => {
+    const x = xScale(ev.year);
+    let row = 0;
+    while (eventOccupied.some(o => Math.abs(o.x - x) < 65 && o.row === row) && row < 3) {
+      row++;
+    }
+    eventOccupied.push({ x, row });
+    eventPositions.push({ x, y: eventNodeY + row * 32, event: ev });
+  });
+
+  // Render event markers
+  const evNodes = timelineSvgG.append('g').selectAll('.tl-event-node')
+    .data(eventPositions).join('g')
+    .attr('class', 'tl-event-node')
+    .attr('transform', d => `translate(${d.x}, ${d.y})`)
+    .on('mouseenter', (e, d) => {
+      const ev = d.event;
+      const catLabel = ev.category === 'invention' ? 'Invention' : ev.category === 'war' ? 'War' : 'Politics';
+      const tip = document.getElementById('tooltip');
+      tip.innerHTML = `<strong>${ev.label}</strong><br>${formatYear(ev.year)} &middot; ${catLabel}`;
+      tip.style.opacity = 1;
+      tip.style.left = e.pageX + 12 + 'px';
+      tip.style.top = e.pageY - 20 + 'px';
+    })
+    .on('mouseleave', () => {
+      document.getElementById('tooltip').style.opacity = 0;
+    });
+
+  // Dot marker
+  evNodes.append('circle')
+    .attr('class', 'tl-event-marker')
+    .attr('r', 3.5)
+    .attr('fill', d => EVENT_COLORS[d.event.category]);
+
+  // Stem up to separator
+  evNodes.append('line')
+    .attr('x1', 0).attr('x2', 0)
+    .attr('y1', -3).attr('y2', d => -(d.y - eventsAxisY))
+    .attr('stroke', d => EVENT_COLORS[d.event.category])
+    .attr('stroke-width', 0.5)
+    .attr('stroke-opacity', 0.4);
+
+  // Label (angled)
+  evNodes.append('text')
+    .attr('x', 6).attr('y', 3)
+    .attr('class', 'tl-event-label')
+    .attr('fill', d => EVENT_COLORS[d.event.category])
+    .attr('fill-opacity', 0.85)
+    .attr('transform', 'rotate(-20)')
+    .text(d => d.event.label);
+
+  // Initial fit-to-view
+  fitTimeline();
+}
+
+function fitTimeline(forceAll) {
+  const svg = d3.select('#timelineSvg');
+  const g = timelineSvgG;
+  if (!g) return;
+  const svgEl = document.getElementById('timelineSvg');
+  const width = svgEl.clientWidth;
+  const height = svgEl.clientHeight;
+
+  const bounds = g.node().getBBox();
+  if (bounds.width === 0 || bounds.height === 0) return;
+
+  if (forceAll) {
+    // Fit everything
+    const padding = 20;
+    const scale = Math.min(
+      (width - padding * 2) / bounds.width,
+      (height - padding * 2) / bounds.height,
+      2
+    );
+    const tx = width / 2 - (bounds.x + bounds.width / 2) * scale;
+    const ty = height / 2 - (bounds.y + bounds.height / 2) * scale;
+    svg.transition().duration(500).call(
+      timelineZoom.transform,
+      d3.zoomIdentity.translate(tx, ty).scale(scale)
+    );
+  } else {
+    // Start at a readable zoom (scale 0.7-1.0), centered on the middle of content vertically
+    // and showing the densest area horizontally
+    const scale = Math.min(
+      (height - 20) / bounds.height,
+      1.0
+    );
+    // Center horizontally on the right 60% of content (where most artworks cluster)
+    const focusX = bounds.x + bounds.width * 0.55;
+    const focusCenterY = bounds.y + bounds.height / 2;
+    const tx = width / 2 - focusX * scale;
+    const ty = height / 2 - focusCenterY * scale;
+    svg.transition().duration(500).call(
+      timelineZoom.transform,
+      d3.zoomIdentity.translate(tx, ty).scale(scale)
+    );
+  }
+}
+
+/* ================================================================
+   SECTION 7: CLUSTER VIEW
+================================================================ */
+function populateClusterFilters(allArtworks) {
+  const museums = getMuseums();
+  const movements = [...new Set(allArtworks.map(a => a.movement).filter(Boolean))].sort();
+  const mediums = [...new Set(allArtworks.map(a => a.medium).filter(Boolean))].sort();
+  const artists = [...new Set(allArtworks.map(a => a.artist).filter(Boolean))].sort();
+  const museumNames = museums.map(m => m.name).sort();
+
+  // Century options
+  const centuries = [];
+  const hasAncient = allArtworks.some(a => a.year != null && a.year < 0);
+  if (hasAncient) centuries.push({ value: 'ancient', label: 'Ancient (BCE)' });
+  const centuryNums = new Set();
+  allArtworks.forEach(a => {
+    if (a.year != null && a.year >= 0) centuryNums.add(Math.floor(a.year / 100) + 1);
+  });
+  [...centuryNums].sort((a, b) => a - b).forEach(c => {
+    const suffix = c === 1 ? 'st' : c === 2 ? 'nd' : c === 3 ? 'rd' : 'th';
+    centuries.push({ value: String(c), label: c + suffix + ' century' });
+  });
+
+  function fillSelect(id, items, allLabel) {
+    const sel = document.getElementById(id);
+    const cur = sel.value;
+    sel.innerHTML = `<option value="">${allLabel}</option>` +
+      items.map(item => {
+        const val = typeof item === 'string' ? item : item.value;
+        const label = typeof item === 'string' ? item : item.label;
+        return `<option value="${val}"${val === cur ? ' selected' : ''}>${label}</option>`;
+      }).join('');
+  }
+  fillSelect('clFilterMovement', movements, 'All movements');
+  fillSelect('clFilterMedium', mediums, 'All mediums');
+  fillSelect('clFilterArtist', artists, 'All artists');
+  fillSelect('clFilterMuseum', museumNames, 'All museums');
+  fillSelect('clFilterCentury', centuries, 'All centuries');
+}
+
+function getClusterFiltered(allArtworks) {
+  const search = document.getElementById('clusterSearch').value.toLowerCase().trim();
+  const fMovement = document.getElementById('clFilterMovement').value;
+  const fMedium = document.getElementById('clFilterMedium').value;
+  const fArtist = document.getElementById('clFilterArtist').value;
+  const fMuseum = document.getElementById('clFilterMuseum').value;
+  const fCentury = document.getElementById('clFilterCentury').value;
+
+  // Show/hide clear button
+  const hasFilter = search || fMovement || fMedium || fArtist || fMuseum || fCentury;
+  document.getElementById('clClearFilters').style.display = hasFilter ? 'inline-block' : 'none';
+
+  return allArtworks.filter(a => {
+    if (fMovement && a.movement !== fMovement) return false;
+    if (fMedium && a.medium !== fMedium) return false;
+    if (fArtist && a.artist !== fArtist) return false;
+    if (fMuseum) {
+      const loc = (a.location || '').toLowerCase();
+      const mName = fMuseum.toLowerCase();
+      if (!loc.includes(mName) && !mName.includes(loc.split(',')[0].trim())) return false;
+    }
+    if (fCentury) {
+      if (fCentury === 'ancient') {
+        if (a.year == null || a.year >= 0) return false;
+      } else {
+        const c = parseInt(fCentury);
+        if (a.year == null || a.year < 0) return false;
+        const artCentury = Math.floor(a.year / 100) + 1;
+        if (artCentury !== c) return false;
+      }
+    }
+    if (search) {
+      const hay = [a.title, a.artist, a.movement, a.medium, a.location, a.description, ...(a.tags || [])].join(' ').toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
+  });
+}
+
+function renderCluster() {
+  const allArtworks = getArtworks();
+  const svgEl = document.getElementById('clusterSvg');
+  const emptyEl = document.getElementById('clusterEmpty');
+  const legendEl = document.getElementById('clusterLegend');
+  const subtitleEl = document.getElementById('clusterSubtitle');
+
+  d3.select(svgEl).selectAll('*').remove();
+  if (clusterSimulation) { clusterSimulation.stop(); clusterSimulation = null; }
+
+  // Populate filter dropdowns from all data
+  populateClusterFilters(allArtworks);
+
+  // Apply filters
+  const artworks = getClusterFiltered(allArtworks);
+
+  // Update subtitle
+  if (artworks.length === allArtworks.length) {
+    subtitleEl.textContent = artworks.length + ' ARTWORKS';
+  } else {
+    subtitleEl.textContent = artworks.length + ' OF ' + allArtworks.length + ' ARTWORKS';
+  }
+
+  if (artworks.length === 0) {
+    emptyEl.classList.remove('hidden');
+    legendEl.innerHTML = '';
+    return;
+  }
+  emptyEl.classList.add('hidden');
+
+  const groupBy = document.getElementById('groupBySelect').value;
+  const width = svgEl.clientWidth || 800;
+  const height = svgEl.clientHeight || 600;
+  const svg = d3.select(svgEl);
+
+  clusterZoom = d3.zoom()
+    .scaleExtent([0.2, 4])
+    .on('zoom', e => clusterSvgG.attr('transform', e.transform));
+  svg.call(clusterZoom).on('dblclick.zoom', null);
+  clusterSvgG = svg.append('g');
+
+  // Group artworks
+  function getGroupKey(a) {
+    switch (groupBy) {
+      case 'movement': return a.movement || 'Other';
+      case 'medium': return a.medium || 'Unknown';
+      case 'artist': return a.artist || 'Unknown';
+      case 'century': {
+        if (a.year == null) return 'Unknown';
+        if (a.year < 0) return 'Ancient';
+        const c = Math.floor(a.year / 100) + 1;
+        return c + (c === 1 ? 'st' : c === 2 ? 'nd' : c === 3 ? 'rd' : 'th') + ' century';
+      }
+      default: return a.movement || 'Other';
+    }
+  }
+
+  const groups = {};
+  artworks.forEach(a => {
+    const key = getGroupKey(a);
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(a);
+  });
+
+  const groupNames = Object.keys(groups).sort();
+  const angleStep = (2 * Math.PI) / Math.max(groupNames.length, 1);
+  const radius = Math.min(width, height) / 3.5;
+  const groupCenters = {};
+  groupNames.forEach((name, i) => {
+    groupCenters[name] = {
+      x: width / 2 + radius * Math.cos(i * angleStep - Math.PI / 2),
+      y: height / 2 + radius * Math.sin(i * angleStep - Math.PI / 2)
+    };
+  });
+
+  // Color assignment
+  function getColor(a, group) {
+    if (groupBy === 'movement') return MOVEMENTS[a.movement]?.color || '#9e9890';
+    const palette = ['#b8976a','#8a5a5a','#7a8aaa','#b8886a','#6a8a7a','#8a6e8a','#aa6a5a','#7a7a8a','#8a7a9a','#5a7a8a','#aa8a5a','#7a7a74','#c4a882','#7a8a7a','#8a7a6a','#6a6a5a'];
+    const idx = groupNames.indexOf(group);
+    return palette[idx % palette.length];
+  }
+
+  // Create nodes
+  const nodes = artworks.map(a => {
+    const group = getGroupKey(a);
+    return {
+      id: a.id, artwork: a, group,
+      color: getColor(a, group),
+      x: groupCenters[group].x + (Math.random() - 0.5) * 60,
+      y: groupCenters[group].y + (Math.random() - 0.5) * 60
+    };
+  });
+
+  // Group labels
+  clusterSvgG.append('g').selectAll('.group-label')
+    .data(groupNames).join('text')
+    .attr('class', 'group-label')
+    .attr('x', name => groupCenters[name].x)
+    .attr('y', name => groupCenters[name].y - 60 - Math.sqrt(groups[name].length) * 8)
+    .attr('text-anchor', 'middle')
+    .attr('font-size', '12px')
+    .attr('fill', '#8c7355')
+    .attr('font-family', "'Playfair Display', serif")
+    .attr('font-weight', '500')
+    .text(name => name);
+
+  // Render nodes
+  const nodeR = 24;
+  const nodeSel = clusterSvgG.append('g').selectAll('.cl-node')
+    .data(nodes, d => d.id).join('g')
+    .attr('class', 'cl-node')
+    .call(d3.drag()
+      .on('start', (e, d) => { if (!e.active) clusterSimulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+      .on('drag', (e, d) => { d.fx = e.x; d.fy = e.y; })
+      .on('end', (e, d) => { if (!e.active) clusterSimulation.alphaTarget(0); d.fx = null; d.fy = null; }))
+    .on('click', (e, d) => { e.stopPropagation(); openDetailPanel(d.artwork); })
+    .on('mouseenter', (e, d) => showTooltip(e, d.artwork))
+    .on('mouseleave', hideTooltip);
+
+  nodeSel.each(function(d) {
+    const g = d3.select(this);
+    if (d.artwork.thumbnailUrl) {
+      const clipId = 'cl-clip-' + d.artwork.id;
+      g.append('clipPath').attr('id', clipId)
+        .append('circle').attr('r', nodeR);
+      g.append('image')
+        .attr('href', d.artwork.thumbnailUrl)
+        .attr('x', -nodeR).attr('y', -nodeR)
+        .attr('width', nodeR * 2).attr('height', nodeR * 2)
+        .attr('clip-path', `url(#${clipId})`)
+        .attr('preserveAspectRatio', 'xMidYMid slice');
+    } else {
+      g.append('circle').attr('r', nodeR)
+        .attr('fill', '#ede8e0');
+      g.append('text')
+        .text(d.artwork.title.slice(0, 2).toUpperCase())
+        .attr('text-anchor', 'middle').attr('dominant-baseline', 'central')
+        .attr('font-size', '11px').attr('fill', d.color)
+        .attr('font-family', "'Playfair Display', serif");
+    }
+    g.append('circle').attr('r', nodeR)
+      .attr('fill', 'none')
+      .attr('stroke', d.color).attr('stroke-width', 1.5);
+    g.append('text')
+      .attr('y', nodeR + 14).attr('text-anchor', 'middle')
+      .attr('font-size', '9px').attr('fill', '#9c8e7e')
+      .attr('font-family', "'Inter', sans-serif")
+      .text(d.artwork.title.length > 14 ? d.artwork.title.slice(0, 12) + '...' : d.artwork.title);
+  });
+
+  // Force simulation
+  clusterSimulation = d3.forceSimulation(nodes)
+    .force('x', d3.forceX(d => groupCenters[d.group]?.x || width / 2).strength(0.12))
+    .force('y', d3.forceY(d => groupCenters[d.group]?.y || height / 2).strength(0.12))
+    .force('charge', d3.forceManyBody().strength(-60))
+    .force('collide', d3.forceCollide(nodeR + 14))
+    .on('tick', () => {
+      nodeSel.attr('transform', d => `translate(${d.x},${d.y})`);
+    });
+
+  // Legend
+  const uniqueGroups = groupNames.map(name => ({
+    name,
+    color: nodes.find(n => n.group === name)?.color || '#9e9890',
+    count: groups[name].length
+  }));
+  legendEl.innerHTML = `
+    <div class="legend-title">Groups</div>
+    ${uniqueGroups.map(g => `
+      <div class="legend-item">
+        <div class="legend-dot" style="background:${g.color}"></div>
+        <span class="legend-label">${g.name} (${g.count})</span>
+      </div>
+    `).join('')}
+  `;
+}
+
+/* ================================================================
+   SECTION 8: GALLERY VIEW
+================================================================ */
+function oneSentence(text) {
+  if (!text) return '';
+  const m = text.match(/^.*?[.!?](?=\s|$)/);
+  let s = (m ? m[0] : text).trim();
+  if (s.length > 160) s = s.slice(0, 157).trimEnd() + '…';
+  return s;
+}
+
+function renderGallery() {
+  const artworks = getArtworks();
+  const search = document.getElementById('gallerySearch').value.toLowerCase().trim();
+  const fMovement = document.getElementById('filterMovement').value;
+  const fMedium = document.getElementById('filterMedium').value;
+  const fSort = document.getElementById('sortBy').value;
+
+  // Populate filter dropdowns
+  const movements = [...new Set(artworks.map(a => a.movement).filter(Boolean))].sort();
+  const mediums = [...new Set(artworks.map(a => a.medium).filter(Boolean))].sort();
+  const movSel = document.getElementById('filterMovement');
+  const medSel = document.getElementById('filterMedium');
+  const curMov = movSel.value;
+  const curMed = medSel.value;
+  movSel.innerHTML = '<option value="">All movements</option>' + movements.map(m => `<option value="${m}"${m === curMov ? ' selected' : ''}>${m}</option>`).join('');
+  medSel.innerHTML = '<option value="">All mediums</option>' + mediums.map(m => `<option value="${m}"${m === curMed ? ' selected' : ''}>${m}</option>`).join('');
+
+  let filtered = artworks.filter(a => {
+    if (fMovement && a.movement !== fMovement) return false;
+    if (fMedium && a.medium !== fMedium) return false;
+    if (search) {
+      const hay = [a.title, a.artist, a.movement, a.medium, a.location, a.description, ...(a.tags || [])].join(' ').toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  switch (fSort) {
+    case 'year-asc': filtered.sort((a, b) => (a.year || 0) - (b.year || 0)); break;
+    case 'year-desc': filtered.sort((a, b) => (b.year || 0) - (a.year || 0)); break;
+    case 'title': filtered.sort((a, b) => a.title.localeCompare(b.title)); break;
+    case 'artist': filtered.sort((a, b) => (a.artist || '').localeCompare(b.artist || '')); break;
+    case 'added': filtered.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')); break;
+  }
+
+  document.getElementById('galleryCount').textContent = `${filtered.length} of ${artworks.length} artworks`;
+  const grid = document.getElementById('galleryGrid');
+
+  if (filtered.length === 0) {
+    grid.innerHTML = `<div class="empty-state">
+      <div class="empty-state-icon">&#9671;</div>
+      <div class="empty-state-text">${artworks.length === 0 ? 'No artworks yet. Add your first!' : 'No artworks match your search.'}</div>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(a => {
+    const mvColor = MOVEMENTS[a.movement]?.color || '#9e9890';
+    const imgHtml = a.thumbnailUrl
+      ? `<div class="art-card-img"><img src="${a.thumbnailUrl}" class="art-card-thumb" data-id="${a.id}" style="width:100%;height:100%;object-fit:cover;display:block" /></div>`
+      : `<div class="art-card-img art-card-placeholder" data-id="${a.id}"><span>${a.title.slice(0, 2).toUpperCase()}</span></div>`;
+    const tagHtml = (a.tags || []).slice(0, 3).map(t => `<span class="tag-pill">${t}</span>`).join('');
+    return `<div class="art-card" data-id="${a.id}">
+      ${imgHtml}
+      <div class="art-card-body">
+        <div class="art-card-title">${a.title}</div>
+        <div class="art-card-artist">${a.artist || 'Unknown artist'}${a.year != null ? ' &middot; ' + formatYear(a.year) : ''}</div>
+        ${a.description ? `<div class="art-card-desc">${oneSentence(a.description)}</div>` : ''}
+        <div class="art-card-movement" style="color:${mvColor}">${a.movement || ''}</div>
+        ${tagHtml ? `<div class="card-tags">${tagHtml}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  grid.querySelectorAll('.art-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const a = getArtworkById(card.dataset.id);
+      if (a) openDetailPanel(a);
+    });
+  });
+  attachArtCardListeners(grid);
+}
+
+/* ================================================================
+   SECTION 9: DETAIL PANEL
+================================================================ */
+function openDetailPanel(artwork) {
+  activePanelArtworkId = artwork.id;
+  const panel = document.getElementById('detailPanel');
+
+  // Image
+  const imgEl = document.getElementById('panelImage');
+  if (artwork.imageUrl) {
+    imgEl.innerHTML = `<img src="${artwork.imageUrl}" alt="${artwork.title}" class="panel-art-img" data-id="${artwork.id}" />`;
+    imgEl.querySelector('.panel-art-img').addEventListener('error', async () => {
+      const r = await autoFetchArtworkImage(artwork.id);
+      if (r) imgEl.querySelector('.panel-art-img').src = r.imageUrl;
+      else imgEl.innerHTML = `<div class="panel-no-image">${artwork.title.slice(0, 2).toUpperCase()}</div>`;
+    });
+  } else {
+    imgEl.innerHTML = `<div class="panel-no-image">${artwork.title.slice(0, 2).toUpperCase()}</div>`;
+    autoFetchArtworkImage(artwork.id).then(r => {
+      if (r) imgEl.innerHTML = `<img src="${r.imageUrl}" alt="${artwork.title}" />`;
+    });
+  }
+
+  document.getElementById('panelTitle').textContent = artwork.title;
+  document.getElementById('panelArtist').textContent = artwork.artist || 'Unknown artist';
+
+  // Details
+  const details = [];
+  if (artwork.year != null) {
+    const yearStr = formatYear(artwork.year) + (artwork.yearEnd ? ' \u2013 ' + formatYear(artwork.yearEnd) : '');
+    details.push(`<div class="panel-detail-row"><span class="panel-detail-icon">\u25C6</span><span>${yearStr}</span></div>`);
+  }
+  if (artwork.medium) details.push(`<div class="panel-detail-row"><span class="panel-detail-icon">\u25FB</span><span>${artwork.medium}</span></div>`);
+  if (artwork.movement) {
+    const color = MOVEMENTS[artwork.movement]?.color || '#9e9890';
+    details.push(`<div class="panel-detail-row"><span class="panel-detail-icon" style="color:${color}">\u25CF</span><span>${artwork.movement}</span></div>`);
+  }
+  if (artwork.location) details.push(`<div class="panel-detail-row"><span class="panel-detail-icon">\u25CB</span><span>${artwork.location}</span></div>`);
+  document.getElementById('panelDetails').innerHTML = details.length
+    ? `<div class="panel-section-title">Details</div>${details.join('')}` : '';
+
+  // Description
+  document.getElementById('panelDescription').innerHTML = artwork.description
+    ? `<div class="panel-section-title">About</div><p class="panel-description">${artwork.description}</p>` : '';
+
+  // Tags
+  document.getElementById('panelTagsSection').innerHTML = (artwork.tags?.length)
+    ? `<div class="panel-section-title">Tags</div><div class="panel-tags">${artwork.tags.map(t => `<span class="tag-pill">${t}</span>`).join('')}</div>` : '';
+
+  // Personal "point of hue" note
+  document.getElementById('panelNotesSection').innerHTML =
+    `<div class="panel-section-title">Your point of hue</div>` +
+    (artwork.notes
+      ? `<div class="panel-notes">${artwork.notes}</div>`
+      : `<div class="panel-notes" style="color:var(--text-dim);font-style:italic">No notes yet — add your point of hue.</div>`) +
+    `<button class="btn-hue" id="panelHueBtn" style="margin-top:8px">${artwork.notes ? 'Edit your point of hue' : '+ Add your point of hue'}</button>`;
+
+  // Source
+  document.getElementById('panelSource').innerHTML = (artwork.source && artwork.source !== 'manual')
+    ? `<div class="panel-section-title">Source</div><div class="panel-source"><a href="${artwork.source}" target="_blank" rel="noopener">Wikipedia</a></div>` : '';
+
+  document.getElementById('panelHueBtn').onclick = () => openHueModal('artwork', artwork.id, artwork.title);
+  document.getElementById('editArtworkBtn').onclick = () => openAddModal(artwork.id);
+  document.getElementById('deleteArtworkBtn').onclick = () => {
+    if (confirm(`Remove "${artwork.title}" from your collection?`)) {
+      deleteArtwork(artwork.id);
+      closeDetailPanel();
+      refreshCurrentView();
+    }
+  };
+
+  panel.classList.remove('hidden');
+}
+
+function closeDetailPanel() {
+  activePanelArtworkId = null;
+  document.getElementById('detailPanel').classList.add('hidden');
+}
+
+/* ---- Personal "point of hue" notes (artwork / museum / artist) ---- */
+let hueTarget = null;
+function openHueModal(type, key, name) {
+  hueTarget = { type, key };
+  let current = '';
+  if (type === 'artwork') { const a = getArtworkById(key); current = a ? (a.notes || '') : ''; }
+  else if (type === 'museum') { const m = getMuseumById(key); current = m ? (m.pointOfHue || '') : ''; }
+  else if (type === 'artist') { current = getArtistNote(key); }
+  const labels = { artwork: 'this artwork', museum: 'this museum', artist: 'this artist' };
+  document.getElementById('hueModalSubtitle').textContent = name ? `${name}` : (labels[type] || '');
+  document.getElementById('hueModalText').value = current;
+  document.getElementById('hueModalOverlay').classList.remove('hidden');
+  setTimeout(() => document.getElementById('hueModalText').focus(), 30);
+}
+function closeHueModal() {
+  hueTarget = null;
+  document.getElementById('hueModalOverlay').classList.add('hidden');
+}
+function saveHueNote() {
+  if (!hueTarget) return;
+  const text = document.getElementById('hueModalText').value.trim();
+  if (hueTarget.type === 'artwork') updateArtwork(hueTarget.key, { notes: text });
+  else if (hueTarget.type === 'museum') updateMuseum(hueTarget.key, { pointOfHue: text });
+  else if (hueTarget.type === 'artist') setArtistNote(hueTarget.key, text);
+  const wasArtwork = hueTarget.type === 'artwork' ? hueTarget.key : null;
+  closeHueModal();
+  refreshCurrentView();
+  // If the artwork detail panel is open, re-render it so the note shows immediately.
+  if (wasArtwork && activePanelArtworkId === wasArtwork) {
+    const a = getArtworkById(wasArtwork);
+    if (a) openDetailPanel(a);
+  }
+}
+
+/* ================================================================
+   SECTION 10: ADD/EDIT MODAL
+================================================================ */
+function openAddModal(artworkId) {
+  editingArtworkId = artworkId;
+  const overlay = document.getElementById('modalOverlay');
+  const form = document.getElementById('artworkForm');
+  form.reset();
+  document.getElementById('f-source').value = 'manual';
+  document.getElementById('f-thumbUrl').value = '';
+  document.getElementById('f-coordLat').value = '';
+  document.getElementById('f-coordLng').value = '';
+  document.getElementById('wikiUrl').value = '';
+  document.getElementById('wikiStatus').classList.add('hidden');
+  document.getElementById('wikiPreview').classList.add('hidden');
+
+  if (artworkId) {
+    document.getElementById('modalTitle').textContent = 'Edit Artwork';
+    document.getElementById('wikiSection').style.display = 'none';
+    const a = getArtworkById(artworkId);
+    if (!a) return;
+    document.getElementById('f-title').value = a.title || '';
+    document.getElementById('f-artist').value = a.artist || '';
+    document.getElementById('f-year').value = a.year != null ? a.year : '';
+    document.getElementById('f-yearEnd').value = a.yearEnd != null ? a.yearEnd : '';
+    document.getElementById('f-medium').value = a.medium || '';
+    document.getElementById('f-movement').value = a.movement || '';
+    document.getElementById('f-location').value = a.location || '';
+    document.getElementById('f-imageUrl').value = a.imageUrl || '';
+    document.getElementById('f-description').value = a.description || '';
+    document.getElementById('f-tags').value = (a.tags || []).join(', ');
+    document.getElementById('f-notes').value = a.notes || '';
+    document.getElementById('f-source').value = a.source || 'manual';
+    document.getElementById('f-thumbUrl').value = a.thumbnailUrl || '';
+    if (a.coordinates) {
+      document.getElementById('f-coordLat').value = a.coordinates.lat;
+      document.getElementById('f-coordLng').value = a.coordinates.lng;
+    }
+  } else {
+    document.getElementById('modalTitle').textContent = 'Add Artwork';
+    document.getElementById('wikiSection').style.display = '';
+  }
+
+  overlay.classList.remove('hidden');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.add('hidden');
+  editingArtworkId = null;
+}
+
+function handleFormSubmit(e) {
+  e.preventDefault();
+  const title = document.getElementById('f-title').value.trim();
+  if (!title) return;
+
+  const yearVal = document.getElementById('f-year').value;
+  const yearEndVal = document.getElementById('f-yearEnd').value;
+  const lat = document.getElementById('f-coordLat').value;
+  const lng = document.getElementById('f-coordLng').value;
+
+  const data = {
+    title,
+    artist: document.getElementById('f-artist').value.trim(),
+    year: yearVal !== '' ? parseInt(yearVal) : null,
+    yearEnd: yearEndVal !== '' ? parseInt(yearEndVal) : null,
+    medium: document.getElementById('f-medium').value,
+    movement: document.getElementById('f-movement').value,
+    location: document.getElementById('f-location').value.trim(),
+    coordinates: (lat && lng) ? { lat: parseFloat(lat), lng: parseFloat(lng) } : null,
+    imageUrl: document.getElementById('f-imageUrl').value.trim(),
+    thumbnailUrl: document.getElementById('f-thumbUrl').value.trim() || document.getElementById('f-imageUrl').value.trim(),
+    description: document.getElementById('f-description').value.trim(),
+    tags: document.getElementById('f-tags').value.split(',').map(t => t.trim()).filter(Boolean),
+    notes: document.getElementById('f-notes').value.trim(),
+    source: document.getElementById('f-source').value || 'manual'
+  };
+
+  if (editingArtworkId) {
+    updateArtwork(editingArtworkId, data);
+  } else {
+    addArtwork(data);
+  }
+
+  closeModal();
+  refreshCurrentView();
+
+  // Reopen panel if editing
+  if (editingArtworkId) {
+    const updated = getArtworkById(editingArtworkId);
+    if (updated) openDetailPanel(updated);
+  }
+}
+
+async function handleWikiExtract() {
+  const url = document.getElementById('wikiUrl').value.trim();
+  if (!url) return;
+
+  const btn = document.getElementById('extractBtn');
+  const statusEl = document.getElementById('wikiStatus');
+  const preview = document.getElementById('wikiPreview');
+
+  btn.disabled = true;
+  statusEl.textContent = 'Extracting...';
+  statusEl.className = 'wiki-status';
+  statusEl.classList.remove('hidden');
+  preview.classList.add('hidden');
+
+  try {
+    const data = await extractFromWikipedia(url);
+
+    // Show preview
+    if (data.thumbnailUrl) {
+      document.getElementById('wikiPreviewImg').src = data.thumbnailUrl;
+      document.getElementById('wikiPreviewImg').style.display = '';
+    } else {
+      document.getElementById('wikiPreviewImg').style.display = 'none';
+    }
+    document.getElementById('wikiPreviewTitle').textContent = data.title;
+    document.getElementById('wikiPreviewSub').textContent = data.artist ? `${data.artist}${data.year ? ', ' + formatYear(data.year) : ''}` : 'Review and complete the fields below';
+    preview.classList.remove('hidden');
+    statusEl.textContent = 'Data extracted! Review the fields below.';
+
+    // Auto-fill form
+    document.getElementById('f-title').value = data.title;
+    document.getElementById('f-artist').value = data.artist;
+    document.getElementById('f-year').value = data.year != null ? data.year : '';
+    document.getElementById('f-yearEnd').value = data.yearEnd != null ? data.yearEnd : '';
+    document.getElementById('f-medium').value = data.medium;
+    document.getElementById('f-movement').value = data.movement;
+    document.getElementById('f-location').value = data.location;
+    document.getElementById('f-imageUrl').value = data.imageUrl;
+    document.getElementById('f-description').value = data.description;
+    document.getElementById('f-source').value = data.source;
+    document.getElementById('f-thumbUrl').value = data.thumbnailUrl;
+    if (data.coordinates) {
+      document.getElementById('f-coordLat').value = data.coordinates.lat;
+      document.getElementById('f-coordLng').value = data.coordinates.lng;
+    }
+  } catch (err) {
+    statusEl.textContent = 'Error: ' + err.message;
+    statusEl.className = 'wiki-status error';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+/* ================================================================
+   SECTION 11: EXPORT / IMPORT
+================================================================ */
+function exportData() {
+  const data = {
+    version: 2,
+    app: 'points-of-hue',
+    exportedAt: new Date().toISOString(),
+    artworks: getArtworks(),
+    museums: getMuseums(),
+    artistNotes: getArtistNotes()
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `point-of-hue-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      const artworks = parsed.artworks || parsed;
+      if (!Array.isArray(artworks)) throw new Error('Invalid format');
+      const museums = parsed.museums || [];
+      const museumCount = museums.length ? ` and ${museums.length} museums` : '';
+      if (!confirm(`Import ${artworks.length} artworks${museumCount}? This will replace your current collection.`)) return;
+      saveArtworks(artworks);
+      if (museums.length) saveMuseums(museums);
+      refreshCurrentView();
+    } catch (err) {
+      alert('Import failed: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+/* ================================================================
+   SECTION 11b: MUSEUMS VIEW
+================================================================ */
+let editingMuseumId = null;
+
+async function fetchMuseumImageFromWiki(name) {
+  try {
+    const res = await fetch(
+      `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(name)}&prop=pageimages&piprop=thumbnail&pithumbsize=600&format=json&origin=*`
+    );
+    const json = await res.json();
+    const page = Object.values(json?.query?.pages || {})[0];
+    return page?.thumbnail?.source || '';
+  } catch(e) { return ''; }
+}
+
+async function autoFetchMuseumImage(museumId) {
+  const museum = getMuseumById(museumId);
+  if (!museum) return;
+
+  const src = await fetchMuseumImageFromWiki(museum.name);
+  if (!src) return;
+
+  const allMuseums = getMuseums();
+  const idx = allMuseums.findIndex(m => m.id === museumId);
+  if (idx >= 0) {
+    allMuseums[idx].imageUrl = src;
+    saveMuseums(allMuseums);
+  }
+
+  const cover = document.querySelector(`.museum-card[data-museum-id="${museumId}"] .museum-card-cover`);
+  if (cover) {
+    cover.innerHTML = `<img src="${src}" style="width:100%;height:120px;object-fit:cover;display:block" />`;
+  }
+}
+
+function renderArtists() {
+  const artworks = getArtworks();
+  const grid = document.getElementById('artistsGrid');
+
+  const groups = new Map();
+  artworks.forEach(a => {
+    const name = (a.artist && a.artist.trim()) ? a.artist.trim() : 'Unknown artist';
+    if (!groups.has(name)) groups.set(name, []);
+    groups.get(name).push(a);
+  });
+  const artists = [...groups.entries()]
+    .map(([name, works]) => ({ name, works }))
+    .sort((x, y) => x.name.localeCompare(y.name));
+
+  document.getElementById('artistsCount').textContent =
+    artists.length === 0 ? 'No artists yet' : `${artists.length} artist${artists.length !== 1 ? 's' : ''}`;
+
+  if (artists.length === 0) {
+    grid.innerHTML = `<div class="empty-state">
+      <div class="empty-state-icon">&#9672;</div>
+      <div class="empty-state-text">No artists yet. Add artworks to see their makers here.</div>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = artists.map(ar => {
+    const works = ar.works;
+    const coverWork = works.find(w => w.thumbnailUrl || w.imageUrl);
+    const coverUrl = coverWork ? (coverWork.thumbnailUrl || coverWork.imageUrl) : '';
+    const movements = [...new Set(works.map(w => w.movement).filter(Boolean))];
+    const years = works.map(w => w.year).filter(y => y != null);
+    let yearRange = '';
+    if (years.length) {
+      const lo = Math.min(...years), hi = Math.max(...years);
+      yearRange = lo === hi ? formatYear(lo) : `${formatYear(lo)} – ${formatYear(hi)}`;
+    }
+    const metaParts = [`${works.length} work${works.length !== 1 ? 's' : ''}`, movements.slice(0, 2).join(', '), yearRange].filter(Boolean);
+
+    const coverContent = coverUrl
+      ? `<img src="${coverUrl}" style="width:100%;height:120px;object-fit:cover;display:block" />`
+      : `<span class="museum-cover-empty"></span>`;
+    const imgHtml = `<div class="museum-card-cover" style="width:100%;height:120px;overflow:hidden;background:var(--bg-input)">${coverContent}</div>`;
+
+    const worksHtml = `<div class="museum-card-artworks">
+        <div class="museum-artworks-title">In your collection (${works.length})</div>
+        ${works.slice(0, 5).map(a => {
+          const thumb = a.thumbnailUrl
+            ? `<img class="museum-artwork-thumb" src="${a.thumbnailUrl}" alt="" />`
+            : `<div class="museum-artwork-thumb" style="display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-dim);font-family:'Playfair Display',serif">${a.title.slice(0,2).toUpperCase()}</div>`;
+          return `<div class="museum-artwork-row" data-artwork-id="${a.id}">
+              ${thumb}
+              <div class="museum-artwork-info">
+                <div class="museum-artwork-name">${a.title}</div>
+                <div class="museum-artwork-artist">${a.movement || ''}${a.year != null ? (a.movement ? ' · ' : '') + formatYear(a.year) : ''}</div>
+              </div>
+            </div>`;
+        }).join('')}
+        ${works.length > 5 ? `<div style="font-size:11px;color:var(--text-dim);margin-top:4px">+${works.length - 5} more</div>` : ''}
+      </div>`;
+
+    const note = getArtistNote(ar.name);
+    const hueHtml = `<div class="museum-card-hue">
+        ${note ? `<div class="hue-label">Your point of hue</div><div class="hue-text">${note}</div>` : ''}
+        <button class="btn-hue" data-artist-hue="${ar.name}">${note ? 'Edit your point of hue' : '+ Add your point of hue'}</button>
+      </div>`;
+
+    return `<div class="museum-card artist-card">
+      ${imgHtml}
+      <div class="museum-card-header">
+        <div>
+          <div class="museum-card-name">${ar.name}</div>
+          <div class="museum-card-city">${metaParts.join(' · ')}</div>
+        </div>
+      </div>
+      ${worksHtml}
+      ${hueHtml}
+    </div>`;
+  }).join('');
+
+  grid.querySelectorAll('.museum-artwork-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const a = getArtworkById(row.dataset.artworkId);
+      if (a) openDetailPanel(a);
+    });
+  });
+
+  grid.querySelectorAll('[data-artist-hue]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openHueModal('artist', btn.dataset.artistHue, btn.dataset.artistHue);
+    });
+  });
+
+  // Broken cover images (e.g. non-free Wikipedia thumbs) fall back to artist initials.
+  grid.querySelectorAll('.museum-card-cover img').forEach(img => {
+    const fail = () => {
+      const card = img.closest('.museum-card');
+      const nm = (card && card.querySelector('.museum-card-name')?.textContent) || '?';
+      const cover = img.closest('.museum-card-cover');
+      if (cover) cover.innerHTML = `<div style="width:100%;height:120px;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',Georgia,serif;font-size:24px;color:var(--text-dim)">${nm.slice(0,2).toUpperCase()}</div>`;
+    };
+    img.addEventListener('error', fail);
+    if (img.complete && img.naturalWidth === 0) fail();
+  });
+}
+
+function renderMuseums() {
+  const museums = getMuseums().sort((a, b) => a.name.localeCompare(b.name));
+  const grid = document.getElementById('museumsGrid');
+  document.getElementById('museumsCount').textContent =
+    museums.length === 0 ? 'No museums yet' : `${museums.length} museum${museums.length !== 1 ? 's' : ''}`;
+
+  if (museums.length === 0) {
+    grid.innerHTML = `<div class="empty-state">
+      <div class="empty-state-icon">&#9750;</div>
+      <div class="empty-state-text">No museums yet. Add museums to document your visits!</div>
+    </div>`;
+    return;
+  }
+
+  const ratingLabels = { '5': 'Must-see', '4': 'Loved it', '3': 'Good', '2': 'Okay', '1': 'Skip it' };
+
+  grid.innerHTML = museums.map(m => {
+    const linkedArtworks = getArtworksForMuseum(m);
+    const cityCountry = [m.city, m.country].filter(Boolean).join(', ');
+    const dateStr = m.dateVisited ? new Date(m.dateVisited + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+    const ratingStr = m.rating ? ratingLabels[m.rating] || '' : '';
+
+    let headerExtra = '';
+    if (dateStr || ratingStr) {
+      headerExtra = `<div class="museum-card-date">${[ratingStr, dateStr].filter(Boolean).join(' &middot; ')}</div>`;
+    }
+
+    const coverContent = m.imageUrl
+      ? `<img src="${m.imageUrl}" class="museum-cover-img" style="width:100%;height:120px;object-fit:cover;display:block" />`
+      : `<span class="museum-cover-empty"></span>`;
+    const imgHtml = `<div class="museum-card-cover" style="width:100%;height:120px;overflow:hidden;background:var(--bg-input)">${coverContent}</div>`;
+
+    const artworksHtml = linkedArtworks.length > 0
+      ? `<div class="museum-card-artworks">
+          <div class="museum-artworks-title">In your collection (${linkedArtworks.length})</div>
+          ${linkedArtworks.slice(0, 5).map(a => {
+            const thumb = a.thumbnailUrl
+              ? `<img class="museum-artwork-thumb" src="${a.thumbnailUrl}" alt="" />`
+              : `<div class="museum-artwork-thumb" style="display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-dim);font-family:'Playfair Display',serif">${a.title.slice(0,2).toUpperCase()}</div>`;
+            return `<div class="museum-artwork-row" data-artwork-id="${a.id}">
+              ${thumb}
+              <div class="museum-artwork-info">
+                <div class="museum-artwork-name">${a.title}</div>
+                <div class="museum-artwork-artist">${a.artist || 'Unknown'}${a.year != null ? ' \u00B7 ' + formatYear(a.year) : ''}</div>
+              </div>
+            </div>`;
+          }).join('')}
+          ${linkedArtworks.length > 5 ? `<div style="font-size:11px;color:var(--text-dim);margin-top:4px">+${linkedArtworks.length - 5} more</div>` : ''}
+        </div>`
+      : `<div class="museum-card-artworks"><div class="museum-empty-artworks">No matching artworks in your collection yet</div></div>`;
+
+    const notesHtml = m.notes ? `<div class="museum-card-notes">${m.notes}</div>` : '';
+
+    const foundedHtml = (m.founded || m.founders)
+      ? `<div class="museum-card-founded">
+          <span class="founded-label">Founded${m.founded ? ' ' + m.founded : ''}</span>
+          ${m.founders || ''}
+        </div>`
+      : '';
+
+    const hueHtml = `<div class="museum-card-hue">
+        ${m.pointOfHue ? `<div class="hue-label">Your point of hue</div><div class="hue-text">${m.pointOfHue}</div>` : ''}
+        <button class="btn-hue" data-museum-hue="${m.id}">${m.pointOfHue ? 'Edit your point of hue' : '+ Add your point of hue'}</button>
+      </div>`;
+
+    return `<div class="museum-card" data-museum-id="${m.id}">
+      ${imgHtml}
+      <div class="museum-card-header">
+        <div>
+          <div class="museum-card-name">${m.name}</div>
+          ${cityCountry ? `<div class="museum-card-city">${cityCountry}</div>` : ''}
+        </div>
+        ${headerExtra}
+      </div>
+      ${notesHtml}
+      ${foundedHtml}
+      ${artworksHtml}
+      ${hueHtml}
+      <div class="museum-card-actions">
+        <button onclick="openMuseumModal('${m.id}')">Edit</button>
+        <button class="del-btn" onclick="handleDeleteMuseum('${m.id}')">Remove</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Artwork row clicks -> open detail panel
+  grid.querySelectorAll('.museum-artwork-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const a = getArtworkById(row.dataset.artworkId);
+      if (a) openDetailPanel(a);
+    });
+  });
+
+  // Point-of-hue note buttons
+  grid.querySelectorAll('[data-museum-hue]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const m = getMuseumById(btn.dataset.museumHue);
+      openHueModal('museum', btn.dataset.museumHue, m ? m.name : '');
+    });
+  });
+
+  // Auto-fetch images: trigger on broken URLs and empty slots
+  grid.querySelectorAll('.museum-cover-img').forEach(img => {
+    const id = img.closest('.museum-card').dataset.museumId;
+    img.addEventListener('error', () => autoFetchMuseumImage(id));
+  });
+  grid.querySelectorAll('.museum-cover-empty').forEach(el => {
+    const id = el.closest('.museum-card').dataset.museumId;
+    autoFetchMuseumImage(id);
+  });
+}
+
+function openMuseumModal(museumId) {
+  editingMuseumId = museumId || null;
+  const overlay = document.getElementById('museumModalOverlay');
+  const form = document.getElementById('museumForm');
+  form.reset();
+
+  if (museumId) {
+    document.getElementById('museumModalTitle').textContent = 'Edit Museum';
+    const m = getMuseumById(museumId);
+    if (!m) return;
+    document.getElementById('m-name').value = m.name || '';
+    document.getElementById('m-city').value = m.city || '';
+    document.getElementById('m-country').value = m.country || '';
+    document.getElementById('m-dateVisited').value = m.dateVisited || '';
+    document.getElementById('m-rating').value = m.rating || '';
+    document.getElementById('m-imageUrl').value = m.imageUrl || '';
+    document.getElementById('m-notes').value = m.notes || '';
+  } else {
+    document.getElementById('museumModalTitle').textContent = 'Add Museum';
+  }
+
+  overlay.classList.remove('hidden');
+}
+
+function closeMuseumModal() {
+  document.getElementById('museumModalOverlay').classList.add('hidden');
+  editingMuseumId = null;
+}
+
+function handleMuseumFormSubmit(e) {
+  e.preventDefault();
+  const name = document.getElementById('m-name').value.trim();
+  if (!name) return;
+
+  const data = {
+    name,
+    city: document.getElementById('m-city').value.trim(),
+    country: document.getElementById('m-country').value.trim(),
+    dateVisited: document.getElementById('m-dateVisited').value,
+    rating: document.getElementById('m-rating').value,
+    imageUrl: document.getElementById('m-imageUrl').value.trim(),
+    notes: document.getElementById('m-notes').value.trim()
+  };
+
+  if (editingMuseumId) {
+    updateMuseum(editingMuseumId, data);
+  } else {
+    addMuseum(data);
+  }
+
+  closeMuseumModal();
+  renderMuseums();
+}
+
+function handleDeleteMuseum(id) {
+  const m = getMuseumById(id);
+  if (m && confirm(`Remove "${m.name}" from your museums?`)) {
+    deleteMuseum(id);
+    renderMuseums();
+  }
+}
+
+/* ================================================================
+   SECTION 12: TOOLTIP
+================================================================ */
+function showTooltip(event, artwork) {
+  const tt = document.getElementById('tooltip');
+  document.getElementById('tooltipTitle').textContent = artwork.title;
+  document.getElementById('tooltipSub').textContent =
+    (artwork.artist || 'Unknown') + (artwork.year != null ? ' \u00B7 ' + formatYear(artwork.year) : '');
+  tt.classList.remove('hidden');
+  const x = event.clientX + 14;
+  const y = event.clientY + 14;
+  tt.style.left = x + 'px';
+  tt.style.top = y + 'px';
+}
+
+function hideTooltip() {
+  document.getElementById('tooltip').classList.add('hidden');
+}
+
+/* ================================================================
+   SECTION 13: HELPERS
+================================================================ */
+function refreshCurrentView() {
+  if (currentView === 'recent') renderRecent();
+  if (currentView === 'timeline') renderTimeline();
+  if (currentView === 'cluster') renderCluster();
+  if (currentView === 'gallery') renderGallery();
+  if (currentView === 'artists') renderArtists();
+  if (currentView === 'museums') renderMuseums();
+}
+
+/* ================================================================
+   SECTION 14: INITIALIZATION
+================================================================ */
+function init() {
+  seedDemoData();
+
+  // Populate movement select in form
+  const movSelect = document.getElementById('f-movement');
+  Object.keys(MOVEMENTS).forEach(name => {
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name;
+    movSelect.appendChild(opt);
+  });
+
+  // Sidebar navigation
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      switchView(btn.dataset.view);
+      // On mobile, close the drawer after picking a nav item
+      document.body.classList.remove('mobile-nav-open');
+    });
+  });
+
+  // Mobile hamburger toggle + backdrop tap-to-close
+  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+  if (mobileMenuBtn) {
+    mobileMenuBtn.addEventListener('click', () => {
+      document.body.classList.toggle('mobile-nav-open');
+    });
+  }
+  const mobileBackdrop = document.getElementById('mobile-backdrop');
+  if (mobileBackdrop) {
+    mobileBackdrop.addEventListener('click', () => {
+      document.body.classList.remove('mobile-nav-open');
+    });
+  }
+
+  // Close detail panel
+  document.getElementById('closePanel').addEventListener('click', closeDetailPanel);
+  document.getElementById('mainContent').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('mainContent')) closeDetailPanel();
+  });
+
+  // Modal
+  document.getElementById('modalOverlay').addEventListener('click', (e) => {
+    if (e.target.id === 'modalOverlay') closeModal();
+  });
+  document.getElementById('modalCancelBtn').addEventListener('click', closeModal);
+  document.getElementById('artworkForm').addEventListener('submit', handleFormSubmit);
+
+  // Wikipedia extract
+  document.getElementById('extractBtn').addEventListener('click', handleWikiExtract);
+  document.getElementById('wikiUrl').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); handleWikiExtract(); }
+  });
+
+  // Museum modal
+  document.getElementById('addMuseumBtn').addEventListener('click', () => openMuseumModal(null));
+  document.getElementById('museumModalOverlay').addEventListener('click', (e) => {
+    if (e.target.id === 'museumModalOverlay') closeMuseumModal();
+  });
+  document.getElementById('museumCancelBtn').addEventListener('click', closeMuseumModal);
+  document.getElementById('museumForm').addEventListener('submit', handleMuseumFormSubmit);
+
+  // Point-of-hue note modal
+  document.getElementById('hueCancelBtn').addEventListener('click', closeHueModal);
+  document.getElementById('hueSaveBtn').addEventListener('click', saveHueNote);
+  document.getElementById('hueModalOverlay').addEventListener('click', (e) => {
+    if (e.target.id === 'hueModalOverlay') closeHueModal();
+  });
+
+  // Gallery add + search/filter
+  document.getElementById('galleryAddBtn').addEventListener('click', () => openAddModal(null));
+  document.getElementById('gallerySearch').addEventListener('input', renderGallery);
+  document.getElementById('filterMovement').addEventListener('change', renderGallery);
+  document.getElementById('filterMedium').addEventListener('change', renderGallery);
+  document.getElementById('sortBy').addEventListener('change', renderGallery);
+
+  // Cluster group-by & filters
+  document.getElementById('groupBySelect').addEventListener('change', renderCluster);
+  document.getElementById('clusterSearch').addEventListener('input', renderCluster);
+  document.getElementById('clFilterMovement').addEventListener('change', renderCluster);
+  document.getElementById('clFilterMedium').addEventListener('change', renderCluster);
+  document.getElementById('clFilterArtist').addEventListener('change', renderCluster);
+  document.getElementById('clFilterMuseum').addEventListener('change', renderCluster);
+  document.getElementById('clFilterCentury').addEventListener('change', renderCluster);
+  document.getElementById('clClearFilters').addEventListener('click', () => {
+    document.getElementById('clusterSearch').value = '';
+    document.getElementById('clFilterMovement').value = '';
+    document.getElementById('clFilterMedium').value = '';
+    document.getElementById('clFilterArtist').value = '';
+    document.getElementById('clFilterMuseum').value = '';
+    document.getElementById('clFilterCentury').value = '';
+    renderCluster();
+  });
+
+  // Era jump - find the nearest artwork to the target year and center on it
+  document.getElementById('eraJump').addEventListener('change', (e) => {
+    const targetYear = parseInt(e.target.value);
+    if (isNaN(targetYear) || !timelineZoom || !timelineSvgG) return;
+    const svgEl = document.getElementById('timelineSvg');
+    const width = svgEl.clientWidth;
+    const height = svgEl.clientHeight;
+    // Find the nearest artwork node in the SVG
+    const artworks = getArtworks().filter(a => a.year != null);
+    if (artworks.length === 0) return;
+    // Find artwork closest to target year
+    let closest = artworks[0];
+    artworks.forEach(a => {
+      if (Math.abs(a.year - targetYear) < Math.abs(closest.year - targetYear)) closest = a;
+    });
+    // Get the node's position from the SVG group bbox
+    const bounds = timelineSvgG.node().getBBox();
+    const scale = 1.2;
+    // Estimate target x as proportion of the bounding box
+    const sorted = [...artworks].sort((a, b) => a.year - b.year);
+    const idx = sorted.findIndex(a => a.id === closest.id);
+    const ratio = sorted.length > 1 ? idx / (sorted.length - 1) : 0.5;
+    const targetX = bounds.x + ratio * bounds.width;
+    const targetCenterY = bounds.y + bounds.height / 2;
+    const tx = width / 2 - targetX * scale;
+    const ty = height / 2 - targetCenterY * scale;
+    d3.select('#timelineSvg').transition().duration(600).call(
+      timelineZoom.transform,
+      d3.zoomIdentity.translate(tx, ty).scale(scale)
+    );
+    e.target.value = '';
+  });
+
+  // Zoom controls - Timeline
+  document.getElementById('tlZoomIn').addEventListener('click', () => {
+    d3.select('#timelineSvg').transition().duration(300).call(timelineZoom.scaleBy, 1.5);
+  });
+  document.getElementById('tlZoomOut').addEventListener('click', () => {
+    d3.select('#timelineSvg').transition().duration(300).call(timelineZoom.scaleBy, 0.67);
+  });
+  document.getElementById('tlFit').addEventListener('click', () => fitTimeline(true));
+
+  // Zoom controls - Cluster
+  document.getElementById('clZoomIn').addEventListener('click', () => {
+    if (clusterZoom) d3.select('#clusterSvg').transition().duration(300).call(clusterZoom.scaleBy, 1.5);
+  });
+  document.getElementById('clZoomOut').addEventListener('click', () => {
+    if (clusterZoom) d3.select('#clusterSvg').transition().duration(300).call(clusterZoom.scaleBy, 0.67);
+  });
+  document.getElementById('clFit').addEventListener('click', () => {
+    if (clusterZoom) {
+      d3.select('#clusterSvg').transition().duration(500).call(
+        clusterZoom.transform, d3.zoomIdentity
+      );
+    }
+  });
+
+  // Resize handler
+  window.addEventListener('resize', () => {
+    if (currentView === 'timeline') renderTimeline();
+    if (currentView === 'cluster') renderCluster();
+  });
+
+  // Start with museums (first item in the sidebar)
+  switchView('museums');
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

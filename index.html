@@ -10,7 +10,7 @@
   <title>points of hue</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:wght@400;500&display=swap" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js" integrity="sha384-CjloA8y00+1SDAUkjs099PVfnY2KmDC2BZnws9kh8D/lX1s46w6EPhpXdqMfjK6i" crossorigin="anonymous"></script>
   <style>
     /* ============================================================
        DESIGN SYSTEM — Luxury Warm Minimal (Four Seasons aesthetic)
@@ -2596,7 +2596,7 @@ function formatYear(year) {
 ================================================================ */
 function extractPageTitle(input) {
   const trimmed = input.trim();
-  const urlMatch = trimmed.match(/(?:en\.(?:m\.)?wikipedia\.org\/wiki\/)([^#?]+)/);
+  const urlMatch = trimmed.match(/^(?:https?:\/\/)?en\.(?:m\.)?wikipedia\.org\/wiki\/([^#?]+)/i);
   if (urlMatch) return decodeURIComponent(urlMatch[1]);
   if (!trimmed.includes('/') && !trimmed.includes(':')) {
     return trimmed.replace(/ /g, '_');
@@ -2689,10 +2689,20 @@ function guessMovement(infobox, description) {
   return 'Other';
 }
 
+// Escape text before inserting it into HTML, so titles/notes/Wikipedia data can't inject markup or scripts.
+function esc(v) {
+  return String(v ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+}
+
+// Only allow http(s) links and images — blocks javascript: and other schemes.
+function safeUrl(u) {
+  const s = String(u ?? '').trim();
+  return /^https?:\/\//i.test(s) ? esc(s) : '';
+}
+
+// DOMParser builds an inert document: no scripts run and no images load while extracting text.
 function stripHtml(html) {
-  const div = document.createElement('div');
-  div.innerHTML = html;
-  return div.textContent || '';
+  return new DOMParser().parseFromString(html, 'text/html').body.textContent || '';
 }
 
 async function extractFromWikipedia(url) {
@@ -2820,7 +2830,7 @@ function attachArtCardListeners(grid) {
     autoFetchArtworkImage(id).then(r => {
       if (!r) return;
       const src = r.thumbnailUrl || r.imageUrl;
-      if (src) el.outerHTML = `<div class="art-card-img"><img src="${src}" class="art-card-thumb" data-id="${id}" style="width:100%;height:100%;object-fit:cover;display:block" /></div>`;
+      if (src) el.outerHTML = `<div class="art-card-img"><img src="${safeUrl(src)}" class="art-card-thumb" data-id="${esc(id)}" style="width:100%;height:100%;object-fit:cover;display:block" /></div>`;
     });
   });
 }
@@ -2845,15 +2855,15 @@ function renderRecent() {
   grid.innerHTML = sorted.map(a => {
     const mvColor = MOVEMENTS[a.movement]?.color || '#9e9890';
     const imgHtml = a.thumbnailUrl
-      ? `<div class="art-card-img"><img src="${a.thumbnailUrl}" class="art-card-thumb" data-id="${a.id}" style="width:100%;height:100%;object-fit:cover;display:block" /></div>`
-      : `<div class="art-card-img art-card-placeholder" data-id="${a.id}"><span>${a.title.slice(0, 2).toUpperCase()}</span></div>`;
-    const tagHtml = (a.tags || []).slice(0, 3).map(t => `<span class="tag-pill">${t}</span>`).join('');
-    return `<div class="art-card" data-id="${a.id}">
+      ? `<div class="art-card-img"><img src="${safeUrl(a.thumbnailUrl)}" class="art-card-thumb" data-id="${esc(a.id)}" style="width:100%;height:100%;object-fit:cover;display:block" /></div>`
+      : `<div class="art-card-img art-card-placeholder" data-id="${esc(a.id)}"><span>${esc(a.title.slice(0, 2).toUpperCase())}</span></div>`;
+    const tagHtml = (a.tags || []).slice(0, 3).map(t => `<span class="tag-pill">${esc(t)}</span>`).join('');
+    return `<div class="art-card" data-id="${esc(a.id)}">
       ${imgHtml}
       <div class="art-card-body">
-        <div class="art-card-title">${a.title}</div>
-        <div class="art-card-artist">${a.artist || 'Unknown artist'}${a.year != null ? ' &middot; ' + formatYear(a.year) : ''}</div>
-        <div class="art-card-movement" style="color:${mvColor}">${a.movement || ''}</div>
+        <div class="art-card-title">${esc(a.title)}</div>
+        <div class="art-card-artist">${esc(a.artist || 'Unknown artist')}${a.year != null ? ' &middot; ' + formatYear(a.year) : ''}</div>
+        <div class="art-card-movement" style="color:${mvColor}">${esc(a.movement || '')}</div>
         ${tagHtml ? `<div class="card-tags">${tagHtml}</div>` : ''}
       </div>
     </div>`;
@@ -3162,7 +3172,7 @@ function renderTimeline() {
       const ev = d.event;
       const catLabel = ev.category === 'invention' ? 'Invention' : ev.category === 'war' ? 'War' : 'Politics';
       const tip = document.getElementById('tooltip');
-      tip.innerHTML = `<strong>${ev.label}</strong><br>${formatYear(ev.year)} &middot; ${catLabel}`;
+      tip.innerHTML = `<strong>${esc(ev.label)}</strong><br>${formatYear(ev.year)} &middot; ${catLabel}`;
       tip.style.opacity = 1;
       tip.style.left = e.pageX + 12 + 'px';
       tip.style.top = e.pageY - 20 + 'px';
@@ -3272,7 +3282,7 @@ function populateClusterFilters(allArtworks) {
       items.map(item => {
         const val = typeof item === 'string' ? item : item.value;
         const label = typeof item === 'string' ? item : item.label;
-        return `<option value="${val}"${val === cur ? ' selected' : ''}>${label}</option>`;
+        return `<option value="${esc(val)}"${val === cur ? ' selected' : ''}>${esc(label)}</option>`;
       }).join('');
   }
   fillSelect('clFilterMovement', movements, 'All movements');
@@ -3493,7 +3503,7 @@ function renderCluster() {
     ${uniqueGroups.map(g => `
       <div class="legend-item">
         <div class="legend-dot" style="background:${g.color}"></div>
-        <span class="legend-label">${g.name} (${g.count})</span>
+        <span class="legend-label">${esc(g.name)} (${g.count})</span>
       </div>
     `).join('')}
   `;
@@ -3524,8 +3534,8 @@ function renderGallery() {
   const medSel = document.getElementById('filterMedium');
   const curMov = movSel.value;
   const curMed = medSel.value;
-  movSel.innerHTML = '<option value="">All movements</option>' + movements.map(m => `<option value="${m}"${m === curMov ? ' selected' : ''}>${m}</option>`).join('');
-  medSel.innerHTML = '<option value="">All mediums</option>' + mediums.map(m => `<option value="${m}"${m === curMed ? ' selected' : ''}>${m}</option>`).join('');
+  movSel.innerHTML = '<option value="">All movements</option>' + movements.map(m => `<option value="${esc(m)}"${m === curMov ? ' selected' : ''}>${esc(m)}</option>`).join('');
+  medSel.innerHTML = '<option value="">All mediums</option>' + mediums.map(m => `<option value="${esc(m)}"${m === curMed ? ' selected' : ''}>${esc(m)}</option>`).join('');
 
   let filtered = artworks.filter(a => {
     if (fMovement && a.movement !== fMovement) return false;
@@ -3559,16 +3569,16 @@ function renderGallery() {
   grid.innerHTML = filtered.map(a => {
     const mvColor = MOVEMENTS[a.movement]?.color || '#9e9890';
     const imgHtml = a.thumbnailUrl
-      ? `<div class="art-card-img"><img src="${a.thumbnailUrl}" class="art-card-thumb" data-id="${a.id}" style="width:100%;height:100%;object-fit:cover;display:block" /></div>`
-      : `<div class="art-card-img art-card-placeholder" data-id="${a.id}"><span>${a.title.slice(0, 2).toUpperCase()}</span></div>`;
-    const tagHtml = (a.tags || []).slice(0, 3).map(t => `<span class="tag-pill">${t}</span>`).join('');
-    return `<div class="art-card" data-id="${a.id}">
+      ? `<div class="art-card-img"><img src="${safeUrl(a.thumbnailUrl)}" class="art-card-thumb" data-id="${esc(a.id)}" style="width:100%;height:100%;object-fit:cover;display:block" /></div>`
+      : `<div class="art-card-img art-card-placeholder" data-id="${esc(a.id)}"><span>${esc(a.title.slice(0, 2).toUpperCase())}</span></div>`;
+    const tagHtml = (a.tags || []).slice(0, 3).map(t => `<span class="tag-pill">${esc(t)}</span>`).join('');
+    return `<div class="art-card" data-id="${esc(a.id)}">
       ${imgHtml}
       <div class="art-card-body">
-        <div class="art-card-title">${a.title}</div>
-        <div class="art-card-artist">${a.artist || 'Unknown artist'}${a.year != null ? ' &middot; ' + formatYear(a.year) : ''}</div>
-        ${a.description ? `<div class="art-card-desc">${oneSentence(a.description)}</div>` : ''}
-        <div class="art-card-movement" style="color:${mvColor}">${a.movement || ''}</div>
+        <div class="art-card-title">${esc(a.title)}</div>
+        <div class="art-card-artist">${esc(a.artist || 'Unknown artist')}${a.year != null ? ' &middot; ' + formatYear(a.year) : ''}</div>
+        ${a.description ? `<div class="art-card-desc">${esc(oneSentence(a.description))}</div>` : ''}
+        <div class="art-card-movement" style="color:${mvColor}">${esc(a.movement || '')}</div>
         ${tagHtml ? `<div class="card-tags">${tagHtml}</div>` : ''}
       </div>
     </div>`;
@@ -3593,16 +3603,16 @@ function openDetailPanel(artwork) {
   // Image
   const imgEl = document.getElementById('panelImage');
   if (artwork.imageUrl) {
-    imgEl.innerHTML = `<img src="${artwork.imageUrl}" alt="${artwork.title}" class="panel-art-img" data-id="${artwork.id}" />`;
+    imgEl.innerHTML = `<img src="${safeUrl(artwork.imageUrl)}" alt="${esc(artwork.title)}" class="panel-art-img" data-id="${esc(artwork.id)}" />`;
     imgEl.querySelector('.panel-art-img').addEventListener('error', async () => {
       const r = await autoFetchArtworkImage(artwork.id);
       if (r) imgEl.querySelector('.panel-art-img').src = r.imageUrl;
-      else imgEl.innerHTML = `<div class="panel-no-image">${artwork.title.slice(0, 2).toUpperCase()}</div>`;
+      else imgEl.innerHTML = `<div class="panel-no-image">${esc(artwork.title.slice(0, 2).toUpperCase())}</div>`;
     });
   } else {
-    imgEl.innerHTML = `<div class="panel-no-image">${artwork.title.slice(0, 2).toUpperCase()}</div>`;
+    imgEl.innerHTML = `<div class="panel-no-image">${esc(artwork.title.slice(0, 2).toUpperCase())}</div>`;
     autoFetchArtworkImage(artwork.id).then(r => {
-      if (r) imgEl.innerHTML = `<img src="${r.imageUrl}" alt="${artwork.title}" />`;
+      if (r) imgEl.innerHTML = `<img src="${safeUrl(r.imageUrl)}" alt="${esc(artwork.title)}" />`;
     });
   }
 
@@ -3615,34 +3625,34 @@ function openDetailPanel(artwork) {
     const yearStr = formatYear(artwork.year) + (artwork.yearEnd ? ' \u2013 ' + formatYear(artwork.yearEnd) : '');
     details.push(`<div class="panel-detail-row"><span class="panel-detail-icon">\u25C6</span><span>${yearStr}</span></div>`);
   }
-  if (artwork.medium) details.push(`<div class="panel-detail-row"><span class="panel-detail-icon">\u25FB</span><span>${artwork.medium}</span></div>`);
+  if (artwork.medium) details.push(`<div class="panel-detail-row"><span class="panel-detail-icon">\u25FB</span><span>${esc(artwork.medium)}</span></div>`);
   if (artwork.movement) {
     const color = MOVEMENTS[artwork.movement]?.color || '#9e9890';
-    details.push(`<div class="panel-detail-row"><span class="panel-detail-icon" style="color:${color}">\u25CF</span><span>${artwork.movement}</span></div>`);
+    details.push(`<div class="panel-detail-row"><span class="panel-detail-icon" style="color:${color}">\u25CF</span><span>${esc(artwork.movement)}</span></div>`);
   }
-  if (artwork.location) details.push(`<div class="panel-detail-row"><span class="panel-detail-icon">\u25CB</span><span>${artwork.location}</span></div>`);
+  if (artwork.location) details.push(`<div class="panel-detail-row"><span class="panel-detail-icon">\u25CB</span><span>${esc(artwork.location)}</span></div>`);
   document.getElementById('panelDetails').innerHTML = details.length
     ? `<div class="panel-section-title">Details</div>${details.join('')}` : '';
 
   // Description
   document.getElementById('panelDescription').innerHTML = artwork.description
-    ? `<div class="panel-section-title">About</div><p class="panel-description">${artwork.description}</p>` : '';
+    ? `<div class="panel-section-title">About</div><p class="panel-description">${esc(artwork.description)}</p>` : '';
 
   // Tags
   document.getElementById('panelTagsSection').innerHTML = (artwork.tags?.length)
-    ? `<div class="panel-section-title">Tags</div><div class="panel-tags">${artwork.tags.map(t => `<span class="tag-pill">${t}</span>`).join('')}</div>` : '';
+    ? `<div class="panel-section-title">Tags</div><div class="panel-tags">${artwork.tags.map(t => `<span class="tag-pill">${esc(t)}</span>`).join('')}</div>` : '';
 
   // Personal "point of hue" note
   document.getElementById('panelNotesSection').innerHTML =
     `<div class="panel-section-title">Your point of hue</div>` +
     (artwork.notes
-      ? `<div class="panel-notes">${artwork.notes}</div>`
+      ? `<div class="panel-notes">${esc(artwork.notes)}</div>`
       : `<div class="panel-notes" style="color:var(--text-dim);font-style:italic">No notes yet — add your point of hue.</div>`) +
     `<button class="btn-hue" id="panelHueBtn" style="margin-top:8px">${artwork.notes ? 'Edit your point of hue' : '+ Add your point of hue'}</button>`;
 
   // Source
   document.getElementById('panelSource').innerHTML = (artwork.source && artwork.source !== 'manual')
-    ? `<div class="panel-section-title">Source</div><div class="panel-source"><a href="${artwork.source}" target="_blank" rel="noopener">Wikipedia</a></div>` : '';
+    ? `<div class="panel-section-title">Source</div><div class="panel-source"><a href="${safeUrl(artwork.source)}" target="_blank" rel="noopener">Wikipedia</a></div>` : '';
 
   document.getElementById('panelHueBtn').onclick = () => openHueModal('artwork', artwork.id, artwork.title);
   document.getElementById('editArtworkBtn').onclick = () => openAddModal(artwork.id);
@@ -3914,9 +3924,9 @@ async function autoFetchMuseumImage(museumId) {
     saveMuseums(allMuseums);
   }
 
-  const cover = document.querySelector(`.museum-card[data-museum-id="${museumId}"] .museum-card-cover`);
+  const cover = document.querySelector(`.museum-card[data-museum-id="${CSS.escape(museumId)}"] .museum-card-cover`);
   if (cover) {
-    cover.innerHTML = `<img src="${src}" style="width:100%;height:120px;object-fit:cover;display:block" />`;
+    cover.innerHTML = `<img src="${safeUrl(src)}" style="width:100%;height:120px;object-fit:cover;display:block" />`;
   }
 }
 
@@ -3959,7 +3969,7 @@ function renderArtists() {
     const metaParts = [`${works.length} work${works.length !== 1 ? 's' : ''}`, movements.slice(0, 2).join(', '), yearRange].filter(Boolean);
 
     const coverContent = coverUrl
-      ? `<img src="${coverUrl}" style="width:100%;height:120px;object-fit:cover;display:block" />`
+      ? `<img src="${safeUrl(coverUrl)}" style="width:100%;height:120px;object-fit:cover;display:block" />`
       : `<span class="museum-cover-empty"></span>`;
     const imgHtml = `<div class="museum-card-cover" style="width:100%;height:120px;overflow:hidden;background:var(--bg-input)">${coverContent}</div>`;
 
@@ -3967,13 +3977,13 @@ function renderArtists() {
         <div class="museum-artworks-title">In your collection (${works.length})</div>
         ${works.slice(0, 5).map(a => {
           const thumb = a.thumbnailUrl
-            ? `<img class="museum-artwork-thumb" src="${a.thumbnailUrl}" alt="" />`
-            : `<div class="museum-artwork-thumb" style="display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-dim);font-family:'Playfair Display',serif">${a.title.slice(0,2).toUpperCase()}</div>`;
-          return `<div class="museum-artwork-row" data-artwork-id="${a.id}">
+            ? `<img class="museum-artwork-thumb" src="${safeUrl(a.thumbnailUrl)}" alt="" />`
+            : `<div class="museum-artwork-thumb" style="display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-dim);font-family:'Playfair Display',serif">${esc(a.title.slice(0,2).toUpperCase())}</div>`;
+          return `<div class="museum-artwork-row" data-artwork-id="${esc(a.id)}">
               ${thumb}
               <div class="museum-artwork-info">
-                <div class="museum-artwork-name">${a.title}</div>
-                <div class="museum-artwork-artist">${a.movement || ''}${a.year != null ? (a.movement ? ' · ' : '') + formatYear(a.year) : ''}</div>
+                <div class="museum-artwork-name">${esc(a.title)}</div>
+                <div class="museum-artwork-artist">${esc(a.movement || '')}${a.year != null ? (a.movement ? ' · ' : '') + formatYear(a.year) : ''}</div>
               </div>
             </div>`;
         }).join('')}
@@ -3982,16 +3992,16 @@ function renderArtists() {
 
     const note = getArtistNote(ar.name);
     const hueHtml = `<div class="museum-card-hue">
-        ${note ? `<div class="hue-label">Your point of hue</div><div class="hue-text">${note}</div>` : ''}
-        <button class="btn-hue" data-artist-hue="${ar.name}">${note ? 'Edit your point of hue' : '+ Add your point of hue'}</button>
+        ${note ? `<div class="hue-label">Your point of hue</div><div class="hue-text">${esc(note)}</div>` : ''}
+        <button class="btn-hue" data-artist-hue="${esc(ar.name)}">${note ? 'Edit your point of hue' : '+ Add your point of hue'}</button>
       </div>`;
 
     return `<div class="museum-card artist-card">
       ${imgHtml}
       <div class="museum-card-header">
         <div>
-          <div class="museum-card-name">${ar.name}</div>
-          <div class="museum-card-city">${metaParts.join(' · ')}</div>
+          <div class="museum-card-name">${esc(ar.name)}</div>
+          <div class="museum-card-city">${esc(metaParts.join(' · '))}</div>
         </div>
       </div>
       ${worksHtml}
@@ -4019,7 +4029,7 @@ function renderArtists() {
       const card = img.closest('.museum-card');
       const nm = (card && card.querySelector('.museum-card-name')?.textContent) || '?';
       const cover = img.closest('.museum-card-cover');
-      if (cover) cover.innerHTML = `<div style="width:100%;height:120px;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',Georgia,serif;font-size:24px;color:var(--text-dim)">${nm.slice(0,2).toUpperCase()}</div>`;
+      if (cover) cover.innerHTML = `<div style="width:100%;height:120px;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',Georgia,serif;font-size:24px;color:var(--text-dim)">${esc(nm.slice(0,2).toUpperCase())}</div>`;
     };
     img.addEventListener('error', fail);
     if (img.complete && img.naturalWidth === 0) fail();
@@ -4054,7 +4064,7 @@ function renderMuseums() {
     }
 
     const coverContent = m.imageUrl
-      ? `<img src="${m.imageUrl}" class="museum-cover-img" style="width:100%;height:120px;object-fit:cover;display:block" />`
+      ? `<img src="${safeUrl(m.imageUrl)}" class="museum-cover-img" style="width:100%;height:120px;object-fit:cover;display:block" />`
       : `<span class="museum-cover-empty"></span>`;
     const imgHtml = `<div class="museum-card-cover" style="width:100%;height:120px;overflow:hidden;background:var(--bg-input)">${coverContent}</div>`;
 
@@ -4063,13 +4073,13 @@ function renderMuseums() {
           <div class="museum-artworks-title">In your collection (${linkedArtworks.length})</div>
           ${linkedArtworks.slice(0, 5).map(a => {
             const thumb = a.thumbnailUrl
-              ? `<img class="museum-artwork-thumb" src="${a.thumbnailUrl}" alt="" />`
-              : `<div class="museum-artwork-thumb" style="display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-dim);font-family:'Playfair Display',serif">${a.title.slice(0,2).toUpperCase()}</div>`;
-            return `<div class="museum-artwork-row" data-artwork-id="${a.id}">
+              ? `<img class="museum-artwork-thumb" src="${safeUrl(a.thumbnailUrl)}" alt="" />`
+              : `<div class="museum-artwork-thumb" style="display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-dim);font-family:'Playfair Display',serif">${esc(a.title.slice(0,2).toUpperCase())}</div>`;
+            return `<div class="museum-artwork-row" data-artwork-id="${esc(a.id)}">
               ${thumb}
               <div class="museum-artwork-info">
-                <div class="museum-artwork-name">${a.title}</div>
-                <div class="museum-artwork-artist">${a.artist || 'Unknown'}${a.year != null ? ' \u00B7 ' + formatYear(a.year) : ''}</div>
+                <div class="museum-artwork-name">${esc(a.title)}</div>
+                <div class="museum-artwork-artist">${esc(a.artist || 'Unknown')}${a.year != null ? ' \u00B7 ' + formatYear(a.year) : ''}</div>
               </div>
             </div>`;
           }).join('')}
@@ -4077,26 +4087,26 @@ function renderMuseums() {
         </div>`
       : `<div class="museum-card-artworks"><div class="museum-empty-artworks">No matching artworks in your collection yet</div></div>`;
 
-    const notesHtml = m.notes ? `<div class="museum-card-notes">${m.notes}</div>` : '';
+    const notesHtml = m.notes ? `<div class="museum-card-notes">${esc(m.notes)}</div>` : '';
 
     const foundedHtml = (m.founded || m.founders)
       ? `<div class="museum-card-founded">
-          <span class="founded-label">Founded${m.founded ? ' ' + m.founded : ''}</span>
-          ${m.founders || ''}
+          <span class="founded-label">Founded${m.founded ? ' ' + esc(m.founded) : ''}</span>
+          ${esc(m.founders || '')}
         </div>`
       : '';
 
     const hueHtml = `<div class="museum-card-hue">
-        ${m.pointOfHue ? `<div class="hue-label">Your point of hue</div><div class="hue-text">${m.pointOfHue}</div>` : ''}
-        <button class="btn-hue" data-museum-hue="${m.id}">${m.pointOfHue ? 'Edit your point of hue' : '+ Add your point of hue'}</button>
+        ${m.pointOfHue ? `<div class="hue-label">Your point of hue</div><div class="hue-text">${esc(m.pointOfHue)}</div>` : ''}
+        <button class="btn-hue" data-museum-hue="${esc(m.id)}">${m.pointOfHue ? 'Edit your point of hue' : '+ Add your point of hue'}</button>
       </div>`;
 
-    return `<div class="museum-card" data-museum-id="${m.id}">
+    return `<div class="museum-card" data-museum-id="${esc(m.id)}">
       ${imgHtml}
       <div class="museum-card-header">
         <div>
-          <div class="museum-card-name">${m.name}</div>
-          ${cityCountry ? `<div class="museum-card-city">${cityCountry}</div>` : ''}
+          <div class="museum-card-name">${esc(m.name)}</div>
+          ${cityCountry ? `<div class="museum-card-city">${esc(cityCountry)}</div>` : ''}
         </div>
         ${headerExtra}
       </div>
@@ -4105,8 +4115,8 @@ function renderMuseums() {
       ${artworksHtml}
       ${hueHtml}
       <div class="museum-card-actions">
-        <button onclick="openMuseumModal('${m.id}')">Edit</button>
-        <button class="del-btn" onclick="handleDeleteMuseum('${m.id}')">Remove</button>
+        <button onclick="openMuseumModal(this.closest('.museum-card').dataset.museumId)">Edit</button>
+        <button class="del-btn" onclick="handleDeleteMuseum(this.closest('.museum-card').dataset.museumId)">Remove</button>
       </div>
     </div>`;
   }).join('');

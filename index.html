@@ -490,6 +490,25 @@
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
+    .art-card-meta {
+      border-top: 1px solid var(--border-light);
+      padding-top: 8px;
+      margin-top: 2px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      font-size: 12px;
+      color: var(--text-primary);
+      line-height: 1.35;
+    }
+    .art-card-meta-row { display: flex; gap: 8px; align-items: baseline; }
+    .art-card-meta-label {
+      flex: 0 0 52px;
+      font-size: 9.5px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
     .art-card-movement {
       font-size: 11px;
       font-weight: 500;
@@ -1118,18 +1137,9 @@
     /* ============================================================
        LANDING PAGE (shown before the app)
     ============================================================ */
-    body.landing-mode { overflow: auto; }
-    body.landing-mode #app,
-    body.landing-mode #mobile-header,
-    body.landing-mode #mobile-backdrop { display: none !important; }
-    body:not(.landing-mode) #landing { display: none; }
-
-    #landing {
-      background: var(--bg-main);
-      min-height: 100vh;
-      min-height: 100dvh;
-      color: var(--text-primary);
-    }
+    /* Home view: scroll internally on desktop; on mobile the body handles it. */
+    #homeView { overflow-y: auto; }
+    #landing { background: var(--bg-main); color: var(--text-primary); }
     #landing-hero {
       min-height: 100vh;
       min-height: 100dvh;
@@ -1232,6 +1242,13 @@
       text-align: center;
       padding: 30px 24px 80px;
       padding-bottom: max(env(safe-area-inset-bottom, 0px), 80px);
+    }
+    .home-tagline {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-style: italic;
+      font-size: 22px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
     }
     #enter-btn {
       background: none;
@@ -1412,61 +1429,7 @@
     }
   </style>
 </head>
-<body class="landing-mode">
-
-<!-- LANDING PAGE ------------------------------------------------- -->
-<div id="landing">
-  <section id="landing-hero">
-    <h1 class="landing-title">points of hue</h1>
-  </section>
-
-  <section id="landing-puzzle">
-    <!-- Pair 1: Mona Lisa ↔ L.H.O.O.Q. -->
-    <div class="puzzle-pair">
-      <div class="puzzle-item" data-side="left">
-        <img alt="" src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg/500px-Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg" />
-      </div>
-      <div class="puzzle-item" data-side="right">
-        <img alt="" src="https://upload.wikimedia.org/wikipedia/en/thumb/7/74/Marcel_Duchamp%2C_1919%2C_L.H.O.O.Q.jpg/330px-Marcel_Duchamp%2C_1919%2C_L.H.O.O.Q.jpg" />
-      </div>
-    </div>
-
-    <!-- Pair 2: Birth of Venus ↔ Girl with a Pearl Earring -->
-    <div class="puzzle-pair">
-      <div class="puzzle-item" data-side="left">
-        <img alt="" src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Sandro_Botticelli_-_La_nascita_di_Venere_-_Google_Art_Project_-_edited.jpg/500px-Sandro_Botticelli_-_La_nascita_di_Venere_-_Google_Art_Project_-_edited.jpg" />
-      </div>
-      <div class="puzzle-item" data-side="right">
-        <img alt="" src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/1665_Girl_with_a_Pearl_Earring.jpg/500px-1665_Girl_with_a_Pearl_Earring.jpg" />
-      </div>
-    </div>
-
-    <!-- Pair 3: Great Wave ↔ Starry Night -->
-    <div class="puzzle-pair">
-      <div class="puzzle-item" data-side="left">
-        <img alt="" src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Tsunami_by_hokusai_19th_century.jpg/500px-Tsunami_by_hokusai_19th_century.jpg" />
-      </div>
-      <div class="puzzle-item" data-side="right">
-        <img alt="" src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/500px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg" />
-      </div>
-    </div>
-
-    <!-- Pair 4: Guernica ↔ The Two Fridas -->
-    <div class="puzzle-pair">
-      <div class="puzzle-item" data-side="left">
-        <img alt="" src="https://upload.wikimedia.org/wikipedia/en/thumb/7/74/PicassoGuernica.jpg/500px-PicassoGuernica.jpg" />
-      </div>
-      <div class="puzzle-item" data-side="right">
-        <img alt="" src="https://upload.wikimedia.org/wikipedia/en/f/f9/The_Two_Fridas.jpg" />
-      </div>
-    </div>
-  </section>
-
-  <section id="landing-enter">
-    <button id="enter-btn" aria-label="Enter">↓</button>
-  </section>
-</div>
-<!-- END LANDING ------------------------------------------------- -->
+<body>
 
 <!-- Mobile-only top bar (hidden on desktop via media query) -->
 <header id="mobile-header">
@@ -1484,7 +1447,10 @@
       <div id="logo-name">points of hue</div>
     </div>
     <div id="nav-links">
-      <button class="nav-btn active" data-view="museums">
+      <button class="nav-btn active" data-view="home">
+        <span class="nav-icon">&#8962;</span> Home
+      </button>
+      <button class="nav-btn" data-view="museums">
         <span class="nav-icon">&#9750;</span> Museums
       </button>
       <button class="nav-btn" data-view="gallery">
@@ -1513,6 +1479,62 @@
        MAIN CONTENT
   ============================================================ -->
   <main id="mainContent">
+    <!-- HOME VIEW -->
+    <section id="homeView" class="view">
+      <div id="landing">
+        <section id="landing-hero">
+          <h1 class="landing-title">points of hue</h1>
+        </section>
+
+        <section id="landing-puzzle">
+          <!-- Pair 1: Mona Lisa ↔ L.H.O.O.Q. -->
+          <div class="puzzle-pair">
+            <div class="puzzle-item" data-side="left">
+              <img alt="" src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg/500px-Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg" />
+            </div>
+            <div class="puzzle-item" data-side="right">
+              <img alt="" src="https://upload.wikimedia.org/wikipedia/en/thumb/7/74/Marcel_Duchamp%2C_1919%2C_L.H.O.O.Q.jpg/330px-Marcel_Duchamp%2C_1919%2C_L.H.O.O.Q.jpg" />
+            </div>
+          </div>
+
+          <!-- Pair 2: Birth of Venus ↔ Girl with a Pearl Earring -->
+          <div class="puzzle-pair">
+            <div class="puzzle-item" data-side="left">
+              <img alt="" src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Sandro_Botticelli_-_La_nascita_di_Venere_-_Google_Art_Project_-_edited.jpg/500px-Sandro_Botticelli_-_La_nascita_di_Venere_-_Google_Art_Project_-_edited.jpg" />
+            </div>
+            <div class="puzzle-item" data-side="right">
+              <img alt="" src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/1665_Girl_with_a_Pearl_Earring.jpg/500px-1665_Girl_with_a_Pearl_Earring.jpg" />
+            </div>
+          </div>
+
+          <!-- Pair 3: Great Wave ↔ Starry Night -->
+          <div class="puzzle-pair">
+            <div class="puzzle-item" data-side="left">
+              <img alt="" src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Tsunami_by_hokusai_19th_century.jpg/500px-Tsunami_by_hokusai_19th_century.jpg" />
+            </div>
+            <div class="puzzle-item" data-side="right">
+              <img alt="" src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/500px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg" />
+            </div>
+          </div>
+
+          <!-- Pair 4: Guernica ↔ The Two Fridas -->
+          <div class="puzzle-pair">
+            <div class="puzzle-item" data-side="left">
+              <img alt="" src="https://upload.wikimedia.org/wikipedia/en/thumb/7/74/PicassoGuernica.jpg/500px-PicassoGuernica.jpg" />
+            </div>
+            <div class="puzzle-item" data-side="right">
+              <img alt="" src="https://upload.wikimedia.org/wikipedia/en/f/f9/The_Two_Fridas.jpg" />
+            </div>
+          </div>
+        </section>
+
+        <section id="landing-enter">
+          <p class="home-tagline">what do you see?</p>
+          <button id="enter-btn" aria-label="Enter the collection">↓</button>
+        </section>
+      </div>
+    </section>
+
     <!-- RECENTLY ADDED VIEW -->
     <section id="recentView" class="view">
       <div class="view-header">
@@ -2048,27 +2070,11 @@ function getArtworksForMuseum(museum) {
    SECTION 3: DEMO DATA
 ================================================================ */
 function seedDemoData() {
-  const SEED_VERSION = 10;
+  const SEED_VERSION = 11;
   const meta = getMeta();
   if (meta.seeded && meta.seedVersion >= SEED_VERSION) return;
 
   const demos = [
-    {
-      title: 'Lascaux Cave Paintings',
-      artist: 'Unknown',
-      year: -15000,
-      yearEnd: null,
-      medium: 'Other',
-      movement: 'Ancient',
-      location: 'Lascaux, France',
-      coordinates: { lat: 45.0544, lng: 1.1686 },
-      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Lascaux_painting.jpg/400px-Lascaux_painting.jpg',
-      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Lascaux_painting.jpg/200px-Lascaux_painting.jpg',
-      description: 'Paleolithic cave paintings estimated to be over 17,000 years old, featuring large animals and abstract signs.',
-      tags: ['prehistoric', 'cave art'],
-      notes: '',
-      source: 'https://en.wikipedia.org/wiki/Lascaux'
-    },
     {
       title: 'Venus de Milo',
       artist: 'Alexandros of Antioch',
@@ -2134,22 +2140,6 @@ function seedDemoData() {
       source: 'https://en.wikipedia.org/wiki/Girl_with_a_Pearl_Earring'
     },
     {
-      title: 'The Great Wave off Kanagawa',
-      artist: 'Katsushika Hokusai',
-      year: 1831,
-      yearEnd: null,
-      medium: 'Woodcut',
-      movement: 'Ukiyo-e',
-      location: 'Various collections worldwide',
-      coordinates: { lat: 35.6762, lng: 139.6503 },
-      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Tsunami_by_hokusai_19th_century.jpg/500px-Tsunami_by_hokusai_19th_century.jpg',
-      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Tsunami_by_hokusai_19th_century.jpg/250px-Tsunami_by_hokusai_19th_century.jpg',
-      description: 'A woodblock print depicting a towering wave threatening boats near Kanagawa, with Mount Fuji in the background.',
-      tags: ['japanese', 'iconic', 'landscape', 'woodblock'],
-      notes: '',
-      source: 'https://en.wikipedia.org/wiki/The_Great_Wave_off_Kanagawa'
-    },
-    {
       title: 'The Starry Night',
       artist: 'Vincent van Gogh',
       year: 1889,
@@ -2180,22 +2170,6 @@ function seedDemoData() {
       tags: ['surreal', 'iconic', 'dali'],
       notes: '',
       source: 'https://en.wikipedia.org/wiki/The_Persistence_of_Memory'
-    },
-    {
-      title: "Campbell's Soup Cans",
-      artist: 'Andy Warhol',
-      year: 1962,
-      yearEnd: null,
-      medium: 'Acrylic',
-      movement: 'Pop Art',
-      location: 'MoMA, New York',
-      coordinates: { lat: 40.7614, lng: -73.9776 },
-      imageUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/9/95/Campbell%27s_Soup_Cans_MOMA_reduced_80%25.jpg/440px-Campbell%27s_Soup_Cans_MOMA_reduced_80%25.jpg',
-      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/9/95/Campbell%27s_Soup_Cans_MOMA_reduced_80%25.jpg/220px-Campbell%27s_Soup_Cans_MOMA_reduced_80%25.jpg',
-      description: 'Thirty-two canvases each depicting a different variety of Campbell\'s Soup, a foundational work of Pop Art.',
-      tags: ['pop art', 'iconic', 'warhol'],
-      notes: '',
-      source: 'https://en.wikipedia.org/wiki/Campbell%27s_Soup_Cans'
     },
     {
       title: 'Las Meninas',
@@ -2262,22 +2236,6 @@ function seedDemoData() {
       source: 'https://en.wikipedia.org/wiki/Washington_Crossing_the_Delaware_(1851_painting)'
     },
     {
-      title: 'The Great Red Dragon and the Woman Clothed with the Sun',
-      artist: 'William Blake',
-      year: 1805,
-      yearEnd: null,
-      medium: 'Watercolor',
-      movement: 'Romanticism',
-      location: 'The Met, New York',
-      coordinates: { lat: 40.7794, lng: -73.9632 },
-      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/William_Blake_003.jpg/400px-William_Blake_003.jpg',
-      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/William_Blake_003.jpg/220px-William_Blake_003.jpg',
-      description: 'A dramatic watercolor from Blake\'s series illustrating the Book of Revelation, showing a massive red dragon.',
-      tags: ['watercolor', 'blake', 'biblical'],
-      notes: '',
-      source: 'https://en.wikipedia.org/wiki/The_Great_Red_Dragon_Paintings'
-    },
-    {
       title: 'Guernica',
       artist: 'Pablo Picasso',
       year: 1937,
@@ -2326,22 +2284,6 @@ function seedDemoData() {
       source: 'https://en.wikipedia.org/wiki/The_School_of_Athens'
     },
     {
-      title: 'La Fornarina',
-      artist: 'Raphael',
-      year: 1520,
-      yearEnd: null,
-      medium: 'Oil on panel',
-      movement: 'High Renaissance',
-      location: 'Galleria Nazionale d\'Arte Antica, Rome',
-      coordinates: { lat: 41.8919, lng: 12.4922 },
-      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Raffaello_-_La_velata.jpg/400px-Raffaello_-_La_velata.jpg',
-      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/Raffaello_-_La_velata.jpg/200px-Raffaello_-_La_velata.jpg',
-      description: 'A portrait of a young woman believed to be Margherita Luti, Raphael\'s companion and muse, rendered with extraordinary tenderness and sensuality.',
-      tags: ['portrait', 'raphael', 'renaissance'],
-      notes: '',
-      source: 'https://en.wikipedia.org/wiki/La_Fornarina'
-    },
-    {
       title: 'The Two Fridas',
       artist: 'Frida Kahlo',
       year: 1939,
@@ -2356,86 +2298,6 @@ function seedDemoData() {
       tags: ['self-portrait', 'kahlo', 'surrealism', 'identity'],
       notes: '',
       source: 'https://en.wikipedia.org/wiki/The_Two_Fridas'
-    },
-    {
-      title: 'Self-Portrait with Thorn Necklace and Hummingbird',
-      artist: 'Frida Kahlo',
-      year: 1940,
-      yearEnd: null,
-      medium: 'Oil on canvas',
-      movement: 'Surrealism',
-      location: 'Harry Ransom Center, Austin',
-      coordinates: { lat: 30.2849, lng: -97.7341 },
-      imageUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/1/1e/Frida_Kahlo_%28self_portrait%29.jpg/360px-Frida_Kahlo_%28self_portrait%29.jpg',
-      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/1/1e/Frida_Kahlo_%28self_portrait%29.jpg/360px-Frida_Kahlo_%28self_portrait%29.jpg',
-      description: 'One of Kahlo\'s most iconic self-portraits, showing her wearing a thorn necklace that draws blood, with a hummingbird pendant, black cat, and monkey — each a symbol laden with personal and Mexican cultural meaning.',
-      tags: ['self-portrait', 'kahlo', 'symbolism', 'surrealism'],
-      notes: '',
-      source: 'https://en.wikipedia.org/wiki/Self-Portrait_with_Thorn_Necklace_and_Hummingbird'
-    },
-    {
-      title: 'Man, Controller of the Universe',
-      artist: 'Diego Rivera',
-      year: 1934,
-      yearEnd: null,
-      medium: 'Fresco',
-      movement: 'Mexican Muralism',
-      location: 'Palacio de Bellas Artes, Mexico City',
-      coordinates: { lat: 19.4352, lng: -99.1412 },
-      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Man%2C_Controller_of_the_Universe_%28Diego_Rivera%2C_Palacio_de_Bellas_Artes%29.jpg/500px-Man%2C_Controller_of_the_Universe_%28Diego_Rivera%2C_Palacio_de_Bellas_Artes%29.jpg',
-      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Man%2C_Controller_of_the_Universe_%28Diego_Rivera%2C_Palacio_de_Bellas_Artes%29.jpg/250px-Man%2C_Controller_of_the_Universe_%28Diego_Rivera%2C_Palacio_de_Bellas_Artes%29.jpg',
-      description: 'A sweeping mural placing humanity at the center of scientific progress, industrial power, and political conflict — originally commissioned for Rockefeller Center, then destroyed and recreated in Mexico City after Rivera included a portrait of Lenin.',
-      tags: ['mural', 'rivera', 'mexican muralism', 'political'],
-      notes: '',
-      source: 'https://en.wikipedia.org/wiki/Man,_Controller_of_the_Universe'
-    },
-    {
-      title: 'Dream of a Sunday Afternoon in Alameda Park',
-      artist: 'Diego Rivera',
-      year: 1947,
-      yearEnd: null,
-      medium: 'Fresco',
-      movement: 'Mexican Muralism',
-      location: 'Museo Mural Diego Rivera, Mexico City',
-      coordinates: { lat: 19.4357, lng: -99.1446 },
-      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Sue%C3%B1o_de_una_tarde_dominical_en_la_Alameda_Central.jpg/500px-Sue%C3%B1o_de_una_tarde_dominical_en_la_Alameda_Central.jpg',
-      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Sue%C3%B1o_de_una_tarde_dominical_en_la_Alameda_Central.jpg/250px-Sue%C3%B1o_de_una_tarde_dominical_en_la_Alameda_Central.jpg',
-      description: 'A panoramic mural depicting 500 years of Mexican history through figures strolling in Alameda Park — from the Aztecs and the Conquest through the Reform War to the Revolution — with Rivera himself as a child at center.',
-      tags: ['mural', 'rivera', 'mexican history', 'panoramic'],
-      notes: '',
-      source: 'https://en.wikipedia.org/wiki/Dream_of_a_Sunday_Afternoon_in_Alameda_Park'
-    },
-    {
-      title: 'Echo of a Scream',
-      artist: 'David Alfaro Siqueiros',
-      year: 1937,
-      yearEnd: null,
-      medium: 'Enamel on wood',
-      movement: 'Mexican Muralism',
-      location: 'MoMA, New York',
-      coordinates: { lat: 40.7614, lng: -73.9776 },
-      imageUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/c/c9/Echo_of_a_Scream.jpg/350px-Echo_of_a_Scream.jpg',
-      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/en/thumb/c/c9/Echo_of_a_Scream.jpg/350px-Echo_of_a_Scream.jpg',
-      description: 'An anguished infant\'s scream reverberates across a wasteland of industrial wreckage, the face doubling and echoing in a disturbing loop — Siqueiros\'s visceral protest against Fascism and war painted during the Spanish Civil War.',
-      tags: ['siqueiros', 'anti-war', 'expressionism', 'protest'],
-      notes: '',
-      source: 'https://en.wikipedia.org/wiki/Echo_of_a_Scream'
-    },
-    {
-      title: 'Prometheus',
-      artist: 'José Clemente Orozco',
-      year: 1930,
-      yearEnd: null,
-      medium: 'Fresco',
-      movement: 'Mexican Muralism',
-      location: 'Pomona College, Claremont',
-      coordinates: { lat: 34.0999, lng: -117.7116 },
-      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Orozco_Prometheus.jpg/400px-Orozco_Prometheus.jpg',
-      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Orozco_Prometheus.jpg/200px-Orozco_Prometheus.jpg',
-      description: 'The first fresco painted in the United States by Orozco, depicting the Titan Prometheus straining to deliver fire to humanity — a heroic yet tormented figure that became a touchstone of the Mexican mural movement in America.',
-      tags: ['fresco', 'orozco', 'mythology', 'mural'],
-      notes: '',
-      source: 'https://en.wikipedia.org/wiki/Prometheus_(Orozco)'
     },
     {
       title: 'Cubes in Color on Color',
@@ -2745,6 +2607,19 @@ function seedDemoData() {
         if (f && (!m.founded || !m.founders)) { m.founded = f.founded; m.founders = f.founders; foundedChanged = true; }
       }
       if (foundedChanged) saveMuseums(fnd);
+    }
+
+    // v11: prune artworks the owner removed from the curated collection.
+    if (meta.seedVersion < 11) {
+      const removed = new Set([
+        "campbell's soup cans", 'dream of a sunday afternoon in alameda park', 'echo of a scream',
+        'la fornarina', 'lascaux cave paintings', 'man, controller of the universe', 'prometheus',
+        'self-portrait with thorn necklace and hummingbird',
+        'the great red dragon and the woman clothed with the sun', 'the great wave off kanagawa'
+      ]);
+      const all = getArtworks();
+      const kept = all.filter(a => !removed.has((a.title || '').toLowerCase()));
+      if (kept.length !== all.length) saveArtworks(kept);
     }
   }
 
@@ -3709,7 +3584,8 @@ function renderCluster() {
 ================================================================ */
 function oneSentence(text) {
   if (!text) return '';
-  const m = text.match(/^.*?[.!?](?=\s|$)/);
+  // Skip single-capital initials like "R." so they aren't mistaken for a sentence end.
+  const m = text.match(/^.*?(?<!\b[A-Z])[.!?](?=\s|$)/);
   let s = (m ? m[0] : text).trim();
   if (s.length > 160) s = s.slice(0, 157).trimEnd() + '…';
   return s;
@@ -3773,7 +3649,10 @@ function renderGallery() {
         <div class="art-card-title">${esc(a.title)}</div>
         <div class="art-card-artist">${esc(a.artist || 'Unknown artist')}${a.year != null ? ' &middot; ' + formatYear(a.year) : ''}</div>
         ${a.description ? `<div class="art-card-desc">${esc(oneSentence(a.description))}</div>` : ''}
-        <div class="art-card-movement" style="color:${mvColor}">${esc(a.movement || '')}</div>
+        <div class="art-card-meta">
+          <div class="art-card-meta-row"><span class="art-card-meta-label">Museum</span><span>${esc(a.location || 'Unknown')}</span></div>
+          <div class="art-card-meta-row"><span class="art-card-meta-label">Period</span><span style="color:${mvColor};font-weight:500">${esc(a.movement || 'Unknown')}</span></div>
+        </div>
         ${tagHtml ? `<div class="card-tags">${tagHtml}</div>` : ''}
       </div>
     </div>`;
@@ -4456,7 +4335,7 @@ function init() {
   const enterBtn = document.getElementById('enter-btn');
   if (enterBtn) {
     enterBtn.addEventListener('click', () => {
-      document.body.classList.remove('landing-mode');
+      switchView('museums');
       window.scrollTo(0, 0);
     });
   }
@@ -4615,8 +4494,8 @@ function init() {
     if (currentView === 'cluster') renderCluster();
   });
 
-  // Start with museums (first item in the sidebar)
-  switchView('museums');
+  // Start on Home (first item in the sidebar)
+  switchView('home');
 }
 
 document.addEventListener('DOMContentLoaded', init);

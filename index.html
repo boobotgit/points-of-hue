@@ -1116,6 +1116,147 @@
     ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
 
     /* ============================================================
+       LANDING PAGE (shown before the app)
+    ============================================================ */
+    body.landing-mode { overflow: auto; }
+    body.landing-mode #app,
+    body.landing-mode #mobile-header,
+    body.landing-mode #mobile-backdrop { display: none !important; }
+    body:not(.landing-mode) #landing { display: none; }
+
+    #landing {
+      background: var(--bg-main);
+      min-height: 100vh;
+      min-height: 100dvh;
+      color: var(--text-primary);
+    }
+    #landing-hero {
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px 24px;
+      padding-top: max(env(safe-area-inset-top, 0px), 40px);
+    }
+    .landing-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 400;
+      font-size: clamp(48px, 12vw, 96px);
+      letter-spacing: 0.02em;
+      color: var(--text-primary);
+      line-height: 1.1;
+    }
+
+    /* The puzzle: each PAIR is a self-contained zigzag where the left
+       image's bottom-right corner touches the right image's top-left
+       corner at their shared midpoint. Between pairs, a small connection
+       note explains the surprising link. */
+    #landing-puzzle {
+      --puzzle-img: min(52vw, 320px);
+      --puzzle-w: calc(var(--puzzle-img) * 2);
+      max-width: var(--puzzle-w);
+      margin: 0 auto;
+      padding: 40px 0 60px;
+    }
+    .puzzle-pair {
+      position: relative;
+      width: 100%;
+      /* Pair height = image height + 50% offset for the second image */
+      height: calc(var(--puzzle-img) * 1.5);
+      margin: 0 auto 8px;
+    }
+    .puzzle-item {
+      position: absolute;
+      width: var(--puzzle-img);
+      height: var(--puzzle-img);
+      overflow: hidden;
+      background: var(--bg-input);
+      box-shadow: 0 8px 24px rgba(44,38,32,0.10);
+      margin: 0;
+    }
+    .puzzle-item[data-side="left"]  { left: 0; top: 0; }
+    .puzzle-item[data-side="right"] { right: 0; top: calc(var(--puzzle-img) * 0.5); }
+    .puzzle-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .puzzle-item figcaption {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 8px 10px;
+      color: #fefcf8;
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 12px;
+      line-height: 1.35;
+      background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0.75) 100%);
+      pointer-events: none;
+    }
+    .puzzle-item figcaption em {
+      display: block;
+      font-family: 'Inter', sans-serif;
+      font-style: normal;
+      font-size: 9.5px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      opacity: 0.75;
+      margin-top: 2px;
+    }
+    .puzzle-connection {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 26px 28px 40px;
+      font-family: 'Inter', sans-serif;
+      font-size: 13.5px;
+      line-height: 1.6;
+      color: var(--text-muted);
+      text-align: center;
+    }
+    .puzzle-connection .pc-num {
+      display: block;
+      font-family: 'Playfair Display', Georgia, serif;
+      font-style: italic;
+      font-size: 24px;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    /* Enter button — just a subtle arrow chip */
+    #landing-enter {
+      text-align: center;
+      padding: 30px 24px 80px;
+      padding-bottom: max(env(safe-area-inset-bottom, 0px), 80px);
+    }
+    #enter-btn {
+      background: none;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+      transition: background 0.18s, color 0.18s, border-color 0.18s;
+    }
+    #enter-btn:hover {
+      background: var(--accent);
+      color: #fefcf8;
+      border-color: var(--accent);
+    }
+    #enter-btn:active { transform: translateY(1px); }
+
+    @media (min-width: 768px) {
+      #landing-puzzle { --puzzle-img: 320px; }
+    }
+
+    /* ============================================================
        MOBILE / iPHONE OPTIMIZATION
     ============================================================ */
     #mobile-header { display: none; }
@@ -1271,7 +1412,61 @@
     }
   </style>
 </head>
-<body>
+<body class="landing-mode">
+
+<!-- LANDING PAGE ------------------------------------------------- -->
+<div id="landing">
+  <section id="landing-hero">
+    <h1 class="landing-title">points of hue</h1>
+  </section>
+
+  <section id="landing-puzzle">
+    <!-- Pair 1: Mona Lisa ↔ L.H.O.O.Q. -->
+    <div class="puzzle-pair">
+      <div class="puzzle-item" data-side="left">
+        <img alt="" src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg/500px-Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg" />
+      </div>
+      <div class="puzzle-item" data-side="right">
+        <img alt="" src="https://upload.wikimedia.org/wikipedia/en/thumb/7/74/Marcel_Duchamp%2C_1919%2C_L.H.O.O.Q.jpg/330px-Marcel_Duchamp%2C_1919%2C_L.H.O.O.Q.jpg" />
+      </div>
+    </div>
+
+    <!-- Pair 2: Birth of Venus ↔ Girl with a Pearl Earring -->
+    <div class="puzzle-pair">
+      <div class="puzzle-item" data-side="left">
+        <img alt="" src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Sandro_Botticelli_-_La_nascita_di_Venere_-_Google_Art_Project_-_edited.jpg/500px-Sandro_Botticelli_-_La_nascita_di_Venere_-_Google_Art_Project_-_edited.jpg" />
+      </div>
+      <div class="puzzle-item" data-side="right">
+        <img alt="" src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/1665_Girl_with_a_Pearl_Earring.jpg/500px-1665_Girl_with_a_Pearl_Earring.jpg" />
+      </div>
+    </div>
+
+    <!-- Pair 3: Great Wave ↔ Starry Night -->
+    <div class="puzzle-pair">
+      <div class="puzzle-item" data-side="left">
+        <img alt="" src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Tsunami_by_hokusai_19th_century.jpg/500px-Tsunami_by_hokusai_19th_century.jpg" />
+      </div>
+      <div class="puzzle-item" data-side="right">
+        <img alt="" src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/500px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg" />
+      </div>
+    </div>
+
+    <!-- Pair 4: Guernica ↔ The Two Fridas -->
+    <div class="puzzle-pair">
+      <div class="puzzle-item" data-side="left">
+        <img alt="" src="https://upload.wikimedia.org/wikipedia/en/thumb/7/74/PicassoGuernica.jpg/500px-PicassoGuernica.jpg" />
+      </div>
+      <div class="puzzle-item" data-side="right">
+        <img alt="" src="https://upload.wikimedia.org/wikipedia/en/f/f9/The_Two_Fridas.jpg" />
+      </div>
+    </div>
+  </section>
+
+  <section id="landing-enter">
+    <button id="enter-btn" aria-label="Enter">↓</button>
+  </section>
+</div>
+<!-- END LANDING ------------------------------------------------- -->
 
 <!-- Mobile-only top bar (hidden on desktop via media query) -->
 <header id="mobile-header">
@@ -4255,6 +4450,24 @@ function init() {
     opt.value = name;
     opt.textContent = name;
     movSelect.appendChild(opt);
+  });
+
+  // Landing → app transition
+  const enterBtn = document.getElementById('enter-btn');
+  if (enterBtn) {
+    enterBtn.addEventListener('click', () => {
+      document.body.classList.remove('landing-mode');
+      window.scrollTo(0, 0);
+    });
+  }
+  // If a broken image is used on the puzzle, hide it gracefully so
+  // the whole cascade doesn't get an ugly icon.
+  document.querySelectorAll('#landing-puzzle .puzzle-item img').forEach(img => {
+    img.addEventListener('error', () => {
+      const t = img.closest('.puzzle-item');
+      if (t) t.style.background = 'var(--bg-input)';
+      img.style.display = 'none';
+    });
   });
 
   // Sidebar navigation

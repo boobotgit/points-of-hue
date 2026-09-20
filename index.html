@@ -1002,13 +1002,13 @@
     /* ============================================================
        MUSEUMS VIEW (also used by ARTISTS VIEW)
     ============================================================ */
-    #museumsView, #artistsView { flex-direction: column; }
-    #museumsScroll, #artistsScroll {
+    #museumsView, #artistsView, #patronsView { flex-direction: column; }
+    #museumsScroll, #artistsScroll, #patronsScroll {
       flex: 1;
       overflow-y: auto;
       min-height: 0;
     }
-    #museumsGrid, #artistsGrid {
+    #museumsGrid, #artistsGrid, #patronsGrid {
       padding: 8px 28px 40px;
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -1052,6 +1052,28 @@
       color: var(--text-muted);
       line-height: 1.5;
       font-style: italic;
+    }
+    .patron-header {
+      align-items: center;
+      gap: 14px;
+      padding-top: 20px;
+    }
+    .patron-avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      object-fit: cover;
+      object-position: center 22%;
+      flex: 0 0 auto;
+      background: var(--bg-input);
+    }
+    .patron-avatar-empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 26px;
+      color: var(--text-dim);
     }
     .museum-card-founded {
       padding: 0 18px 14px;
@@ -1453,7 +1475,7 @@
         min-width: 0;
         gap: 2px;
       }
-      #topnav .nav-btn { font-size: 12.5px; letter-spacing: 0.03em; padding: 8px 5px; }
+      #topnav .nav-btn { font-size: 12px; letter-spacing: 0.02em; padding: 8px 4px; }
       .nav-btn.home-icon {
         grid-column: auto;
         justify-self: auto;
@@ -1483,12 +1505,12 @@
       .header-controls { width: 100%; display: flex; flex-wrap: wrap; gap: 6px; }
 
       /* Card grids: single column */
-      #galleryGrid, #museumsGrid, #artistsGrid {
+      #galleryGrid, #museumsGrid, #artistsGrid, #patronsGrid {
         grid-template-columns: 1fr !important;
         gap: 14px !important;
         padding: 12px 16px calc(env(safe-area-inset-bottom, 0px) + 40px) !important;
       }
-      #galleryScroll, #museumsScroll, #artistsScroll {
+      #galleryScroll, #museumsScroll, #artistsScroll, #patronsScroll {
         overflow: visible !important;
         height: auto !important;
       }
@@ -1567,6 +1589,7 @@
       <button class="nav-btn" data-view="museums">Museums</button>
       <button class="nav-btn" data-view="gallery">Gallery</button>
       <button class="nav-btn" data-view="artists">Artists</button>
+      <button class="nav-btn" data-view="patrons">Patrons</button>
       <button class="nav-btn" data-view="cluster">Play</button>
       <button class="nav-btn" data-view="timeline">Timeline</button>
     </nav>
@@ -1635,6 +1658,7 @@
             <button class="nav-btn" data-view="museums">Museums</button>
             <button class="nav-btn" data-view="gallery">Gallery</button>
             <button class="nav-btn" data-view="artists">Artists</button>
+            <button class="nav-btn" data-view="patrons">Patrons</button>
             <button class="nav-btn" data-view="cluster">Play</button>
             <button class="nav-btn" data-view="timeline">Timeline</button>
           </nav>
@@ -1774,6 +1798,17 @@
         </div>
       </div>
       <div id="artistsScroll"><div id="artistsGrid"></div></div>
+    </section>
+
+    <!-- PATRONS VIEW -->
+    <section id="patronsView" class="view hidden">
+      <div class="view-header">
+        <div>
+          <h1>Patrons</h1>
+          <p id="patronsCount">The collectors behind the collections</p>
+        </div>
+      </div>
+      <div id="patronsScroll"><div id="patronsGrid"></div></div>
     </section>
 
     <!-- MUSEUMS VIEW -->
@@ -2012,6 +2047,7 @@ const MOVEMENTS = {
   'Minimalism':             { color: '#6a7a7a', start: 1960,  end: 1980 },
   'Contemporary':           { color: '#7a7a74', start: 1970,  end: 2030 },
   'Ukiyo-e':                { color: '#8a9a7a', start: 1600,  end: 1900 },
+  'Assyrian Revival':       { color: '#94663f', start: 1840,  end: 1900 },
   'High Renaissance':       { color: '#d4b870', start: 1490,  end: 1530 },
   'Northern Renaissance':   { color: '#9a8a6a', start: 1430,  end: 1580 },
   'Mexican Muralism':       { color: '#c46a45', start: 1920,  end: 1960 },
@@ -2119,6 +2155,61 @@ const MUSEUMS_KEY = 'artatlas_museums';
 
 // Personal "point of hue" notes for artists (artists are derived from artworks, not stored
 // entities, so their notes live in a separate map keyed by artist name).
+/* ---- Patrons: the collectors who made these collections possible ---- */
+const PATRONS_KEY = 'artatlas_patrons';
+function getPatrons() {
+  try { return JSON.parse(localStorage.getItem(PATRONS_KEY) || '[]'); }
+  catch(e) { return []; }
+}
+function savePatrons(arr) { localStorage.setItem(PATRONS_KEY, JSON.stringify(arr)); }
+function getPatronById(id) { return getPatrons().find(p => p.id === id) || null; }
+function updatePatron(id, data) {
+  const all = getPatrons();
+  const i = all.findIndex(p => p.id === id);
+  if (i === -1) return all;
+  all[i] = { ...all[i], ...data };
+  savePatrons(all);
+  return all;
+}
+
+const DEMO_PATRONS = [
+  {
+    name: 'Peggy Guggenheim',
+    years: '1898–1979',
+    country: 'United States / Italy',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Peggy_Guggenheim%2C_Lo_Specchio_%281958%29_%28cropped%29.jpg/500px-Peggy_Guggenheim%2C_Lo_Specchio_%281958%29_%28cropped%29.jpg',
+    museums: ['Peggy Guggenheim Collection'],
+    notes: 'Bought a picture a day in Paris as the Germans advanced, then spent the rest of her life defending what she had rescued. She gave Jackson Pollock his first show and lived with the collection in a half-built palazzo on the Grand Canal.'
+  },
+  {
+    name: 'Sir Austen Henry Layard',
+    years: '1817–1894',
+    country: 'United Kingdom',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/AustenHenryLayard.jpg/500px-AustenHenryLayard.jpg',
+    museums: ['British Museum'],
+    notes: 'Excavated Nimrud and Nineveh in the 1840s and shipped the Assyrian reliefs to London. The lion hunts and winged bulls he unearthed set off a wave of Assyrian Revival design across Victorian Britain.'
+  },
+  {
+    name: 'The Medici Family',
+    years: '1434–1737',
+    country: 'Italy',
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Augmented_Arms_of_Medici.svg/500px-Augmented_Arms_of_Medici.svg.png',
+    museums: ['Uffizi Gallery'],
+    notes: 'Bankers who bought the Renaissance into being — Botticelli, Michelangelo and Leonardo all worked on Medici money. The last of the line, Anna Maria Luisa, willed every piece to Florence on condition that nothing ever leave the city.'
+  }
+];
+
+// Runs independently of SEED_VERSION so patrons appear even for readers
+// already sitting on the current seed version.
+function ensurePatronsSeeded() {
+  const existing = getPatrons();
+  const have = new Set(existing.map(p => (p.name || '').toLowerCase()));
+  const added = DEMO_PATRONS
+    .filter(p => !have.has(p.name.toLowerCase()))
+    .map(p => ({ ...p, id: generateId(), createdAt: new Date().toISOString() }));
+  if (added.length) savePatrons([...existing, ...added]);
+}
+
 const ARTIST_NOTES_KEY = 'artatlas_artist_notes';
 function getArtistNotes() {
   try { return JSON.parse(localStorage.getItem(ARTIST_NOTES_KEY) || '{}'); }
@@ -2176,7 +2267,7 @@ function getArtworksForMuseum(museum) {
    SECTION 3: DEMO DATA
 ================================================================ */
 function seedDemoData() {
-  const SEED_VERSION = 11;
+  const SEED_VERSION = 12;
   const meta = getMeta();
   if (meta.seeded && meta.seedVersion >= SEED_VERSION) return;
 
@@ -2516,6 +2607,22 @@ function seedDemoData() {
       tags: ['surrealism', 'installation', 'conceptual'],
       notes: '',
       source: 'https://en.wikipedia.org/wiki/%C3%89tant_donn%C3%A9s'
+    },
+    {
+      title: 'An American Index of the Hidden and Unfamiliar',
+      artist: 'Taryn Simon',
+      year: 2007,
+      yearEnd: null,
+      medium: 'Photography',
+      movement: 'Contemporary',
+      location: 'Various collections',
+      coordinates: null,
+      imageUrl: '',
+      thumbnailUrl: '',
+      description: 'A four-year photographic survey of sites hidden from ordinary view in the United States — nuclear waste, cryopreservation units, quarantined plants — each image paired with plain documentary text.',
+      tags: ['photography', 'conceptual', 'contemporary', 'documentary'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/Taryn_Simon'
     }
   ];
 
@@ -2543,6 +2650,14 @@ function seedDemoData() {
     { name: 'The Frick Collection', city: 'New York', country: 'United States', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Frick_Collection_New_York_entr%C3%A9e.jpg/500px-Frick_Collection_New_York_entr%C3%A9e.jpg', notes: 'Industrialist Henry Clay Frick\'s Gilded Age mansion on Fifth Avenue, displaying his intimate collection of Old Master paintings, sculpture, and decorative arts.' },
     { name: 'Neue Galerie', city: 'New York', country: 'United States', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Neue_Gallery_%2848059179353%29.jpg/500px-Neue_Gallery_%2848059179353%29.jpg', notes: 'A museum of early-20th-century German and Austrian art set in a Fifth Avenue mansion; home to Klimt\'s golden portrait of Adele Bloch-Bauer.' },
     { name: 'Philadelphia Museum of Art', city: 'Philadelphia', country: 'United States', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/PhiladelphiaMuseumOfArt2017.jpg/500px-PhiladelphiaMuseumOfArt2017.jpg', notes: 'One of the largest art museums in the United States, housed in a Greek Revival landmark on Fairmount overlooking the Benjamin Franklin Parkway (of Rocky-steps fame); holds the world\'s greatest Duchamp collection.' },
+    { name: 'British Museum', city: 'London', country: 'United Kingdom', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/British_Museum_from_NE_2.JPG/500px-British_Museum_from_NE_2.JPG', notes: 'The first national public museum in the world, covering two million years of human history; home to the Rosetta Stone, the Parthenon sculptures and Layard\'s Assyrian reliefs from Nimrud and Nineveh.' },
+    { name: 'Wallace Collection', city: 'London', country: 'United Kingdom', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/70/Front_entrance_to_the_Wallace_Collection%2C_Manchester_Square_-_geograph.org.uk_-_1600012.jpg/500px-Front_entrance_to_the_Wallace_Collection%2C_Manchester_Square_-_geograph.org.uk_-_1600012.jpg', notes: 'A single family\'s collection left intact in their Marylebone townhouse — French eighteenth-century painting, armour and Frans Hals\'s Laughing Cavalier. Nothing may ever be loaned out.' },
+    { name: 'National Portrait Gallery, London', city: 'London', country: 'United Kingdom', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/National_Portrait_Gallery%2C_London%2C_June_2023_34.jpg/500px-National_Portrait_Gallery%2C_London%2C_June_2023_34.jpg', notes: 'The first portrait gallery of its kind, collecting likenesses of the people who shaped Britain — chosen for the sitter\'s significance rather than the artist\'s.' },
+    { name: 'National Gallery of Art', city: 'Washington D.C.', country: 'United States', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/National_Gallery_of_Art_-_2026_%2855255088792%29.jpg/500px-National_Gallery_of_Art_-_2026_%2855255088792%29.jpg', notes: 'Andrew Mellon\'s gift to the nation on the National Mall, holding the only Leonardo da Vinci painting in the Americas.' },
+    { name: 'National Gallery of Art, East Building', city: 'Washington D.C.', country: 'United States', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/National_Gallery_of_Art%2C_East_Building.jpg/500px-National_Gallery_of_Art%2C_East_Building.jpg', notes: 'I. M. Pei\'s sharp-angled modern wing, built on an awkward trapezoid of land and devoted to modern and contemporary art.' },
+    { name: 'Los Angeles County Museum of Art', city: 'Los Angeles', country: 'United States', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/LACMA-Los-Angeles-County-Museum-of-Art-04-2014.jpg/500px-LACMA-Los-Angeles-County-Museum-of-Art-04-2014.jpg', notes: 'The largest art museum in the western United States, fronted by Chris Burden\'s Urban Light — two hundred restored street lamps from across the city.' },
+    { name: 'Institute of Contemporary Art, Boston', city: 'Boston', country: 'United States', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Institute_of_Contemporary_Art%2C_Boston.jpg/500px-Institute_of_Contemporary_Art%2C_Boston.jpg', notes: 'A cantilevered glass box hanging over Boston Harbor; it showed Picasso and Matisse to America early, and collected nothing at all until 2006.' },
+    { name: 'Dallas Museum of Art', city: 'Dallas', country: 'United States', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/DMA_west.jpg/500px-DMA_west.jpg', notes: 'An encyclopedic collection in the Dallas Arts District, free to enter, spanning ancient Mediterranean work to contemporary American art.' },
   ];
 
   // Founding year + the people behind each museum. Single source of truth: applied to the
@@ -2571,6 +2686,14 @@ function seedDemoData() {
     'The Frick Collection': { founded: '1935', founders: 'Industrialist Henry Clay Frick' },
     'Neue Galerie': { founded: '2001', founders: 'Ronald S. Lauder & Serge Sabarsky' },
     'Philadelphia Museum of Art': { founded: '1876 (Fairmount building opened 1928)', founders: 'Chartered by the Pennsylvania legislature after the 1876 Centennial Exhibition; Fairmount building by architects Horace Trumbauer, Zantzinger, Borie & Medary' },
+    'British Museum': { founded: '1753 (opened 1759)', founders: 'Founded on the bequest of physician and collector Sir Hans Sloane; Assyrian galleries built on Sir Austen Henry Layard\'s excavations' },
+    'Wallace Collection': { founded: '1897 (opened 1900)', founders: 'Bequeathed to the nation by Lady Wallace, widow of Sir Richard Wallace; assembled over four generations by the Marquesses of Hertford' },
+    'National Portrait Gallery, London': { founded: '1856', founders: 'Proposed by Philip Henry Stanhope, 5th Earl Stanhope, with Thomas Babington Macaulay and Thomas Carlyle' },
+    'National Gallery of Art': { founded: '1937 (opened 1941)', founders: 'Andrew W. Mellon, who gave his collection and the building to the nation; architect John Russell Pope' },
+    'National Gallery of Art, East Building': { founded: '1978', founders: 'Funded by Paul Mellon and Ailsa Mellon Bruce; architect I. M. Pei' },
+    'Los Angeles County Museum of Art': { founded: '1961 (opened 1965)', founders: 'Split off as its own museum under director Richard Fargo Brown; campus much expanded by Eli Broad' },
+    'Institute of Contemporary Art, Boston': { founded: '1936', founders: 'Founded as the Boston Museum of Modern Art; harbourfront building by Diller Scofidio + Renfro' },
+    'Dallas Museum of Art': { founded: '1903', founders: 'Begun as the Dallas Art Association by a group of local citizens and artists' },
   };
   demoMuseums.forEach(m => { const f = MUSEUM_FOUNDING[m.name]; if (f) { m.founded = f.founded; m.founders = f.founders; } });
 
@@ -2729,6 +2852,7 @@ function seedDemoData() {
     }
   }
 
+
   saveMeta({ seeded: true, seedVersion: SEED_VERSION });
 }
 
@@ -2773,6 +2897,7 @@ function switchView(name) {
   if (name === 'cluster') { renderCluster(); renderPlayTray(); }
   if (name === 'gallery') renderGallery();
   if (name === 'artists') renderArtists();
+  if (name === 'patrons') renderPatrons();
   if (name === 'museums') renderMuseums();
 
   // Rendering changes the page height, which can nudge the scroll position —
@@ -4117,7 +4242,8 @@ function openHueModal(type, key, name) {
   if (type === 'artwork') { const a = getArtworkById(key); current = a ? (a.notes || '') : ''; }
   else if (type === 'museum') { const m = getMuseumById(key); current = m ? (m.pointOfHue || '') : ''; }
   else if (type === 'artist') { current = getArtistNote(key); }
-  const labels = { artwork: 'this artwork', museum: 'this museum', artist: 'this artist' };
+  else if (type === 'patron') { const p = getPatronById(key); current = p ? (p.pointOfHue || '') : ''; }
+  const labels = { artwork: 'this artwork', museum: 'this museum', artist: 'this artist', patron: 'this patron' };
   document.getElementById('hueModalSubtitle').textContent = name ? `${name}` : (labels[type] || '');
   document.getElementById('hueModalText').value = current;
   document.getElementById('hueModalOverlay').classList.remove('hidden');
@@ -4133,6 +4259,7 @@ function saveHueNote() {
   if (hueTarget.type === 'artwork') updateArtwork(hueTarget.key, { notes: text });
   else if (hueTarget.type === 'museum') updateMuseum(hueTarget.key, { pointOfHue: text });
   else if (hueTarget.type === 'artist') setArtistNote(hueTarget.key, text);
+  else if (hueTarget.type === 'patron') updatePatron(hueTarget.key, { pointOfHue: text });
   const wasArtwork = hueTarget.type === 'artwork' ? hueTarget.key : null;
   closeHueModal();
   refreshCurrentView();
@@ -4473,6 +4600,100 @@ function renderArtists() {
   });
 }
 
+function renderPatrons() {
+  ensurePatronsSeeded();
+  const patrons = getPatrons().sort((a, b) => a.name.localeCompare(b.name));
+  const grid = document.getElementById('patronsGrid');
+  document.getElementById('patronsCount').textContent =
+    patrons.length === 0 ? 'No patrons yet' : `${patrons.length} patron${patrons.length !== 1 ? 's' : ''}`;
+
+  if (patrons.length === 0) {
+    grid.innerHTML = `<div class="empty-state">
+      <div class="empty-state-icon">&#9826;</div>
+      <div class="empty-state-text">No patrons yet.</div>
+    </div>`;
+    return;
+  }
+
+  const allMuseums = getMuseums();
+  const allArtworks = getArtworks();
+
+  grid.innerHTML = patrons.map(p => {
+    const linkedMuseums = (p.museums || [])
+      .map(name => allMuseums.find(m => m.name.toLowerCase() === name.toLowerCase()))
+      .filter(Boolean);
+
+    // Anything in the collection that sits in a museum this patron made possible
+    const works = allArtworks.filter(a => linkedMuseums.some(m =>
+      (a.location || '').toLowerCase().includes(m.name.toLowerCase())));
+
+    // A round portrait beside the name reads far better than a wide crop,
+    // which slices most head-and-shoulders photographs across the forehead.
+    const avatar = p.imageUrl
+      ? `<img class="patron-avatar" src="${safeUrl(p.imageUrl)}" alt="" />`
+      : `<div class="patron-avatar patron-avatar-empty">${esc(p.name.slice(0, 1).toUpperCase())}</div>`;
+
+    const museumsHtml = linkedMuseums.length
+      ? `<div class="museum-card-founded">
+          <span class="founded-label">Made possible</span>
+          ${linkedMuseums.map(m => esc(m.name)).join(' &middot; ')}
+        </div>`
+      : '';
+
+    const worksHtml = works.length
+      ? `<div class="museum-card-artworks">
+          <div class="museum-artworks-title">In your collection (${works.length})</div>
+          ${works.slice(0, 5).map(a => {
+            const thumb = a.thumbnailUrl
+              ? `<img class="museum-artwork-thumb" src="${safeUrl(a.thumbnailUrl)}" alt="" />`
+              : `<div class="museum-artwork-thumb" style="display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text-dim);font-family:'Playfair Display',serif">${esc(a.title.slice(0,2).toUpperCase())}</div>`;
+            return `<div class="museum-artwork-row" data-artwork-id="${esc(a.id)}">
+                ${thumb}
+                <div class="museum-artwork-info">
+                  <div class="museum-artwork-name">${esc(a.title)}</div>
+                  <div class="museum-artwork-artist">${esc(a.artist || 'Unknown')}${a.year != null ? ' · ' + formatYear(a.year) : ''}</div>
+                </div>
+              </div>`;
+          }).join('')}
+          ${works.length > 5 ? `<div style="font-size:11px;color:var(--text-dim);margin-top:4px">+${works.length - 5} more</div>` : ''}
+        </div>`
+      : `<div class="museum-card-artworks"><div class="museum-empty-artworks">No matching artworks in your collection yet</div></div>`;
+
+    const hueHtml = `<div class="museum-card-hue">
+        ${p.pointOfHue ? `<div class="hue-label">Your point of hue</div><div class="hue-text">${esc(p.pointOfHue)}</div>` : ''}
+        <button class="btn-hue" data-patron-hue="${esc(p.id)}">${p.pointOfHue ? 'Edit your point of hue' : '+ Add your point of hue'}</button>
+      </div>`;
+
+    return `<div class="museum-card patron-card">
+      <div class="museum-card-header patron-header">
+        ${avatar}
+        <div>
+          <div class="museum-card-name">${esc(p.name)}</div>
+          <div class="museum-card-city">${esc([p.years, p.country].filter(Boolean).join(' · '))}</div>
+        </div>
+      </div>
+      ${p.notes ? `<div class="museum-card-notes">${esc(p.notes)}</div>` : ''}
+      ${museumsHtml}
+      ${worksHtml}
+      ${hueHtml}
+    </div>`;
+  }).join('');
+
+  grid.querySelectorAll('.museum-artwork-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const a = getArtworkById(row.dataset.artworkId);
+      if (a) openDetailPanel(a);
+    });
+  });
+  grid.querySelectorAll('[data-patron-hue]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const p = getPatronById(btn.dataset.patronHue);
+      openHueModal('patron', btn.dataset.patronHue, p ? p.name : '');
+    });
+  });
+}
+
 function renderMuseums() {
   const museums = getMuseums().sort((a, b) => a.name.localeCompare(b.name));
   const grid = document.getElementById('museumsGrid');
@@ -4675,6 +4896,7 @@ function refreshCurrentView() {
   if (currentView === 'cluster') renderCluster();
   if (currentView === 'gallery') renderGallery();
   if (currentView === 'artists') renderArtists();
+  if (currentView === 'patrons') renderPatrons();
   if (currentView === 'museums') renderMuseums();
 }
 

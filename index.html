@@ -352,8 +352,12 @@
       position: relative;
       overflow: hidden;
       background: var(--bg-main);
+      min-height: 420px;
     }
-    #clusterSvg { width: 100%; height: 100%; cursor: grab; }
+    /* Absolute inset rather than height:100% — a percentage height can't
+       resolve against a flex parent with auto height, and an SVG then falls
+       back to its 150px intrinsic default. */
+    #clusterSvg { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; }
     #clusterSvg:active { cursor: grabbing; }
     /* touch-action:none so a finger drag moves the piece instead of
        scrolling/panning the canvas underneath it */
@@ -448,16 +452,18 @@
     .cl-node:hover circle { stroke-width: 2.5; }
     #clusterLegend {
       position: absolute;
-      top: 16px;
-      left: 16px;
-      background: var(--bg-panel);
-      border: 1px solid var(--border);
+      top: 10px;
+      right: 10px;
+      background: color-mix(in srgb, var(--bg-main) 86%, transparent);
+      border: 1px solid var(--border-light);
       border-radius: var(--radius-md);
-      padding: 12px 14px;
-      box-shadow: var(--shadow-sm);
+      padding: 9px 11px;
       z-index: 10;
-      max-height: 300px;
+      max-height: 44%;
+      max-width: 42%;
       overflow-y: auto;
+      font-size: 11px;
+      pointer-events: auto;
     }
     .legend-title {
       font-size: 10px;
@@ -1683,10 +1689,13 @@
         </div>
         <div class="header-controls">
           <select class="filter-select" id="groupBySelect">
-            <option value="movement">By Movement</option>
-            <option value="medium">By Medium</option>
-            <option value="artist">By Artist</option>
-            <option value="century">By Century</option>
+            <option value="all">Connect by everything</option>
+            <option value="word">Words in notes &amp; descriptions</option>
+            <option value="tag">Wikipedia tags</option>
+            <option value="movement">Movement</option>
+            <option value="artist">Artist</option>
+            <option value="place">Museum</option>
+            <option value="medium">Technique</option>
           </select>
           <button class="btn-add" id="clResetLayout" title="Put every piece back in its group">Reset layout</button>
         </div>
@@ -3483,6 +3492,90 @@ function getClusterFiltered(allArtworks) {
 const PLAY_POS_KEY = 'artatlas_play_positions';
 let playTray = [];
 
+/* ---- Threads: the themes that tie pieces together ----
+   Sources: Wikipedia tags, the imported description, your own notes
+   ("point of hue"), plus artist / place / movement / technique.
+   Only a theme shared by two or more pieces becomes a thread. */
+const THEME_KIND_COLOR = {
+  word:     '#8c7355',
+  tag:      '#7a8aaa',
+  movement: '#8a5a5a',
+  artist:   '#6a8a7a',
+  place:    '#b8886a',
+  medium:   '#7a7a8a'
+};
+
+const THEME_STOPWORDS = new Set(('about above after again against algo all also among another any are around because ' +
+  'been before being below between both cannot could depicted depicting depicts derived described during each ' +
+  'either every first from further have having here herself himself imagery important include includes including ' +
+  'into itself just known large largest later like made major make makes many more most much must never often ' +
+  'once only other others over own painted painter painters painting paintings particular perhaps piece pieces ' +
+  'rather same seen several shown shows since some still such than that their theirs them themselves then there ' +
+  'these they this those three through thus time times together toward under until upon using various very ' +
+  'were what when where which while whose will with within without work works would year years artwork artist ' +
+  'artists canvas colour color colours colors figure figures image images style styles famous world century ' +
+  'centuries modern early late oil panel one two four five its his her she who has had was are been').split(' '));
+
+function themeWordsOf(a) {
+  const text = ((a.description || '') + ' ' + (a.notes || '')).toLowerCase();
+  const words = text
+    .replace(/[^a-z\s'-]/g, ' ')
+    .split(/\s+/)
+    .map(w => w.replace(/^[-']+|[-']+$/g, ''))
+    .filter(w => w.length >= 5 && !THEME_STOPWORDS.has(w));
+  return [...new Set(words)];
+}
+
+function buildThemes(artworks, mode) {
+  const map = new Map();
+  const add = (kind, key, label, a) => {
+    const id = kind + ':' + key;
+    if (!map.has(id)) map.set(id, { id, kind, label, works: [] });
+    const t = map.get(id);
+    if (!t.works.includes(a.id)) t.works.push(a.id);
+  };
+  const on = kind => mode === 'all' || mode === kind;
+
+  artworks.forEach(a => {
+    if (on('tag')) (a.tags || []).forEach(t => {
+      const k = String(t).toLowerCase().trim();
+      if (k) add('tag', k, k, a);
+    });
+    if (on('word')) themeWordsOf(a).forEach(w => add('word', w, w, a));
+    if (on('movement') && a.movement) add('movement', a.movement, a.movement, a);
+    if (on('artist') && a.artist) add('artist', a.artist, a.artist, a);
+    if (on('medium') && a.medium) add('medium', a.medium, a.medium.toLowerCase(), a);
+    if (on('place')) {
+      const m = museumForArtwork(a);
+      if (m) add('place', m.name, m.name, a);
+    }
+  });
+
+  // A thread needs at least two pieces to tie together.
+  let themes = [...map.values()].filter(t => t.works.length >= 2);
+
+  // "dada" the tag and "Dada" the movement are the same thread — merge any
+  // themes sharing a label, keeping the most meaningful kind.
+  const RANK = { movement: 0, artist: 1, place: 2, medium: 3, tag: 4, word: 5 };
+  const byLabel = new Map();
+  themes.forEach(t => {
+    const key = t.label.toLowerCase();
+    const prev = byLabel.get(key);
+    if (!prev) { byLabel.set(key, { ...t, works: [...t.works] }); return; }
+    prev.works = [...new Set(prev.works.concat(t.works))];
+    if (RANK[t.kind] < RANK[prev.kind]) { prev.kind = t.kind; prev.label = t.label; prev.id = t.id; }
+  });
+  themes = [...byLabel.values()];
+
+  // Free-text words are the noisiest source, so keep only the strongest.
+  const words = themes.filter(t => t.kind === 'word')
+    .sort((x, y) => y.works.length - x.works.length)
+    .slice(0, mode === 'word' ? 24 : 14);
+  themes = themes.filter(t => t.kind !== 'word').concat(words);
+
+  return themes;
+}
+
 function getPlayPositions() {
   try { return JSON.parse(localStorage.getItem(PLAY_POS_KEY) || '{}'); }
   catch(e) { return {}; }
@@ -3656,27 +3749,23 @@ function renderCluster() {
   d3.select(svgEl).selectAll('*').remove();
   if (clusterSimulation) { clusterSimulation.stop(); clusterSimulation = null; }
 
-  // Populate filter dropdowns from all data
   populateClusterFilters(allArtworks);
-
-  // Apply filters
   const artworks = getClusterFiltered(allArtworks);
-
-  // Update subtitle
-  if (artworks.length === allArtworks.length) {
-    subtitleEl.textContent = artworks.length + ' ARTWORKS';
-  } else {
-    subtitleEl.textContent = artworks.length + ' OF ' + allArtworks.length + ' ARTWORKS';
-  }
 
   if (artworks.length === 0) {
     emptyEl.classList.remove('hidden');
     legendEl.innerHTML = '';
+    subtitleEl.textContent = '0 ARTWORKS';
     return;
   }
   emptyEl.classList.add('hidden');
 
-  const groupBy = document.getElementById('groupBySelect').value;
+  const mode = document.getElementById('groupBySelect').value;
+  const themes = buildThemes(artworks, mode);
+
+  subtitleEl.textContent = artworks.length + ' ARTWORKS · ' + themes.length +
+    ' SHARED THREAD' + (themes.length === 1 ? '' : 'S');
+
   const width = svgEl.clientWidth || 800;
   const height = svgEl.clientHeight || 600;
   const svg = d3.select(svgEl);
@@ -3687,106 +3776,89 @@ function renderCluster() {
   svg.call(clusterZoom).on('dblclick.zoom', null);
   clusterSvgG = svg.append('g');
 
-  // Group artworks
-  function getGroupKey(a) {
-    switch (groupBy) {
-      case 'movement': return a.movement || 'Other';
-      case 'medium': return a.medium || 'Unknown';
-      case 'artist': return a.artist || 'Unknown';
-      case 'century': {
-        if (a.year == null) return 'Unknown';
-        if (a.year < 0) return 'Ancient';
-        const c = Math.floor(a.year / 100) + 1;
-        return c + (c === 1 ? 'st' : c === 2 ? 'nd' : c === 3 ? 'rd' : 'th') + ' century';
-      }
-      default: return a.movement || 'Other';
-    }
-  }
-
-  const groups = {};
-  artworks.forEach(a => {
-    const key = getGroupKey(a);
-    if (!groups[key]) groups[key] = [];
-    groups[key].push(a);
-  });
-
-  const groupNames = Object.keys(groups).sort();
-  const angleStep = (2 * Math.PI) / Math.max(groupNames.length, 1);
-  const radius = Math.min(width, height) / 3.5;
-  const groupCenters = {};
-  groupNames.forEach((name, i) => {
-    groupCenters[name] = {
-      x: width / 2 + radius * Math.cos(i * angleStep - Math.PI / 2),
-      y: height / 2 + radius * Math.sin(i * angleStep - Math.PI / 2)
-    };
-  });
-
-  // Color assignment
-  function getColor(a, group) {
-    if (groupBy === 'movement') return MOVEMENTS[a.movement]?.color || '#9e9890';
-    const palette = ['#b8976a','#8a5a5a','#7a8aaa','#b8886a','#6a8a7a','#8a6e8a','#aa6a5a','#7a7a8a','#8a7a9a','#5a7a8a','#aa8a5a','#7a7a74','#c4a882','#7a8a7a','#8a7a6a','#6a6a5a'];
-    const idx = groupNames.indexOf(group);
-    return palette[idx % palette.length];
-  }
-
-  // Create nodes — anything you've moved before comes back where you left it
   const savedPos = getPlayPositions();
-  const nodes = artworks.map(a => {
-    const group = getGroupKey(a);
+  const artNodes = artworks.map(a => {
     const s = savedPos[a.id];
     return {
-      id: a.id, artwork: a, group,
-      color: getColor(a, group),
-      x: s ? s.x : groupCenters[group].x + (Math.random() - 0.5) * 60,
-      y: s ? s.y : groupCenters[group].y + (Math.random() - 0.5) * 60,
-      fx: s ? s.x : null,
-      fy: s ? s.y : null
+      id: a.id, type: 'art', artwork: a,
+      color: MOVEMENTS[a.movement]?.color || '#9e9890',
+      x: s ? s.x : width / 2 + (Math.random() - 0.5) * 300,
+      y: s ? s.y : height / 2 + (Math.random() - 0.5) * 300,
+      fx: s ? s.x : null, fy: s ? s.y : null
     };
   });
+  const themeNodes = themes.map(t => ({
+    id: t.id, type: 'theme', label: t.label, kind: t.kind, degree: t.works.length,
+    x: width / 2 + (Math.random() - 0.5) * 200,
+    y: height / 2 + (Math.random() - 0.5) * 200
+  }));
 
-  // Group labels
-  clusterSvgG.append('g').selectAll('.group-label')
-    .data(groupNames).join('text')
-    .attr('class', 'group-label')
-    .attr('x', name => groupCenters[name].x)
-    .attr('y', name => groupCenters[name].y - 60 - Math.sqrt(groups[name].length) * 8)
-    .attr('text-anchor', 'middle')
-    .attr('font-size', '12px')
-    .attr('fill', '#8c7355')
-    .attr('font-family', "'Playfair Display', serif")
-    .attr('font-weight', '500')
-    .text(name => name);
+  const artIds = new Set(artNodes.map(n => n.id));
+  const links = [];
+  themes.forEach(t => t.works.forEach(wid => {
+    if (artIds.has(wid)) links.push({ source: t.id, target: wid });
+  }));
 
-  // Render nodes
-  const nodeR = 24;
-  const nodeSel = clusterSvgG.append('g').selectAll('.cl-node')
-    .data(nodes, d => d.id).join('g')
-    .attr('class', 'cl-node')
-    .call(d3.drag()
+  const nodes = artNodes.concat(themeNodes);
+
+  function dragBehaviour(isArt) {
+    return d3.drag()
       .on('start', (e, d) => {
         if (!e.active) clusterSimulation.alphaTarget(0.3).restart();
-        d.fx = d.x; d.fy = d.y;
-        d._ox = d.x; d._oy = d.y;   // where it came from, in case it's a tray drop
-        d._moved = false;
+        d.fx = d.x; d.fy = d.y; d._ox = d.x; d._oy = d.y; d._moved = false;
       })
       .on('drag', (e, d) => {
-        d.fx = e.x; d.fy = e.y;
-        d._moved = true;
-        const tray = document.getElementById('playTray');
-        if (tray) tray.classList.toggle('drop-active', overPlayTray(e));
+        d.fx = e.x; d.fy = e.y; d._moved = true;
+        if (isArt) {
+          const tray = document.getElementById('playTray');
+          if (tray) tray.classList.toggle('drop-active', overPlayTray(e));
+        }
       })
       .on('end', (e, d) => {
         if (!e.active) clusterSimulation.alphaTarget(0);
-        const tray = document.getElementById('playTray');
-        if (tray) tray.classList.remove('drop-active');
-        if (d._moved && overPlayTray(e)) {
-          // Dropped on the light table: collect it, and send the piece home.
-          addToPlayTray(d.id);
-          d.fx = d._ox; d.fy = d._oy; d.x = d._ox; d.y = d._oy;
+        if (isArt) {
+          const tray = document.getElementById('playTray');
+          if (tray) tray.classList.remove('drop-active');
+          if (d._moved && overPlayTray(e)) {
+            addToPlayTray(d.id);
+            d.fx = d._ox; d.fy = d._oy; d.x = d._ox; d.y = d._oy;
+          }
+          savePlayPosition(d.id, d.fx, d.fy);
         }
-        // Stay put wherever it was left.
-        savePlayPosition(d.id, d.fx, d.fy);
-      }))
+      });
+  }
+
+  // Threads (links)
+  const linkSel = clusterSvgG.append('g').selectAll('line')
+    .data(links).join('line')
+    .attr('stroke', '#d8cfc2')
+    .attr('stroke-width', 1);
+
+  // Theme nodes
+  const themeSel = clusterSvgG.append('g').selectAll('.cl-theme')
+    .data(themeNodes, d => d.id).join('g')
+    .attr('class', 'cl-theme')
+    .call(dragBehaviour(false))
+    .on('click', (e, d) => { e.stopPropagation(); highlightTheme(d.id); });
+
+  themeSel.append('circle')
+    .attr('r', d => 4 + Math.min(d.degree, 8))
+    .attr('fill', d => THEME_KIND_COLOR[d.kind] || '#8c7355')
+    .attr('fill-opacity', 0.85);
+  themeSel.append('text')
+    .text(d => d.label)
+    .attr('y', d => -(9 + Math.min(d.degree, 8)))
+    .attr('text-anchor', 'middle')
+    .attr('font-size', '10px')
+    .attr('font-family', "'Inter', sans-serif")
+    .attr('fill', '#6f6558');
+
+  // Artwork nodes
+  const nodeR = 22;
+  const nodeSel = clusterSvgG.append('g').selectAll('.cl-node')
+    .data(artNodes, d => d.id).join('g')
+    .attr('class', 'cl-node')
+    .call(dragBehaviour(true))
     .on('click', (e, d) => { e.stopPropagation(); if (!d._moved) openDetailPanel(d.artwork); })
     .on('mouseenter', (e, d) => showTooltip(e, d.artwork))
     .on('mouseleave', hideTooltip);
@@ -3795,17 +3867,15 @@ function renderCluster() {
     const g = d3.select(this);
     if (d.artwork.thumbnailUrl) {
       const clipId = 'cl-clip-' + d.artwork.id;
-      g.append('clipPath').attr('id', clipId)
-        .append('circle').attr('r', nodeR);
+      g.append('clipPath').attr('id', clipId).append('circle').attr('r', nodeR);
       g.append('image')
         .attr('href', d.artwork.thumbnailUrl)
         .attr('x', -nodeR).attr('y', -nodeR)
         .attr('width', nodeR * 2).attr('height', nodeR * 2)
-        .attr('clip-path', `url(#${clipId})`)
+        .attr('clip-path', 'url(#' + clipId + ')')
         .attr('preserveAspectRatio', 'xMidYMid slice');
     } else {
-      g.append('circle').attr('r', nodeR)
-        .attr('fill', '#ede8e0');
+      g.append('circle').attr('r', nodeR).attr('fill', '#ede8e0');
       g.append('text')
         .text(d.artwork.title.slice(0, 2).toUpperCase())
         .attr('text-anchor', 'middle').attr('dominant-baseline', 'central')
@@ -3813,40 +3883,63 @@ function renderCluster() {
         .attr('font-family', "'Playfair Display', serif");
     }
     g.append('circle').attr('r', nodeR)
-      .attr('fill', 'none')
-      .attr('stroke', d.color).attr('stroke-width', 1.5);
+      .attr('fill', 'none').attr('stroke', d.color).attr('stroke-width', 1.5);
     g.append('text')
-      .attr('y', nodeR + 14).attr('text-anchor', 'middle')
+      .attr('y', nodeR + 13).attr('text-anchor', 'middle')
       .attr('font-size', '9px').attr('fill', '#9c8e7e')
       .attr('font-family', "'Inter', sans-serif")
       .text(d.artwork.title.length > 14 ? d.artwork.title.slice(0, 12) + '...' : d.artwork.title);
   });
 
-  // Force simulation
+  // Tap a thread to spotlight everything it joins
+  let spotlit = null;
+  function highlightTheme(themeId) {
+    spotlit = spotlit === themeId ? null : themeId;
+    const joined = new Set();
+    if (spotlit) {
+      links.forEach(l => {
+        const s = l.source.id || l.source;
+        const t = l.target.id || l.target;
+        if (s === spotlit) { joined.add(t); joined.add(s); }
+      });
+    }
+    const dim = n => (spotlit && !joined.has(n.id)) ? 0.15 : 1;
+    nodeSel.attr('opacity', dim);
+    themeSel.attr('opacity', dim);
+    linkSel.attr('stroke-opacity', l => {
+      if (!spotlit) return 1;
+      const s = l.source.id || l.source;
+      return s === spotlit ? 1 : 0.08;
+    });
+  }
+  svg.on('click', () => { if (spotlit) highlightTheme(spotlit); });
+
   clusterSimulation = d3.forceSimulation(nodes)
-    .force('x', d3.forceX(d => groupCenters[d.group]?.x || width / 2).strength(0.12))
-    .force('y', d3.forceY(d => groupCenters[d.group]?.y || height / 2).strength(0.12))
-    .force('charge', d3.forceManyBody().strength(-60))
-    .force('collide', d3.forceCollide(nodeR + 14))
+    .force('link', d3.forceLink(links).id(d => d.id).distance(76).strength(0.5))
+    .force('charge', d3.forceManyBody().strength(d => d.type === 'art' ? -260 : -90))
+    .force('center', d3.forceCenter(width / 2, height / 2))
+    .force('collide', d3.forceCollide(d => d.type === 'art' ? nodeR + 12 : 16))
     .on('tick', () => {
-      nodeSel.attr('transform', d => `translate(${d.x},${d.y})`);
+      linkSel
+        .attr('x1', l => l.source.x).attr('y1', l => l.source.y)
+        .attr('x2', l => l.target.x).attr('y2', l => l.target.y);
+      nodeSel.attr('transform', d => 'translate(' + d.x + ',' + d.y + ')');
+      themeSel.attr('transform', d => 'translate(' + d.x + ',' + d.y + ')');
     });
 
-  // Legend
-  const uniqueGroups = groupNames.map(name => ({
-    name,
-    color: nodes.find(n => n.group === name)?.color || '#9e9890',
-    count: groups[name].length
-  }));
-  legendEl.innerHTML = `
-    <div class="legend-title">Groups</div>
-    ${uniqueGroups.map(g => `
-      <div class="legend-item">
-        <div class="legend-dot" style="background:${g.color}"></div>
-        <span class="legend-label">${esc(g.name)} (${g.count})</span>
-      </div>
-    `).join('')}
-  `;
+  // Legend: the strongest threads
+  const top = themes.slice().sort((a, b) => b.works.length - a.works.length).slice(0, 12);
+  legendEl.innerHTML =
+    '<div class="legend-title">Threads</div>' +
+    top.map(t =>
+      '<div class="legend-item">' +
+        '<div class="legend-dot" style="background:' + (THEME_KIND_COLOR[t.kind] || '#8c7355') + '"></div>' +
+        '<span class="legend-label">' + esc(t.label) + ' (' + t.works.length + ')</span>' +
+      '</div>'
+    ).join('') +
+    (themes.length === 0
+      ? '<div class="legend-label" style="padding:4px 0">Nothing shared yet — add notes or tags to weave threads.</div>'
+      : '');
 }
 
 /* ================================================================

@@ -884,6 +884,26 @@
     }
     .btn-save:hover { background: var(--accent-hover); }
 
+    /* Quiet page-level "add" buttons — they sit in the layout rather than
+       shouting from it. (Form Save buttons stay filled.) */
+    .btn-add {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 7px 16px;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 12px;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    .btn-add:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: var(--accent-light);
+    }
+
     /* ============================================================
        MUSEUMS VIEW (also used by ARTISTS VIEW)
     ============================================================ */
@@ -1421,7 +1441,7 @@
 
       /* Bigger touch targets, no iOS zoom on focus */
       .nav-btn { padding: 12px 16px; font-size: 15px; }
-      .btn-save, .btn-cancel, .btn-edit, .btn-delete, .btn-hue { min-height: 40px; }
+      .btn-save, .btn-cancel, .btn-edit, .btn-delete, .btn-hue, .btn-add { min-height: 40px; }
       input, select, textarea { font-size: 16px !important; }
 
       /* Timeline & Cluster: SVGs shrink to width */
@@ -1605,7 +1625,7 @@
           <p id="galleryCount">Your collection</p>
         </div>
         <div class="header-controls">
-          <button class="btn-save" id="galleryAddBtn" style="font-size:12px;padding:6px 14px">+ Add Artwork</button>
+          <button class="btn-add" id="galleryAddBtn">+ Add Artwork</button>
         </div>
       </div>
       <div id="galleryControls">
@@ -1642,7 +1662,7 @@
           <p id="museumsCount">Places you've explored</p>
         </div>
         <div class="header-controls">
-          <button class="btn-save" id="addMuseumBtn" style="font-size:12px;padding:6px 14px">+ Add Museum</button>
+          <button class="btn-add" id="addMuseumBtn">+ Add Museum</button>
         </div>
       </div>
       <div id="museumsScroll"><div id="museumsGrid"></div></div>

@@ -17,10 +17,10 @@
     ============================================================ */
     :root {
       --bg-main:      #f9f6f1;
-      --bg-sidebar:   #f3ede4;
-      --bg-panel:     #fefcf8;
-      --bg-modal:     #fefcf8;
-      --bg-input:     #f3ede4;
+      --bg-sidebar:   #f9f6f1;
+      --bg-panel:     #f9f6f1;
+      --bg-modal:     #f9f6f1;
+      --bg-input:     #f9f6f1;
       --border:       #e5ddd0;
       --border-light: #ede8e0;
       --accent:       #8c7355;
@@ -194,7 +194,7 @@
        SHARED CONTROLS
     ============================================================ */
     .filter-select {
-      background: #fff;
+      background: var(--bg-main);
       border: 1px solid var(--border-light);
       border-radius: var(--radius-sm);
       padding: 6px 10px;
@@ -404,7 +404,7 @@
     #gallerySearch {
       flex: 1;
       max-width: 320px;
-      background: #fff;
+      background: var(--bg-main);
       border: 1px solid var(--border-light);
       border-radius: var(--radius-sm);
       padding: 8px 12px;
@@ -831,7 +831,7 @@
       color: var(--text-dim);
     }
     .form-input, .form-textarea, .form-select {
-      background: #fff;
+      background: var(--bg-main);
       background: var(--bg-input);
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);

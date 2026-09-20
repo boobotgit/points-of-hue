@@ -1130,6 +1130,7 @@
     #homeView { overflow-y: auto; }
     #landing { background: var(--bg-main); color: var(--text-primary); }
     #landing-hero {
+      position: relative;
       min-height: 100vh;
       min-height: 100dvh;
       display: flex;
@@ -1139,6 +1140,42 @@
       text-align: center;
       padding: 40px 24px;
       padding-top: max(env(safe-area-inset-top, 0px), 40px);
+    }
+
+    /* Wordless "there's more below" cue: a hairline with a short segment
+       drifting down it. Fades out for good once the page is scrolled. */
+    .scroll-cue {
+      position: absolute;
+      left: 50%;
+      bottom: max(env(safe-area-inset-bottom, 0px), 30px);
+      transform: translateX(-50%);
+      width: 1px;
+      height: 52px;
+      overflow: hidden;
+      background: linear-gradient(to bottom, transparent, var(--border) 30%, var(--border));
+      opacity: 1;
+      transition: opacity 0.5s ease;
+      pointer-events: none;
+    }
+    body.has-scrolled .scroll-cue { opacity: 0; }
+    .scroll-cue::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: -16px;
+      width: 1px;
+      height: 16px;
+      background: var(--accent);
+      animation: cueDrift 2.6s ease-in-out infinite;
+    }
+    @keyframes cueDrift {
+      0%   { top: -16px; opacity: 0; }
+      20%  { opacity: 1; }
+      80%  { opacity: 1; }
+      100% { top: 52px; opacity: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .scroll-cue::after { animation: none; top: 18px; opacity: 0.7; }
     }
     .landing-title {
       font-family: 'Playfair Display', Georgia, serif;
@@ -1398,6 +1435,7 @@
       <div id="landing">
         <section id="landing-hero">
           <h1 class="landing-title">points of hue</h1>
+          <div class="scroll-cue" aria-hidden="true"></div>
         </section>
 
         <section id="landing-puzzle">
@@ -2551,6 +2589,12 @@ function switchView(name) {
   document.querySelectorAll(`[data-view="${name}"]`).forEach(b => b.classList.add('active'));
   // Home hides the top bar; every other view shows it.
   document.body.classList.toggle('view-home', name === 'home');
+  if (name === 'home') {
+    // Land at the top so the hero — and its scroll cue — are the first thing seen.
+    window.scrollTo(0, 0);
+    if (viewEl) viewEl.scrollTop = 0;
+    document.body.classList.remove('has-scrolled');
+  }
   if (name === 'timeline') renderTimeline();
   if (name === 'cluster') renderCluster();
   if (name === 'gallery') renderGallery();
@@ -4208,6 +4252,20 @@ function init() {
       img.style.display = 'none';
     });
   });
+
+  // Don't let the browser restore a previous scroll position — it would hide
+  // the Home scroll cue before the reader ever saw it.
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
+  // Retire the Home scroll cue once the reader has scrolled at all.
+  // Mobile scrolls the window; desktop scrolls inside #homeView.
+  const markScrolled = (e) => {
+    const top = e && e.target && e.target.scrollTop != null ? e.target.scrollTop : window.scrollY;
+    if (top > 8) document.body.classList.add('has-scrolled');
+  };
+  window.addEventListener('scroll', markScrolled, { passive: true });
+  const homeViewEl = document.getElementById('homeView');
+  if (homeViewEl) homeViewEl.addEventListener('scroll', markScrolled, { passive: true });
 
   // Menu navigation (top bar on inner views, bottom of the Home page)
   document.querySelectorAll('.nav-btn').forEach(btn => {

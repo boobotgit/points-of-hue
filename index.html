@@ -355,7 +355,96 @@
     }
     #clusterSvg { width: 100%; height: 100%; cursor: grab; }
     #clusterSvg:active { cursor: grabbing; }
-    .cl-node { cursor: pointer; }
+    /* touch-action:none so a finger drag moves the piece instead of
+       scrolling/panning the canvas underneath it */
+    .cl-node { cursor: pointer; touch-action: none; }
+
+    /* ---- Light table: drop zone + findings ---- */
+    #playTray {
+      flex: 0 0 auto;
+      border-top: 1px solid var(--border-light);
+      padding: 10px 28px 16px;
+      padding-bottom: max(env(safe-area-inset-bottom, 0px), 16px);
+      max-height: 42vh;
+      overflow-y: auto;
+      transition: background 0.15s, box-shadow 0.15s;
+    }
+    #playTray.drop-active {
+      background: var(--accent-light);
+      box-shadow: inset 0 0 0 1px var(--accent);
+    }
+    #playTrayHead {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    #playTrayTitle {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 15px;
+      color: var(--text-primary);
+    }
+    #playTrayHint {
+      font-size: 12.5px;
+      color: var(--text-dim);
+      font-style: italic;
+      padding: 6px 0 2px;
+    }
+    #playTrayItems {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+    .tray-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 10px 5px 5px;
+      border: 1px solid var(--border-light);
+      border-radius: 999px;
+      font-size: 12px;
+      color: var(--text-primary);
+      max-width: 230px;
+    }
+    .tray-chip img {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex: 0 0 auto;
+    }
+    .tray-chip .tray-chip-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .tray-chip button {
+      background: none; border: none; cursor: pointer;
+      color: var(--text-dim); font-size: 15px; line-height: 1;
+      padding: 0 2px;
+    }
+    .tray-chip button:hover { color: var(--danger); }
+
+    #playTrayFindings { margin-top: 6px; }
+    .finding {
+      display: flex;
+      gap: 10px;
+      padding: 7px 0;
+      border-top: 1px solid var(--border-light);
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text-primary);
+    }
+    .finding:first-child { border-top: none; }
+    .finding-label {
+      flex: 0 0 74px;
+      font-size: 9.5px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      padding-top: 3px;
+    }
     .cl-node:hover circle { stroke-width: 2.5; }
     #clusterLegend {
       position: absolute;
@@ -1447,6 +1536,16 @@
       /* Timeline & Cluster: SVGs shrink to width */
       #timelineSvg, #clusterSvg { width: 100% !important; }
       #timelineArea, #clusterArea { touch-action: pan-x pan-y pinch-zoom; }
+
+      /* Play on a phone: keep a usable board to drag from, and stop the
+         light table from eating the screen. */
+      #clusterView { min-height: 100vh; min-height: 100dvh; }
+      #clusterArea { min-height: 52vh; }
+      #clusterFilters { padding: 6px 16px 8px; }
+      #clusterFilters .cl-filter-select,
+      #clusterFilters #clusterSearch { flex: 1 1 46%; min-width: 0; }
+      #playTray { max-height: 38vh; padding: 10px 16px 16px; }
+      .tray-chip { max-width: 100%; }
     }
   </style>
 </head>
@@ -1589,6 +1688,7 @@
             <option value="artist">By Artist</option>
             <option value="century">By Century</option>
           </select>
+          <button class="btn-add" id="clResetLayout" title="Put every piece back in its group">Reset layout</button>
         </div>
       </div>
       <div id="clusterFilters">
@@ -1613,6 +1713,19 @@
             <div class="empty-state-icon">&#9678;</div>
             <div class="empty-state-text">No artworks yet. Add artworks to explore clusters.</div>
           </div>
+        </div>
+      </div>
+
+      <!-- Light table: drag pieces in here to see what connects them -->
+      <div id="playTray">
+        <div id="playTrayHead">
+          <span id="playTrayTitle">the light table</span>
+          <button class="btn-add" id="playTrayClear">Clear</button>
+        </div>
+        <div id="playTrayBody">
+          <div id="playTrayHint">Drag any two pieces down here to see what links them.</div>
+          <div id="playTrayItems"></div>
+          <div id="playTrayFindings"></div>
         </div>
       </div>
     </section>
@@ -2648,7 +2761,7 @@ function switchView(name) {
   if (name === 'home') document.body.classList.remove('has-scrolled');
 
   if (name === 'timeline') renderTimeline();
-  if (name === 'cluster') renderCluster();
+  if (name === 'cluster') { renderCluster(); renderPlayTray(); }
   if (name === 'gallery') renderGallery();
   if (name === 'artists') renderArtists();
   if (name === 'museums') renderMuseums();
@@ -3362,6 +3475,177 @@ function getClusterFiltered(allArtworks) {
   });
 }
 
+/* ================================================================
+   PLAY: free placement + the light table
+   Pieces stay where you drop them; drop two or more into the tray and
+   the app works out what actually links them from the stored data.
+================================================================ */
+const PLAY_POS_KEY = 'artatlas_play_positions';
+let playTray = [];
+
+function getPlayPositions() {
+  try { return JSON.parse(localStorage.getItem(PLAY_POS_KEY) || '{}'); }
+  catch(e) { return {}; }
+}
+function savePlayPosition(id, x, y) {
+  if (x == null || y == null) return;
+  const p = getPlayPositions();
+  p[id] = { x, y };
+  localStorage.setItem(PLAY_POS_KEY, JSON.stringify(p));
+}
+function clearPlayPositions() { localStorage.removeItem(PLAY_POS_KEY); }
+
+function museumForArtwork(a) {
+  const loc = (a.location || '').toLowerCase();
+  if (!loc) return null;
+  return getMuseums().find(m => m.name && loc.includes(m.name.toLowerCase())) || null;
+}
+
+function haversineKm(p, q) {
+  const R = 6371, rad = d => d * Math.PI / 180;
+  const dLat = rad(q.lat - p.lat), dLng = rad(q.lng - p.lng);
+  const h = Math.sin(dLat / 2) ** 2 +
+            Math.cos(rad(p.lat)) * Math.cos(rad(q.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+// Everything here is derived from data already stored on each artwork.
+function findConnections(works) {
+  const out = [];
+  const dated = works.filter(w => w.year != null);
+  let lo = null, hi = null;
+  if (dated.length >= 2) {
+    lo = Math.min(...dated.map(w => w.year));
+    hi = Math.max(...dated.map(w => w.year));
+    const gap = hi - lo;
+    if (gap === 0) out.push({ label: 'Time', text: `Both made in ${formatYear(lo)} — the very same year.` });
+    else if (gap <= 30) out.push({ label: 'Time', text: `Only ${gap} years apart. These could have hung in the same room, when new.` });
+    else out.push({ label: 'Time', text: `${gap.toLocaleString()} years apart — ${formatYear(lo)} to ${formatYear(hi)}.` });
+
+    const between = HISTORY_EVENTS.filter(e => e.year > lo && e.year < hi);
+    if (between.length) {
+      const inv = between.filter(e => e.category === 'invention');
+      const src = inv.length ? inv : between;
+      const pick = src.slice(0, 4).map(e => `${e.label} (${formatYear(e.year)})`);
+      out.push({
+        label: 'In between',
+        text: `In the gap the world gained ${pick.join(', ')}${src.length > 4 ? `, and ${src.length - 4} more` : ''}.`
+      });
+    }
+  }
+
+  const artists = [...new Set(works.map(w => w.artist).filter(Boolean))];
+  if (artists.length === 1) {
+    out.push({ label: 'Hand', text: `The same hand throughout — ${artists[0]}.` });
+  } else if (artists.length === 2 && hi != null && hi - lo <= 60) {
+    out.push({ label: 'Hand', text: `${artists.join(' and ')} — near enough in time to have known each other's work.` });
+  }
+
+  const venues = [...new Set(works.map(w => w.location).filter(Boolean))];
+  if (venues.length === 1) {
+    out.push({ label: 'Place', text: `Both live at ${venues[0]}. One visit sees them side by side.` });
+  } else {
+    const countries = [...new Set(works.map(museumForArtwork).filter(Boolean).map(m => m.country).filter(Boolean))];
+    if (countries.length === 1) out.push({ label: 'Place', text: `Both are in ${countries[0]}.` });
+    else if (countries.length > 1) out.push({ label: 'Place', text: `Split across ${countries.join(' and ')}.` });
+
+    const geo = works.filter(w => w.coordinates && w.coordinates.lat != null && w.coordinates.lng != null);
+    let far = 0, pair = null;
+    for (let i = 0; i < geo.length; i++) {
+      for (let j = i + 1; j < geo.length; j++) {
+        const d = haversineKm(geo[i].coordinates, geo[j].coordinates);
+        if (d > far) { far = d; pair = [geo[i], geo[j]]; }
+      }
+    }
+    if (pair && far > 1) {
+      out.push({
+        label: 'Distance',
+        text: `${Math.round(far).toLocaleString()} km between them — ${pair[0].location || pair[0].title} to ${pair[1].location || pair[1].title}.`
+      });
+    }
+  }
+
+  const movs = [...new Set(works.map(w => w.movement).filter(Boolean))];
+  if (movs.length === 1) out.push({ label: 'Movement', text: `All of it ${movs[0]}.` });
+  else if (movs.length > 1) out.push({ label: 'Movement', text: `${movs.join(' meets ')}.` });
+
+  const meds = [...new Set(works.map(w => w.medium).filter(Boolean))];
+  if (meds.length === 1) out.push({ label: 'Technique', text: `Made the same way — ${meds[0].toLowerCase()}.` });
+  else if (meds.length > 1) out.push({ label: 'Technique', text: `Different means entirely: ${meds.join(', ').toLowerCase()}.` });
+
+  const tagSets = works.map(w => new Set((w.tags || []).map(t => t.toLowerCase())));
+  if (tagSets.length >= 2) {
+    const shared = [...tagSets[0]].filter(t => tagSets.every(s => s.has(t)));
+    if (shared.length) out.push({ label: 'Threads', text: `A thread they share: ${shared.join(', ')}.` });
+  }
+
+  return out;
+}
+
+function addToPlayTray(id) {
+  if (playTray.includes(id)) return;
+  playTray.push(id);
+  renderPlayTray();
+}
+function removeFromPlayTray(id) {
+  playTray = playTray.filter(x => x !== id);
+  renderPlayTray();
+}
+function renderPlayTray() {
+  const itemsEl = document.getElementById('playTrayItems');
+  const findEl = document.getElementById('playTrayFindings');
+  const hintEl = document.getElementById('playTrayHint');
+  if (!itemsEl) return;
+
+  const works = playTray.map(getArtworkById).filter(Boolean);
+  playTray = works.map(w => w.id);
+
+  itemsEl.innerHTML = works.map(w => `
+    <span class="tray-chip">
+      ${w.thumbnailUrl ? `<img src="${safeUrl(w.thumbnailUrl)}" alt="" />` : ''}
+      <span class="tray-chip-name">${esc(w.title)}</span>
+      <button type="button" data-tray-remove="${esc(w.id)}" aria-label="Remove">&times;</button>
+    </span>
+  `).join('');
+  itemsEl.querySelectorAll('[data-tray-remove]').forEach(b => {
+    b.addEventListener('click', () => removeFromPlayTray(b.dataset.trayRemove));
+  });
+
+  if (works.length === 0) {
+    hintEl.textContent = 'Drag any two pieces down here to see what links them.';
+    hintEl.classList.remove('hidden');
+    findEl.innerHTML = '';
+  } else if (works.length === 1) {
+    hintEl.textContent = 'One more — connections need something to compare against.';
+    hintEl.classList.remove('hidden');
+    findEl.innerHTML = '';
+  } else {
+    hintEl.classList.add('hidden');
+    const findings = findConnections(works);
+    findEl.innerHTML = findings.length
+      ? findings.map(f => `<div class="finding"><span class="finding-label">${esc(f.label)}</span><span>${esc(f.text)}</span></div>`).join('')
+      : '<div class="finding"><span>These two share nothing the atlas can see — which is its own kind of answer.</span></div>';
+  }
+}
+
+// Was the drag released over the light table?
+function playPointerClient(e) {
+  const se = e.sourceEvent;
+  if (!se) return null;
+  if (se.changedTouches && se.changedTouches[0]) {
+    return { x: se.changedTouches[0].clientX, y: se.changedTouches[0].clientY };
+  }
+  if (se.clientX == null) return null;
+  return { x: se.clientX, y: se.clientY };
+}
+function overPlayTray(e) {
+  const p = playPointerClient(e);
+  const tray = document.getElementById('playTray');
+  if (!p || !tray) return false;
+  const r = tray.getBoundingClientRect();
+  return p.x >= r.left && p.x <= r.right && p.y >= r.top && p.y <= r.bottom;
+}
+
 function renderCluster() {
   const allArtworks = getArtworks();
   const svgEl = document.getElementById('clusterSvg');
@@ -3445,14 +3729,18 @@ function renderCluster() {
     return palette[idx % palette.length];
   }
 
-  // Create nodes
+  // Create nodes — anything you've moved before comes back where you left it
+  const savedPos = getPlayPositions();
   const nodes = artworks.map(a => {
     const group = getGroupKey(a);
+    const s = savedPos[a.id];
     return {
       id: a.id, artwork: a, group,
       color: getColor(a, group),
-      x: groupCenters[group].x + (Math.random() - 0.5) * 60,
-      y: groupCenters[group].y + (Math.random() - 0.5) * 60
+      x: s ? s.x : groupCenters[group].x + (Math.random() - 0.5) * 60,
+      y: s ? s.y : groupCenters[group].y + (Math.random() - 0.5) * 60,
+      fx: s ? s.x : null,
+      fy: s ? s.y : null
     };
   });
 
@@ -3475,10 +3763,31 @@ function renderCluster() {
     .data(nodes, d => d.id).join('g')
     .attr('class', 'cl-node')
     .call(d3.drag()
-      .on('start', (e, d) => { if (!e.active) clusterSimulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
-      .on('drag', (e, d) => { d.fx = e.x; d.fy = e.y; })
-      .on('end', (e, d) => { if (!e.active) clusterSimulation.alphaTarget(0); d.fx = null; d.fy = null; }))
-    .on('click', (e, d) => { e.stopPropagation(); openDetailPanel(d.artwork); })
+      .on('start', (e, d) => {
+        if (!e.active) clusterSimulation.alphaTarget(0.3).restart();
+        d.fx = d.x; d.fy = d.y;
+        d._ox = d.x; d._oy = d.y;   // where it came from, in case it's a tray drop
+        d._moved = false;
+      })
+      .on('drag', (e, d) => {
+        d.fx = e.x; d.fy = e.y;
+        d._moved = true;
+        const tray = document.getElementById('playTray');
+        if (tray) tray.classList.toggle('drop-active', overPlayTray(e));
+      })
+      .on('end', (e, d) => {
+        if (!e.active) clusterSimulation.alphaTarget(0);
+        const tray = document.getElementById('playTray');
+        if (tray) tray.classList.remove('drop-active');
+        if (d._moved && overPlayTray(e)) {
+          // Dropped on the light table: collect it, and send the piece home.
+          addToPlayTray(d.id);
+          d.fx = d._ox; d.fy = d._oy; d.x = d._ox; d.y = d._oy;
+        }
+        // Stay put wherever it was left.
+        savePlayPosition(d.id, d.fx, d.fy);
+      }))
+    .on('click', (e, d) => { e.stopPropagation(); if (!d._moved) openDetailPanel(d.artwork); })
     .on('mouseenter', (e, d) => showTooltip(e, d.artwork))
     .on('mouseleave', hideTooltip);
 
@@ -4377,6 +4686,16 @@ function init() {
   document.getElementById('clFilterArtist').addEventListener('change', renderCluster);
   document.getElementById('clFilterMuseum').addEventListener('change', renderCluster);
   document.getElementById('clFilterCentury').addEventListener('change', renderCluster);
+  // Play: light table + reset layout
+  document.getElementById('playTrayClear').addEventListener('click', () => {
+    playTray = [];
+    renderPlayTray();
+  });
+  document.getElementById('clResetLayout').addEventListener('click', () => {
+    clearPlayPositions();
+    renderCluster();
+  });
+
   document.getElementById('clClearFilters').addEventListener('click', () => {
     document.getElementById('clusterSearch').value = '';
     document.getElementById('clFilterMovement').value = '';

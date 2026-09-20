@@ -356,7 +356,7 @@
     }
     .tl-event-label {
       font-family: 'Inter', sans-serif;
-      font-size: 8px;
+      font-size: 9px;
       letter-spacing: 0.02em;
     }
     .tl-event-node { cursor: default; }
@@ -1716,6 +1716,23 @@
          light table from eating the screen. */
       #clusterView { min-height: 100vh; min-height: 100dvh; }
       #clusterArea, #timelineArea { min-height: 52vh; }
+      /* The key shouldn't eat the canvas on a phone */
+      #timelineLegend, #clusterLegend {
+        padding: 6px 8px;
+        font-size: 10px;
+        max-width: 46%;
+        max-height: 40%;
+        opacity: 0.94;
+      }
+      #timelineLegend .legend-item, #clusterLegend .legend-item { margin: 1px 0; }
+      #timelineLegend .legend-label, #clusterLegend .legend-label { font-size: 10px; }
+      .zoom-controls { transform: scale(0.82); transform-origin: bottom left; }
+
+      /* Readable type on a small screen */
+      .tl-event-label { font-size: 10px; }
+      .tl-title-label { font-size: 11px; }
+      .tl-date-label  { font-size: 10px; }
+      .tooltip { max-width: 76vw; }
       #clusterFilters { padding: 6px 16px 8px; }
       #clusterFilters .cl-filter-select,
       #clusterFilters #clusterSearch { flex: 1 1 46%; min-width: 0; }
@@ -3116,6 +3133,7 @@ let currentView = 'home';
 let activePanelArtworkId = null;
 let editingArtworkId = null;
 let timelineZoom = null;
+let timelineArtworkY = 0;
 let timelineSvgG = null;
 let clusterSimulation = null;
 let clusterSvgG = null;
@@ -3645,6 +3663,7 @@ function renderTimeline() {
   });
 
   // ── Historical context events ──
+  timelineArtworkY = positions.length ? positions.reduce((t, p) => t + p.y, 0) / positions.length : 0;
   const maxNodeY = positions.length > 0 ? Math.max(...positions.map(p => p.y)) : nodeBaseY;
   const eventsGap = 50;
   const eventsAxisY = maxNodeY + 80 + eventsGap;
@@ -3704,14 +3723,18 @@ function renderTimeline() {
 
     if (events.length === 0) return;
 
-    // Labels alternate above and below the line when markers crowd together
-    let lastLabelX = -Infinity;
-    let above = true;
+    // Two tracks per line, above and below. A label is only drawn where it
+    // genuinely fits; otherwise the marker stays and the label is dropped,
+    // which is what keeps a phone screen readable.
+    const charW = 4.6;
+    let aboveRight = -Infinity, belowRight = -Infinity;
     const placed = events.map(ev => {
       const x = xScale(ev.year);
-      if (x - lastLabelX < 90) above = !above; else above = true;
-      lastLabelX = x;
-      return { x, ev, above };
+      const w = 10 + ev.label.length * charW;
+      let row = null;
+      if (x > aboveRight + 6) { row = 'above'; aboveRight = x + w; }
+      else if (x > belowRight + 6) { row = 'below'; belowRight = x + w; }
+      return { x, ev, row };
     });
 
     const laneG = timelineSvgG.append('g').selectAll('.tl-lane-event')
@@ -3720,17 +3743,20 @@ function renderTimeline() {
       .attr('transform', d => `translate(${d.x}, ${laneY})`)
       .on('mouseenter', (e, d) => showEventTooltip(e, d.ev, lane.label))
       .on('mousemove', (e) => positionTooltip(e))
-      .on('mouseleave', hideTooltip);
+      .on('mouseleave', hideTooltip)
+      // A finger has no hover, so a tap opens the same context
+      .on('click', (e, d) => { e.stopPropagation(); showEventTooltip(e, d.ev, lane.label); });
 
     laneG.append('circle')
       .attr('class', 'tl-event-marker')
       .attr('r', 3.5)
       .attr('fill', colour);
 
-    laneG.append('text')
+    laneG.filter(d => d.row)
+      .append('text')
       .attr('class', 'tl-event-label')
       .attr('x', 6)
-      .attr('y', d => d.above ? -6 : 13)
+      .attr('y', d => d.row === 'above' ? -6 : 14)
       .attr('fill', colour)
       .attr('fill-opacity', 0.9)
       .text(d => d.ev.label);
@@ -3766,14 +3792,20 @@ function fitTimeline(forceAll) {
       d3.zoomIdentity.translate(tx, ty).scale(scale)
     );
   } else {
-    // Fit the full stack of strands vertically so they can be read against
-    // each other, but never shrink past legibility.
-    const scale = Math.max(0.4, Math.min((height - 24) / bounds.height, 1.0));
+    // On a phone, fitting nine strands into a short screen would shrink the
+    // text to a few pixels. Hold a legible zoom instead and open on the
+    // artworks, letting the reader pan down through the strands.
+    const narrow = window.innerWidth < 768;
+    const fitScale = (height - 24) / bounds.height;
+    const scale = narrow
+      ? Math.max(0.85, Math.min(fitScale, 1.0))
+      : Math.max(0.4, Math.min(fitScale, 1.0));
     // Show the densest stretch horizontally
     const focusX = bounds.x + bounds.width * 0.55;
-    const focusCenterY = bounds.y + bounds.height / 2;
     const tx = width / 2 - focusX * scale;
-    const ty = height / 2 - focusCenterY * scale;
+    const ty = narrow
+      ? Math.min(24 - bounds.y * scale, height * 0.42 - timelineArtworkY * scale)
+      : height / 2 - (bounds.y + bounds.height / 2) * scale;
     svg.transition().duration(500).call(
       timelineZoom.transform,
       d3.zoomIdentity.translate(tx, ty).scale(scale)
@@ -5275,8 +5307,18 @@ async function fetchWikiExtract(title) {
 
 function positionTooltip(event) {
   const tt = document.getElementById('tooltip');
-  tt.style.left = (event.clientX + 14) + 'px';
-  tt.style.top = (event.clientY + 14) + 'px';
+  // Measure, then keep the whole box on screen — on a phone a tap near the
+  // right or bottom edge would otherwise push it out of view.
+  tt.style.left = '0px';
+  tt.style.top = '0px';
+  const r = tt.getBoundingClientRect();
+  const pad = 8;
+  let x = event.clientX + 14;
+  let y = event.clientY + 14;
+  if (x + r.width + pad > window.innerWidth) x = Math.max(pad, event.clientX - r.width - 14);
+  if (y + r.height + pad > window.innerHeight) y = Math.max(pad, event.clientY - r.height - 14);
+  tt.style.left = x + 'px';
+  tt.style.top = y + 'px';
 }
 
 // Shows straight away, then fills in the Wikipedia paragraph when it lands.

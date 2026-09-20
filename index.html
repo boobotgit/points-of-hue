@@ -68,11 +68,11 @@
     ============================================================ */
     #topbar {
       flex: 0 0 auto;
-      position: relative;
-      display: flex;
+      /* 3 columns: home icon | centred menu | matching spacer, so the menu
+         is truly centred and can never sit under the icon. */
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
       align-items: center;
-      justify-content: center;
-      gap: 6px;
       background: transparent;
       padding: 22px 28px 18px;
       padding-top: max(env(safe-area-inset-top, 0px), 22px);
@@ -80,6 +80,9 @@
     body.view-home #topbar { display: none; }
 
     #topnav {
+      grid-column: 2;
+      justify-self: center;
+      max-width: 100%;
       display: flex;
       align-items: center;
       gap: 6px;
@@ -114,9 +117,8 @@
     .nav-btn.active:hover { background: none; color: var(--accent); }
 
     .nav-btn.home-icon {
-      position: absolute;
-      left: 28px;
-      flex: 0 0 auto;
+      grid-column: 1;
+      justify-self: start;
       font-family: inherit;
       font-size: 20px;
       line-height: 1;
@@ -1315,15 +1317,33 @@
       }
 
       /* Top bar sticks while you scroll; menu scrolls sideways if needed */
+      /* On a phone the menu needs every pixel, so drop the centring grid:
+         icon sits in the flow at the left, menu takes the rest and scrolls. */
       #topbar {
         position: sticky;
         top: 0;
         z-index: 90;
-        padding: max(env(safe-area-inset-top, 0px), 8px) 12px 8px;
-        gap: 4px;
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        padding: max(env(safe-area-inset-top, 0px), 8px) 10px 8px;
+        background: var(--bg-main);
       }
-      #topnav .nav-btn { font-size: 13px; padding: 8px 12px; }
-      .nav-btn.home-icon { font-size: 18px; padding: 7px 10px; margin-right: 4px; }
+      #topnav {
+        grid-column: auto;
+        justify-self: auto;
+        flex: 1;
+        min-width: 0;
+        gap: 2px;
+      }
+      #topnav .nav-btn { font-size: 12.5px; letter-spacing: 0.03em; padding: 8px 5px; }
+      .nav-btn.home-icon {
+        grid-column: auto;
+        justify-self: auto;
+        flex: 0 0 auto;
+        font-size: 18px;
+        padding: 7px 8px;
+      }
       #homenav .nav-btn { font-size: 16px; padding: 11px 20px; }
 
       /* Main content takes full width */

@@ -59,91 +59,83 @@
     ============================================================ */
     #app {
       display: flex;
+      flex-direction: column;
       height: 100vh;
     }
 
     /* ============================================================
-       SIDEBAR
+       TOP BAR — horizontal menu on every view except Home
     ============================================================ */
-    #sidebar {
-      width: var(--sidebar-w);
-      min-width: var(--sidebar-w);
+    #topbar {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 6px;
       background: var(--bg-sidebar);
-      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 20px;
+      padding-top: max(env(safe-area-inset-top, 0px), 10px);
+    }
+    body.view-home #topbar { display: none; }
+
+    #topnav {
       display: flex;
-      flex-direction: column;
-      padding: 0;
-      overflow: hidden;
-    }
-    #logo {
-      padding: 28px 24px 20px;
-      border-bottom: 1px solid var(--border-light);
-    }
-    #logo-name {
-      font-family: 'Playfair Display', Georgia, serif;
-      font-size: 20px;
-      font-weight: 500;
-      color: var(--text-primary);
-      letter-spacing: 0.02em;
-    }
-    #logo-sub {
-      font-size: 11px;
-      color: var(--text-dim);
-      letter-spacing: 0.12em;
-      text-transform: none;
-      margin-top: 2px;
-    }
-    #nav-links {
-      flex: 1;
-      padding: 16px 12px;
-      display: flex;
-      flex-direction: column;
+      align-items: center;
       gap: 2px;
+      overflow-x: auto;
+      scrollbar-width: none;
     }
+    #topnav::-webkit-scrollbar { display: none; }
+
     .nav-btn {
-      width: 100%;
-      text-align: left;
       background: none;
       border: none;
       color: var(--text-muted);
-      padding: 9px 14px;
+      padding: 9px 16px;
       border-radius: var(--radius-sm);
       cursor: pointer;
       font-size: 13.5px;
       font-family: inherit;
       font-weight: 400;
       letter-spacing: 0.01em;
+      white-space: nowrap;
       transition: all 0.15s;
-      display: flex;
-      align-items: center;
-      gap: 9px;
     }
-    .nav-btn .nav-icon { font-size: 15px; width: 18px; text-align: center; }
     .nav-btn:hover { background: var(--bg-panel); color: var(--text-primary); }
     .nav-btn.active { background: var(--accent); color: #fefcf8; font-weight: 500; }
-    #nav-divider { height: 1px; background: var(--border-light); margin: 10px 0; }
-    #sidebar-footer {
-      padding: 16px 12px;
-      border-top: 1px solid var(--border-light);
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .footer-btn {
-      background: none;
+
+    .nav-btn.home-icon {
+      flex: 0 0 auto;
+      font-size: 20px;
+      line-height: 1;
+      padding: 8px 12px;
+      margin-right: 6px;
       border: 1px solid var(--border);
-      color: var(--text-muted);
-      padding: 7px 14px;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      font-size: 12px;
-      font-family: inherit;
-      text-align: left;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      transition: all 0.15s;
+      color: var(--text-primary);
     }
-    .footer-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .nav-btn.home-icon:hover {
+      background: var(--accent);
+      color: #fefcf8;
+      border-color: var(--accent);
+    }
+    .nav-btn.home-icon.active { border-color: var(--accent); }
+
+    /* Home page menu — sits under "what do you see?" and the arrow */
+    #homenav {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 34px;
+    }
+    #homenav .nav-btn {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 15px;
+      letter-spacing: 0.06em;
+      padding: 10px 18px;
+      color: var(--text-primary);
+    }
+    #homenav .nav-btn:hover { background: var(--accent); color: #fefcf8; }
 
     /* ============================================================
        MAIN CONTENT
@@ -1276,9 +1268,6 @@
     /* ============================================================
        MOBILE / iPHONE OPTIMIZATION
     ============================================================ */
-    #mobile-header { display: none; }
-    #mobile-backdrop { display: none; }
-
     @media (max-width: 768px) {
       html, body {
         overflow: auto;
@@ -1287,65 +1276,22 @@
       }
       /* App shell stacks vertically */
       #app {
-        flex-direction: column;
         height: auto;
         min-height: 100vh;
         min-height: 100dvh;
       }
 
-      /* Fixed top bar with hamburger */
-      #mobile-header {
-        display: flex;
+      /* Top bar sticks while you scroll; menu scrolls sideways if needed */
+      #topbar {
         position: sticky;
         top: 0;
         z-index: 90;
-        background: var(--bg-sidebar);
-        border-bottom: 1px solid var(--border);
-        padding: max(env(safe-area-inset-top, 0px), 8px) 14px 8px;
-        align-items: center;
-        gap: 10px;
+        padding: max(env(safe-area-inset-top, 0px), 8px) 12px 8px;
+        gap: 4px;
       }
-      #mobile-menu-btn {
-        background: none;
-        border: none;
-        font-size: 26px;
-        line-height: 1;
-        color: var(--text-primary);
-        cursor: pointer;
-        padding: 6px 10px;
-        border-radius: var(--radius-sm);
-      }
-      #mobile-menu-btn:active { background: var(--bg-panel); }
-      #mobile-header-title {
-        font-family: 'Playfair Display', Georgia, serif;
-        font-size: 19px;
-        color: var(--text-primary);
-        letter-spacing: 0.02em;
-      }
-
-      /* Sidebar becomes a slide-in drawer */
-      #sidebar {
-        position: fixed;
-        top: 0;
-        left: 0;
-        height: 100vh;
-        height: 100dvh;
-        width: 260px;
-        max-width: 82vw;
-        z-index: 100;
-        transform: translateX(-100%);
-        transition: transform 0.28s ease;
-        padding-top: env(safe-area-inset-top, 0px);
-        box-shadow: 0 0 30px rgba(0,0,0,0.15);
-      }
-      body.mobile-nav-open #sidebar { transform: translateX(0); }
-      #mobile-backdrop {
-        position: fixed;
-        inset: 0;
-        background: rgba(44,38,32,0.4);
-        z-index: 95;
-      }
-      body.mobile-nav-open #mobile-backdrop { display: block; }
+      #topnav .nav-btn { font-size: 13px; padding: 8px 12px; }
+      .nav-btn.home-icon { font-size: 18px; padding: 7px 10px; margin-right: 4px; }
+      #homenav .nav-btn { font-size: 16px; padding: 11px 20px; }
 
       /* Main content takes full width */
       #mainContent {
@@ -1367,12 +1313,12 @@
       .header-controls { width: 100%; display: flex; flex-wrap: wrap; gap: 6px; }
 
       /* Card grids: single column */
-      #galleryGrid, #museumsGrid, #artistsGrid, #recentGrid {
+      #galleryGrid, #museumsGrid, #artistsGrid {
         grid-template-columns: 1fr !important;
         gap: 14px !important;
         padding: 12px 16px calc(env(safe-area-inset-bottom, 0px) + 40px) !important;
       }
-      #galleryScroll, #museumsScroll, #artistsScroll, #recentScroll {
+      #galleryScroll, #museumsScroll, #artistsScroll {
         overflow: visible !important;
         height: auto !important;
       }
@@ -1431,49 +1377,20 @@
 </head>
 <body>
 
-<!-- Mobile-only top bar (hidden on desktop via media query) -->
-<header id="mobile-header">
-  <button id="mobile-menu-btn" aria-label="Open menu">&#9776;</button>
-  <div id="mobile-header-title">points of hue</div>
-</header>
-<div id="mobile-backdrop"></div>
-
 <div id="app">
   <!-- ============================================================
-       SIDEBAR
+       TOP BAR (hidden on the Home view)
   ============================================================ -->
-  <nav id="sidebar">
-    <div id="logo">
-      <div id="logo-name">points of hue</div>
-    </div>
-    <div id="nav-links">
-      <button class="nav-btn active" data-view="home">
-        <span class="nav-icon">&#8962;</span> Home
-      </button>
-      <button class="nav-btn" data-view="museums">
-        <span class="nav-icon">&#9750;</span> Museums
-      </button>
-      <button class="nav-btn" data-view="gallery">
-        <span class="nav-icon">&#9638;</span> Gallery
-      </button>
-      <button class="nav-btn" data-view="artists">
-        <span class="nav-icon">&#9672;</span> Artists
-      </button>
-      <button class="nav-btn" data-view="cluster">
-        <span class="nav-icon">&#9678;</span> Clusters
-      </button>
-      <button class="nav-btn" data-view="timeline">
-        <span class="nav-icon">&#8212;</span> Timeline
-      </button>
-      <button class="nav-btn" data-view="recent">
-        <span class="nav-icon">&#9737;</span> Recently Added
-      </button>
-      <div id="nav-divider"></div>
-      <button class="nav-btn" data-view="add">
-        <span class="nav-icon">+</span> Add Artwork
-      </button>
-    </div>
-  </nav>
+  <header id="topbar">
+    <button class="nav-btn home-icon" data-view="home" aria-label="Home" title="Home">&#8962;</button>
+    <nav id="topnav">
+      <button class="nav-btn" data-view="museums">Museums</button>
+      <button class="nav-btn" data-view="gallery">Gallery</button>
+      <button class="nav-btn" data-view="artists">Artists</button>
+      <button class="nav-btn" data-view="cluster">Clusters</button>
+      <button class="nav-btn" data-view="timeline">Timeline</button>
+    </nav>
+  </header>
 
   <!-- ============================================================
        MAIN CONTENT
@@ -1531,28 +1448,17 @@
         <section id="landing-enter">
           <p class="home-tagline">what do you see?</p>
           <button id="enter-btn" aria-label="Enter the collection">↓</button>
+          <nav id="homenav">
+            <button class="nav-btn" data-view="museums">Museums</button>
+            <button class="nav-btn" data-view="gallery">Gallery</button>
+            <button class="nav-btn" data-view="artists">Artists</button>
+            <button class="nav-btn" data-view="cluster">Clusters</button>
+            <button class="nav-btn" data-view="timeline">Timeline</button>
+          </nav>
         </section>
       </div>
     </section>
 
-    <!-- RECENTLY ADDED VIEW -->
-    <section id="recentView" class="view">
-      <div class="view-header">
-        <div>
-          <h1>Recently Added</h1>
-          <p id="recentCount"></p>
-        </div>
-      </div>
-      <div id="recentScroll" style="flex:1;overflow-y:auto;min-height:0;padding:0 28px 28px;">
-        <div id="recentGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;"></div>
-        <div id="recentEmpty" class="hidden" style="text-align:center;padding:60px 20px;">
-          <div class="empty-state">
-            <div class="empty-state-icon">&#9737;</div>
-            <div class="empty-state-text">No artworks yet. Add artworks to see them here.</div>
-          </div>
-        </div>
-      </div>
-    </section>
 
     <!-- TIMELINE VIEW -->
     <section id="timelineView" class="view hidden">
@@ -2629,7 +2535,7 @@ function seedDemoData() {
 /* ================================================================
    SECTION 4: UI STATE & NAVIGATION
 ================================================================ */
-let currentView = 'recent';
+let currentView = 'home';
 let activePanelArtworkId = null;
 let editingArtworkId = null;
 let timelineZoom = null;
@@ -2645,9 +2551,9 @@ function switchView(name) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   const viewEl = document.getElementById(name + 'View');
   if (viewEl) viewEl.classList.remove('hidden');
-  const navBtn = document.querySelector(`[data-view="${name}"]`);
-  if (navBtn) navBtn.classList.add('active');
-  if (name === 'recent') renderRecent();
+  document.querySelectorAll(`[data-view="${name}"]`).forEach(b => b.classList.add('active'));
+  // Home hides the top bar; every other view shows it.
+  document.body.classList.toggle('view-home', name === 'home');
   if (name === 'timeline') renderTimeline();
   if (name === 'cluster') renderCluster();
   if (name === 'gallery') renderGallery();
@@ -2905,48 +2811,6 @@ function attachArtCardListeners(grid) {
   });
 }
 
-function renderRecent() {
-  const artworks = getArtworks();
-  const grid = document.getElementById('recentGrid');
-  const emptyEl = document.getElementById('recentEmpty');
-  const countEl = document.getElementById('recentCount');
-
-  if (artworks.length === 0) {
-    grid.innerHTML = '';
-    emptyEl.classList.remove('hidden');
-    countEl.textContent = '';
-    return;
-  }
-  emptyEl.classList.add('hidden');
-
-  const sorted = [...artworks].sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
-  countEl.textContent = sorted.length + ' artwork' + (sorted.length !== 1 ? 's' : '');
-
-  grid.innerHTML = sorted.map(a => {
-    const mvColor = MOVEMENTS[a.movement]?.color || '#9e9890';
-    const imgHtml = a.thumbnailUrl
-      ? `<div class="art-card-img"><img src="${safeUrl(a.thumbnailUrl)}" class="art-card-thumb" data-id="${esc(a.id)}" style="width:100%;height:100%;object-fit:cover;display:block" /></div>`
-      : `<div class="art-card-img art-card-placeholder" data-id="${esc(a.id)}"><span>${esc(a.title.slice(0, 2).toUpperCase())}</span></div>`;
-    const tagHtml = (a.tags || []).slice(0, 3).map(t => `<span class="tag-pill">${esc(t)}</span>`).join('');
-    return `<div class="art-card" data-id="${esc(a.id)}">
-      ${imgHtml}
-      <div class="art-card-body">
-        <div class="art-card-title">${esc(a.title)}</div>
-        <div class="art-card-artist">${esc(a.artist || 'Unknown artist')}${a.year != null ? ' &middot; ' + formatYear(a.year) : ''}</div>
-        <div class="art-card-movement" style="color:${mvColor}">${esc(a.movement || '')}</div>
-        ${tagHtml ? `<div class="card-tags">${tagHtml}</div>` : ''}
-      </div>
-    </div>`;
-  }).join('');
-
-  grid.querySelectorAll('.art-card').forEach(card => {
-    card.addEventListener('click', () => {
-      const a = getArtworkById(card.dataset.id);
-      if (a) openDetailPanel(a);
-    });
-  });
-  attachArtCardListeners(grid);
-}
 
 /* ================================================================
    SECTION 6: TIMELINE VIEW
@@ -4308,7 +4172,6 @@ function hideTooltip() {
    SECTION 13: HELPERS
 ================================================================ */
 function refreshCurrentView() {
-  if (currentView === 'recent') renderRecent();
   if (currentView === 'timeline') renderTimeline();
   if (currentView === 'cluster') renderCluster();
   if (currentView === 'gallery') renderGallery();
@@ -4349,28 +4212,10 @@ function init() {
     });
   });
 
-  // Sidebar navigation
+  // Menu navigation (top bar on inner views, bottom of the Home page)
   document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      switchView(btn.dataset.view);
-      // On mobile, close the drawer after picking a nav item
-      document.body.classList.remove('mobile-nav-open');
-    });
+    btn.addEventListener('click', () => switchView(btn.dataset.view));
   });
-
-  // Mobile hamburger toggle + backdrop tap-to-close
-  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-  if (mobileMenuBtn) {
-    mobileMenuBtn.addEventListener('click', () => {
-      document.body.classList.toggle('mobile-nav-open');
-    });
-  }
-  const mobileBackdrop = document.getElementById('mobile-backdrop');
-  if (mobileBackdrop) {
-    mobileBackdrop.addEventListener('click', () => {
-      document.body.classList.remove('mobile-nav-open');
-    });
-  }
 
   // Close detail panel
   document.getElementById('closePanel').addEventListener('click', closeDetailPanel);

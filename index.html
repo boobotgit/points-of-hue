@@ -107,14 +107,28 @@
       white-space: nowrap;
       transition: color 0.15s, background 0.15s;
     }
-    .nav-btn:hover { background: var(--accent); color: #fff; }
+    /* Hover reads like the cursor casting a soft shadow, not a filled chip */
+    .nav-btn:hover {
+      color: var(--text-primary);
+      background: radial-gradient(closest-side,
+        rgba(60, 52, 44, 0.13) 0%,
+        rgba(60, 52, 44, 0.07) 55%,
+        rgba(60, 52, 44, 0) 100%);
+      border-radius: 999px;
+    }
     .nav-btn.active {
       color: var(--accent);
       background: none;
       box-shadow: inset 0 -1px 0 0 var(--accent);
       border-radius: 0;
     }
-    .nav-btn.active:hover { background: none; color: var(--accent); }
+    .nav-btn.active:hover {
+      color: var(--accent);
+      background: radial-gradient(closest-side,
+        rgba(60, 52, 44, 0.10) 0%,
+        rgba(60, 52, 44, 0.05) 55%,
+        rgba(60, 52, 44, 0) 100%);
+    }
 
     .nav-btn.home-icon {
       grid-column: 1;
@@ -143,7 +157,14 @@
       padding: 10px 18px;
       color: var(--text-primary);
     }
-    #homenav .nav-btn:hover { background: var(--accent); color: #fefcf8; }
+    #homenav .nav-btn:hover {
+      color: var(--text-primary);
+      background: radial-gradient(closest-side,
+        rgba(60, 52, 44, 0.13) 0%,
+        rgba(60, 52, 44, 0.07) 55%,
+        rgba(60, 52, 44, 0) 100%);
+      border-radius: 999px;
+    }
 
     /* ============================================================
        MAIN CONTENT
@@ -429,6 +450,61 @@
       padding: 0 2px;
     }
     .tray-chip button:hover { color: var(--danger); }
+
+    /* Connections for the piece selected on the map */
+    #playSelection:not(:empty) { padding-bottom: 10px; }
+    .sel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .sel-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 16px;
+      color: var(--text-primary);
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      text-align: left;
+      border-bottom: 1px solid transparent;
+    }
+    .sel-title:hover { color: var(--accent); border-bottom-color: var(--accent); }
+    .sel-sum {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin: 2px 0 8px;
+    }
+    .sel-row {
+      display: flex;
+      gap: 10px;
+      padding: 6px 0;
+      border-top: 1px solid var(--border-light);
+      font-size: 13px;
+      align-items: baseline;
+    }
+    .sel-thread {
+      flex: 0 0 116px;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: lowercase;
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .sel-others { display: flex; flex-wrap: wrap; gap: 4px 6px; }
+    .sel-link {
+      background: none;
+      border: none;
+      padding: 1px 0;
+      font-family: inherit;
+      font-size: 12.5px;
+      color: var(--text-primary);
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+    }
+    .sel-link:hover { color: var(--accent); border-bottom-color: var(--accent); }
 
     #playTrayFindings { margin-top: 6px; }
     .finding {
@@ -1756,7 +1832,8 @@
           <button class="btn-add" id="playTrayClear">Clear</button>
         </div>
         <div id="playTrayBody">
-          <div id="playTrayHint">Drag any two pieces down here to see what links them.</div>
+          <div id="playSelection"></div>
+          <div id="playTrayHint">Tap a piece to see what it connects to, or drag two down here to compare.</div>
           <div id="playTrayItems"></div>
           <div id="playTrayFindings"></div>
         </div>
@@ -3616,6 +3693,79 @@ function getClusterFiltered(allArtworks) {
 ================================================================ */
 const PLAY_POS_KEY = 'artatlas_play_positions';
 let playTray = [];
+// Threads from the last render, plus the piece currently selected on the map.
+let playThemes = [];
+let playSelectedId = null;
+let playSpotlightFn = null;
+
+function selectPlayArtwork(id) {
+  playSelectedId = (playSelectedId === id) ? null : id;
+  if (playSpotlightFn) playSpotlightFn(playSelectedId);
+  renderPlaySelection();
+}
+
+// What does this piece share, and with whom?
+function playConnectionsFor(id) {
+  return playThemes
+    .filter(t => t.works.includes(id))
+    .map(t => ({
+      label: t.label,
+      kind: t.kind,
+      others: t.works.filter(w => w !== id).map(getArtworkById).filter(Boolean)
+    }))
+    .filter(r => r.others.length)
+    .sort((a, b) => b.others.length - a.others.length || a.label.localeCompare(b.label));
+}
+
+function renderPlaySelection() {
+  const el = document.getElementById('playSelection');
+  const hint = document.getElementById('playTrayHint');
+  if (!el) return;
+
+  if (!playSelectedId) {
+    el.innerHTML = '';
+    if (hint && playTray.length === 0) hint.classList.remove('hidden');
+    return;
+  }
+  const a = getArtworkById(playSelectedId);
+  if (!a) { el.innerHTML = ''; return; }
+  if (hint) hint.classList.add('hidden');
+
+  const rows = playConnectionsFor(playSelectedId);
+  const reach = new Set();
+  rows.forEach(r => r.others.forEach(o => reach.add(o.id)));
+
+  el.innerHTML =
+    '<div class="sel-head">' +
+      '<button class="sel-title" data-sel-open="' + esc(a.id) + '" title="Open full details">' + esc(a.title) + '</button>' +
+      '<button class="btn-add" data-sel-clear="1">Clear</button>' +
+    '</div>' +
+    '<div class="sel-sum">' +
+      (rows.length
+        ? 'Connects to ' + reach.size + ' piece' + (reach.size !== 1 ? 's' : '') +
+          ' through ' + rows.length + ' thread' + (rows.length !== 1 ? 's' : '')
+        : 'Nothing shared with anything else yet — a note would change that.') +
+    '</div>' +
+    rows.map(r =>
+      '<div class="sel-row">' +
+        '<span class="sel-thread" style="color:' + (THEME_KIND_COLOR[r.kind] || '#8c7355') + '">' + esc(r.label) + '</span>' +
+        '<span class="sel-others">' +
+          r.others.map(o => '<button class="sel-link" data-sel-go="' + esc(o.id) + '">' + esc(o.title) + '</button>').join('') +
+        '</span>' +
+      '</div>'
+    ).join('');
+
+  el.querySelectorAll('[data-sel-go]').forEach(b => {
+    b.addEventListener('click', () => selectPlayArtwork(b.dataset.selGo));
+  });
+  const open = el.querySelector('[data-sel-open]');
+  if (open) open.addEventListener('click', () => {
+    const art = getArtworkById(open.dataset.selOpen);
+    if (art) openDetailPanel(art);
+  });
+  const clear = el.querySelector('[data-sel-clear]');
+  if (clear) clear.addEventListener('click', () => { playSelectedId = null; if (playSpotlightFn) playSpotlightFn(null); renderPlaySelection(); });
+}
 
 /* ---- Threads: the themes that tie pieces together ----
    Sources: Wikipedia tags, the imported description, your own notes
@@ -3887,6 +4037,7 @@ function renderCluster() {
 
   const mode = document.getElementById('groupBySelect').value;
   const themes = buildThemes(artworks, mode);
+  playThemes = themes;
 
   subtitleEl.textContent = artworks.length + ' ARTWORKS · ' + themes.length +
     ' SHARED THREAD' + (themes.length === 1 ? '' : 'S');
@@ -3984,7 +4135,7 @@ function renderCluster() {
     .data(artNodes, d => d.id).join('g')
     .attr('class', 'cl-node')
     .call(dragBehaviour(true))
-    .on('click', (e, d) => { e.stopPropagation(); if (!d._moved) openDetailPanel(d.artwork); })
+    .on('click', (e, d) => { e.stopPropagation(); if (!d._moved) selectPlayArtwork(d.id); })
     .on('mouseenter', (e, d) => showTooltip(e, d.artwork))
     .on('mouseleave', hideTooltip);
 
@@ -4037,7 +4188,33 @@ function renderCluster() {
       return s === spotlit ? 1 : 0.08;
     });
   }
-  svg.on('click', () => { if (spotlit) highlightTheme(spotlit); });
+  svg.on('click', () => {
+    if (spotlit) highlightTheme(spotlit);
+    if (playSelectedId) { playSelectedId = null; spotlightArtwork(null); renderPlaySelection(); }
+  });
+
+  // Selecting a piece lights up its threads and everything they reach.
+  function spotlightArtwork(id) {
+    if (!id) {
+      nodeSel.attr('opacity', 1);
+      themeSel.attr('opacity', 1);
+      linkSel.attr('stroke-opacity', 1).attr('stroke', '#d8cfc2');
+      return;
+    }
+    const myThreads = new Set(themes.filter(t => t.works.includes(id)).map(t => t.id));
+    const reached = new Set([id]);
+    themes.forEach(t => { if (myThreads.has(t.id)) t.works.forEach(w => reached.add(w)); });
+    nodeSel.attr('opacity', n => reached.has(n.id) ? 1 : 0.12);
+    themeSel.attr('opacity', n => myThreads.has(n.id) ? 1 : 0.12);
+    linkSel
+      .attr('stroke', l => myThreads.has(l.source.id || l.source) ? '#b9a68c' : '#d8cfc2')
+      .attr('stroke-opacity', l => myThreads.has(l.source.id || l.source) ? 1 : 0.06);
+  }
+  playSpotlightFn = spotlightArtwork;
+  // Keep any existing selection lit through a re-render.
+  if (playSelectedId && artworks.some(a => a.id === playSelectedId)) spotlightArtwork(playSelectedId);
+  else playSelectedId = null;
+  renderPlaySelection();
 
   clusterSimulation = d3.forceSimulation(nodes)
     .force('link', d3.forceLink(links).id(d => d.id).distance(76).strength(0.5))

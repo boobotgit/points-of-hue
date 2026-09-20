@@ -2632,17 +2632,30 @@ function switchView(name) {
   document.querySelectorAll(`[data-view="${name}"]`).forEach(b => b.classList.add('active'));
   // Home hides the top bar; every other view shows it.
   document.body.classList.toggle('view-home', name === 'home');
-  if (name === 'home') {
-    // Land at the top so the hero — and its scroll cue — are the first thing seen.
+
+  // Always arrive at the top of the new view. The page scrolls on the window
+  // (phones) or inside the view / its scroll container (desktop), so reset all.
+  const toTop = () => {
     window.scrollTo(0, 0);
-    if (viewEl) viewEl.scrollTop = 0;
-    document.body.classList.remove('has-scrolled');
-  }
+    if (document.scrollingElement) document.scrollingElement.scrollTop = 0;
+    if (viewEl) {
+      viewEl.scrollTop = 0;
+      viewEl.querySelectorAll('#galleryScroll, #museumsScroll, #artistsScroll').forEach(el => { el.scrollTop = 0; });
+    }
+  };
+  toTop();
+  // The Home scroll cue should be waiting again whenever Home is revisited.
+  if (name === 'home') document.body.classList.remove('has-scrolled');
+
   if (name === 'timeline') renderTimeline();
   if (name === 'cluster') renderCluster();
   if (name === 'gallery') renderGallery();
   if (name === 'artists') renderArtists();
   if (name === 'museums') renderMuseums();
+
+  // Rendering changes the page height, which can nudge the scroll position —
+  // re-assert the top once the new content has been laid out.
+  requestAnimationFrame(toTop);
 }
 
 function formatYear(year) {

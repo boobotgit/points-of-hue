@@ -1142,40 +1142,39 @@
       padding-top: max(env(safe-area-inset-top, 0px), 40px);
     }
 
-    /* Wordless "there's more below" cue: a hairline with a short segment
-       drifting down it. Fades out for good once the page is scrolled. */
+    /* Wordless "there's more below" cue: a short column of grey dots with a
+       pulse travelling downward. Fades out for good once the page scrolls. */
     .scroll-cue {
       position: absolute;
       left: 50%;
-      bottom: max(env(safe-area-inset-bottom, 0px), 30px);
+      bottom: max(env(safe-area-inset-bottom, 0px), 34px);
       transform: translateX(-50%);
-      width: 1px;
-      height: 52px;
-      overflow: hidden;
-      background: linear-gradient(to bottom, transparent, var(--border) 30%, var(--border));
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
       opacity: 1;
       transition: opacity 0.5s ease;
       pointer-events: none;
     }
     body.has-scrolled .scroll-cue { opacity: 0; }
-    .scroll-cue::after {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: -16px;
-      width: 1px;
-      height: 16px;
-      background: var(--accent);
-      animation: cueDrift 2.6s ease-in-out infinite;
+    .scroll-cue span {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #a8a29b;
+      opacity: 0.35;
+      animation: cueDescend 2s ease-in-out infinite;
     }
-    @keyframes cueDrift {
-      0%   { top: -16px; opacity: 0; }
-      20%  { opacity: 1; }
-      80%  { opacity: 1; }
-      100% { top: 52px; opacity: 0; }
+    .scroll-cue span:nth-child(2) { animation-delay: 0.15s; }
+    .scroll-cue span:nth-child(3) { animation-delay: 0.30s; }
+    .scroll-cue span:nth-child(4) { animation-delay: 0.45s; }
+    @keyframes cueDescend {
+      0%, 70%, 100% { opacity: 0.35; transform: translateY(0); }
+      35%           { opacity: 1;    transform: translateY(3px); }
     }
     @media (prefers-reduced-motion: reduce) {
-      .scroll-cue::after { animation: none; top: 18px; opacity: 0.7; }
+      .scroll-cue span { animation: none; opacity: 0.55; }
     }
     .landing-title {
       font-family: 'Playfair Display', Georgia, serif;
@@ -1435,7 +1434,9 @@
       <div id="landing">
         <section id="landing-hero">
           <h1 class="landing-title">points of hue</h1>
-          <div class="scroll-cue" aria-hidden="true"></div>
+          <div class="scroll-cue" aria-hidden="true">
+            <span></span><span></span><span></span><span></span>
+          </div>
         </section>
 
         <section id="landing-puzzle">

@@ -266,9 +266,26 @@
       position: relative;
       overflow: hidden;
       background: var(--bg-main);
+      min-height: 420px;
     }
-    #timelineSvg { width: 100%; height: 100%; cursor: grab; }
+    /* Absolute inset, not height:100% — see the note on #clusterSvg. */
+    #timelineSvg { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; }
     #timelineSvg:active { cursor: grabbing; }
+    /* Which line is which — the strand names sit far off to the left once
+       you pan, so keep a key pinned in the corner. */
+    #timelineLegend {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: color-mix(in srgb, var(--bg-main) 86%, transparent);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      padding: 9px 11px;
+      z-index: 10;
+      max-height: 60%;
+      overflow-y: auto;
+      font-size: 11px;
+    }
     .tl-movement-label {
       font-family: 'Inter', sans-serif;
       font-size: 10px;
@@ -1317,8 +1334,17 @@
       box-shadow: var(--shadow-md);
       pointer-events: none;
       z-index: 100;
-      max-width: 220px;
+      max-width: 320px;
     }
+    .tooltip-body {
+      font-size: 11.5px;
+      line-height: 1.5;
+      color: var(--text-muted);
+      margin-top: 6px;
+      border-top: 1px solid var(--border-light);
+      padding-top: 6px;
+    }
+    .tooltip-body:empty { display: none; }
     .tooltip.hidden { display: none; }
     .tooltip-title {
       font-family: 'Playfair Display', Georgia, serif;
@@ -1644,7 +1670,7 @@
       /* Play on a phone: keep a usable board to drag from, and stop the
          light table from eating the screen. */
       #clusterView { min-height: 100vh; min-height: 100dvh; }
-      #clusterArea { min-height: 52vh; }
+      #clusterArea, #timelineArea { min-height: 52vh; }
       #clusterFilters { padding: 6px 16px 8px; }
       #clusterFilters .cl-filter-select,
       #clusterFilters #clusterSearch { flex: 1 1 46%; min-width: 0; }
@@ -1766,6 +1792,7 @@
       </div>
       <div id="timelineArea">
         <svg id="timelineSvg"></svg>
+        <div id="timelineLegend"></div>
         <div class="zoom-controls" id="tlZoomControls">
           <button class="zoom-btn" id="tlZoomIn">+</button>
           <button class="zoom-btn" id="tlZoomOut">&minus;</button>
@@ -2096,6 +2123,7 @@
 <div class="tooltip hidden" id="tooltip">
   <div class="tooltip-title" id="tooltipTitle"></div>
   <div class="tooltip-sub" id="tooltipSub"></div>
+  <div class="tooltip-body" id="tooltipBody"></div>
 </div>
 
 <script>
@@ -2167,12 +2195,111 @@ const HISTORY_EVENTS = [
   { year: 1920,  label: "Women's Suffrage (US)", category: 'politics' },
   { year: 1945,  label: 'United Nations Founded', category: 'politics' },
   { year: 1969,  label: 'Moon Landing', category: 'politics' },
+  // Technology (joins the inventions above on the same line)
+  { year: 1837,  label: 'Telegraph', category: 'invention' },
+  { year: 1888,  label: 'Kodak Camera', category: 'invention' },
+  { year: 1947,  label: 'Transistor', category: 'invention' },
+  { year: 1977,  label: 'Personal Computer', category: 'invention' },
+  { year: 1991,  label: 'World Wide Web', category: 'invention' },
+  { year: 2007,  label: 'iPhone', category: 'invention' },
+  // Philosophy
+  { year: -380,  label: 'Plato, The Republic', category: 'philosophy' },
+  { year: -335,  label: "Aristotle's Poetics", category: 'philosophy' },
+  { year: 1637,  label: 'Descartes, Discourse on the Method', category: 'philosophy' },
+  { year: 1651,  label: 'Hobbes, Leviathan', category: 'philosophy' },
+  { year: 1762,  label: 'Rousseau, The Social Contract', category: 'philosophy' },
+  { year: 1781,  label: 'Kant, Critique of Pure Reason', category: 'philosophy' },
+  { year: 1818,  label: 'Schopenhauer, The World as Will', category: 'philosophy' },
+  { year: 1848,  label: 'Marx & Engels, Communist Manifesto', category: 'philosophy' },
+  { year: 1859,  label: 'Darwin, On the Origin of Species', category: 'philosophy' },
+  { year: 1883,  label: 'Nietzsche, Thus Spoke Zarathustra', category: 'philosophy' },
+  { year: 1899,  label: 'Freud, The Interpretation of Dreams', category: 'philosophy' },
+  { year: 1927,  label: 'Heidegger, Being and Time', category: 'philosophy' },
+  { year: 1949,  label: 'de Beauvoir, The Second Sex', category: 'philosophy' },
+  // Religion
+  { year: 313,   label: 'Edict of Milan', category: 'religion' },
+  { year: 622,   label: 'The Hijra', category: 'religion' },
+  { year: 1054,  label: 'East–West Schism', category: 'religion' },
+  { year: 1517,  label: 'Luther, Ninety-five Theses', category: 'religion' },
+  { year: 1534,  label: 'English Reformation', category: 'religion' },
+  { year: 1545,  label: 'Council of Trent', category: 'religion' },
+  { year: 1611,  label: 'King James Bible', category: 'religion' },
+  { year: 1870,  label: 'First Vatican Council', category: 'religion' },
+  { year: 1962,  label: 'Second Vatican Council', category: 'religion' },
+  // Music
+  { year: 1721,  label: 'Bach, Brandenburg Concertos', category: 'music' },
+  { year: 1741,  label: 'Handel, Messiah', category: 'music' },
+  { year: 1788,  label: 'Mozart, Symphony No. 40', category: 'music' },
+  { year: 1808,  label: 'Beethoven, Symphony No. 5', category: 'music' },
+  { year: 1824,  label: 'Beethoven, Symphony No. 9', category: 'music' },
+  { year: 1830,  label: 'Berlioz, Symphonie fantastique', category: 'music' },
+  { year: 1888,  label: 'Satie, Gymnopédies', category: 'music' },
+  { year: 1936,  label: 'Orff, Carmina Burana', category: 'music' },
+  { year: 1959,  label: 'Miles Davis, Kind of Blue', category: 'music' },
+  { year: 1965,  label: 'Coltrane, A Love Supreme', category: 'music' },
+  // Opera
+  { year: 1607,  label: "Monteverdi, L'Orfeo", category: 'opera' },
+  { year: 1786,  label: 'Mozart, The Marriage of Figaro', category: 'opera' },
+  { year: 1787,  label: 'Mozart, Don Giovanni', category: 'opera' },
+  { year: 1816,  label: 'Rossini, The Barber of Seville', category: 'opera' },
+  { year: 1853,  label: 'Verdi, La traviata', category: 'opera' },
+  { year: 1865,  label: 'Wagner, Tristan und Isolde', category: 'opera' },
+  { year: 1875,  label: 'Bizet, Carmen', category: 'opera' },
+  { year: 1876,  label: 'Wagner, The Ring Cycle', category: 'opera' },
+  { year: 1896,  label: 'Puccini, La bohème', category: 'opera' },
+  { year: 1904,  label: 'Puccini, Madama Butterfly', category: 'opera' },
+  { year: 1925,  label: 'Berg, Wozzeck', category: 'opera' },
+  { year: 1935,  label: 'Gershwin, Porgy and Bess', category: 'opera' },
+  // Ballet
+  { year: 1832,  label: 'La Sylphide', category: 'ballet' },
+  { year: 1841,  label: 'Giselle', category: 'ballet' },
+  { year: 1877,  label: 'Swan Lake', category: 'ballet' },
+  { year: 1890,  label: 'The Sleeping Beauty', category: 'ballet' },
+  { year: 1892,  label: 'The Nutcracker', category: 'ballet' },
+  { year: 1909,  label: 'Ballets Russes, Paris', category: 'ballet' },
+  { year: 1913,  label: 'Stravinsky, The Rite of Spring', category: 'ballet' },
+  { year: 1919,  label: 'The Three-Cornered Hat (Picasso designs)', category: 'ballet' },
+  { year: 1944,  label: 'Copland, Appalachian Spring', category: 'ballet' },
+  { year: 1957,  label: 'Balanchine & Stravinsky, Agon', category: 'ballet' },
+  // Architecture — the quieter buildings, not the famous ones
+  { year: 1885,  label: 'Gaudi, Casa Vicens (his first house)', category: 'architecture' },
+  { year: 1900,  label: 'Gaudi, Casa Calvet', category: 'architecture' },
+  { year: 1909,  label: 'Gaudi, Bellesguard', category: 'architecture' },
+  { year: 1914,  label: 'Gaudi, Colonia Guell Crypt', category: 'architecture' },
+  { year: 1978,  label: 'Gehry, his own house, Santa Monica', category: 'architecture' },
+  { year: 1989,  label: 'Gehry, Vitra Design Museum', category: 'architecture' },
+  { year: 1993,  label: 'Hadid, Vitra Fire Station (her first build)', category: 'architecture' },
+  { year: 1993,  label: 'Gehry, Weisman Art Museum', category: 'architecture' },
+  { year: 1999,  label: 'Gehry, Der Neue Zollhof, Dusseldorf', category: 'architecture' },
+  { year: 2002,  label: 'Hadid, Bergisel Ski Jump', category: 'architecture' },
+  { year: 2003,  label: 'Hadid, Rosenthal Center, Cincinnati', category: 'architecture' },
+  { year: 2005,  label: 'Hadid, Phaeno Science Centre', category: 'architecture' },
+  { year: 2010,  label: 'Hadid, MAXXI, Rome', category: 'architecture' },
+];
+
+// One line per strand of history, drawn in this order under the artworks.
+const EVENT_LANES = [
+  { key: 'invention',  label: 'Technology' },
+  { key: 'politics',   label: 'Political' },
+  { key: 'war',        label: 'War' },
+  { key: 'philosophy', label: 'Philosophy' },
+  { key: 'religion',   label: 'Religion' },
+  { key: 'music',      label: 'Music' },
+  { key: 'opera',      label: 'Opera' },
+  { key: 'ballet',     label: 'Ballet' },
+  { key: 'architecture', label: 'Architecture' }
 ];
 
 const EVENT_COLORS = {
-  invention: '#7a8aaa',
-  war: '#aa6a5a',
-  politics: '#8a7a9a'
+  invention:  '#7a8aaa',
+  war:        '#aa6a5a',
+  politics:   '#8a7a9a',
+  philosophy: '#6a8a7a',
+  religion:   '#b8976a',
+  music:      '#8a5a7a',
+  opera:      '#aa8a5a',
+  ballet:     '#6f9a9a',
+  architecture: '#8a7a6a'
 };
 
 /* ================================================================
@@ -2344,7 +2471,7 @@ function getArtworksForMuseum(museum) {
    SECTION 3: DEMO DATA
 ================================================================ */
 function seedDemoData() {
-  const SEED_VERSION = 12;
+  const SEED_VERSION = 13;
   const meta = getMeta();
   if (meta.seeded && meta.seedVersion >= SEED_VERSION) return;
 
@@ -2735,6 +2862,7 @@ function seedDemoData() {
     { name: 'Los Angeles County Museum of Art', city: 'Los Angeles', country: 'United States', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/LACMA-Los-Angeles-County-Museum-of-Art-04-2014.jpg/500px-LACMA-Los-Angeles-County-Museum-of-Art-04-2014.jpg', notes: 'The largest art museum in the western United States, fronted by Chris Burden\'s Urban Light — two hundred restored street lamps from across the city.' },
     { name: 'Institute of Contemporary Art, Boston', city: 'Boston', country: 'United States', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Institute_of_Contemporary_Art%2C_Boston.jpg/500px-Institute_of_Contemporary_Art%2C_Boston.jpg', notes: 'A cantilevered glass box hanging over Boston Harbor; it showed Picasso and Matisse to America early, and collected nothing at all until 2006.' },
     { name: 'Dallas Museum of Art', city: 'Dallas', country: 'United States', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/DMA_west.jpg/500px-DMA_west.jpg', notes: 'An encyclopedic collection in the Dallas Arts District, free to enter, spanning ancient Mediterranean work to contemporary American art.' },
+    { name: 'Getty Center', city: 'Los Angeles', country: 'United States', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Aerial_Getty_Museum.jpg/500px-Aerial_Getty_Museum.jpg', notes: 'Richard Meier\'s travertine campus on a Brentwood hilltop, reached by its own cable railway; free to enter, with gardens by Robert Irwin and a view across Los Angeles to the sea.' },
   ];
 
   // Founding year + the people behind each museum. Single source of truth: applied to the
@@ -2771,6 +2899,7 @@ function seedDemoData() {
     'Los Angeles County Museum of Art': { founded: '1961 (opened 1965)', founders: 'Split off as its own museum under director Richard Fargo Brown; campus much expanded by Eli Broad' },
     'Institute of Contemporary Art, Boston': { founded: '1936', founders: 'Founded as the Boston Museum of Modern Art; harbourfront building by Diller Scofidio + Renfro' },
     'Dallas Museum of Art': { founded: '1903', founders: 'Begun as the Dallas Art Association by a group of local citizens and artists' },
+    'Getty Center': { founded: '1997', founders: 'Built by the J. Paul Getty Trust on the oil fortune of J. Paul Getty; architect Richard Meier, gardens by artist Robert Irwin' },
   };
   demoMuseums.forEach(m => { const f = MUSEUM_FOUNDING[m.name]; if (f) { m.founded = f.founded; m.founders = f.founders; } });
 
@@ -3486,78 +3615,79 @@ function renderTimeline() {
     .attr('class', 'tl-context-label')
     .text('HISTORICAL CONTEXT');
 
-  // Category legend next to label
-  const legendX = axisX1 + 160;
-  [['invention', 'Inventions'], ['war', 'Wars'], ['politics', 'Politics']].forEach(([cat, label], i) => {
-    const lx = legendX + i * 90;
-    timelineSvgG.append('circle')
-      .attr('cx', lx).attr('cy', eventsAxisY - 11)
-      .attr('r', 3.5)
-      .attr('fill', EVENT_COLORS[cat]);
+  // Key to the strands, pinned in the corner
+  const tlLegend = document.getElementById('timelineLegend');
+  if (tlLegend) {
+    tlLegend.innerHTML =
+      '<div class="legend-title">Strands</div>' +
+      EVENT_LANES.map(l =>
+        '<div class="legend-item">' +
+          '<div class="legend-dot" style="background:' + (EVENT_COLORS[l.key] || '#9e9890') + '"></div>' +
+          '<span class="legend-label">' + esc(l.label) + '</span>' +
+        '</div>'
+      ).join('');
+  }
+
+  // ── One line per strand of history ──
+  const laneGap = 34;
+  const laneTop = eventsAxisY + 30;
+
+  EVENT_LANES.forEach((lane, li) => {
+    const laneY = laneTop + li * laneGap;
+    const colour = EVENT_COLORS[lane.key] || '#9e9890';
+    const events = HISTORY_EVENTS
+      .filter(ev => ev.category === lane.key && ev.year >= minYear && ev.year <= maxYear)
+      .sort((a, b) => a.year - b.year);
+
+    // The line itself
+    timelineSvgG.append('line')
+      .attr('x1', axisX1).attr('x2', axisX2)
+      .attr('y1', laneY).attr('y2', laneY)
+      .attr('stroke', colour)
+      .attr('stroke-width', 1)
+      .attr('stroke-opacity', 0.28);
+
+    // Name of the strand, sitting just above its left end
     timelineSvgG.append('text')
-      .attr('x', lx + 7).attr('y', eventsAxisY - 7)
+      .attr('x', axisX1).attr('y', laneY - 7)
       .attr('class', 'tl-context-label')
-      .attr('font-size', '8px')
-      .text(label);
-  });
+      .attr('font-size', '9px')
+      .attr('fill', colour)
+      .text(lane.label.toUpperCase());
 
-  // Filter events to visible range and position them
-  const visibleEvents = HISTORY_EVENTS.filter(ev => ev.year >= minYear && ev.year <= maxYear);
-  const eventNodeY = eventsAxisY + 20;
+    if (events.length === 0) return;
 
-  // Assign positions with collision avoidance (stagger into 3 rows)
-  const eventPositions = [];
-  const eventOccupied = [];
-  visibleEvents.sort((a, b) => a.year - b.year).forEach(ev => {
-    const x = xScale(ev.year);
-    let row = 0;
-    while (eventOccupied.some(o => Math.abs(o.x - x) < 65 && o.row === row) && row < 3) {
-      row++;
-    }
-    eventOccupied.push({ x, row });
-    eventPositions.push({ x, y: eventNodeY + row * 32, event: ev });
-  });
-
-  // Render event markers
-  const evNodes = timelineSvgG.append('g').selectAll('.tl-event-node')
-    .data(eventPositions).join('g')
-    .attr('class', 'tl-event-node')
-    .attr('transform', d => `translate(${d.x}, ${d.y})`)
-    .on('mouseenter', (e, d) => {
-      const ev = d.event;
-      const catLabel = ev.category === 'invention' ? 'Invention' : ev.category === 'war' ? 'War' : 'Politics';
-      const tip = document.getElementById('tooltip');
-      tip.innerHTML = `<strong>${esc(ev.label)}</strong><br>${formatYear(ev.year)} &middot; ${catLabel}`;
-      tip.style.opacity = 1;
-      tip.style.left = e.pageX + 12 + 'px';
-      tip.style.top = e.pageY - 20 + 'px';
-    })
-    .on('mouseleave', () => {
-      document.getElementById('tooltip').style.opacity = 0;
+    // Labels alternate above and below the line when markers crowd together
+    let lastLabelX = -Infinity;
+    let above = true;
+    const placed = events.map(ev => {
+      const x = xScale(ev.year);
+      if (x - lastLabelX < 90) above = !above; else above = true;
+      lastLabelX = x;
+      return { x, ev, above };
     });
 
-  // Dot marker
-  evNodes.append('circle')
-    .attr('class', 'tl-event-marker')
-    .attr('r', 3.5)
-    .attr('fill', d => EVENT_COLORS[d.event.category]);
+    const laneG = timelineSvgG.append('g').selectAll('.tl-lane-event')
+      .data(placed).join('g')
+      .attr('class', 'tl-lane-event')
+      .attr('transform', d => `translate(${d.x}, ${laneY})`)
+      .on('mouseenter', (e, d) => showEventTooltip(e, d.ev, lane.label))
+      .on('mousemove', (e) => positionTooltip(e))
+      .on('mouseleave', hideTooltip);
 
-  // Stem up to separator
-  evNodes.append('line')
-    .attr('x1', 0).attr('x2', 0)
-    .attr('y1', -3).attr('y2', d => -(d.y - eventsAxisY))
-    .attr('stroke', d => EVENT_COLORS[d.event.category])
-    .attr('stroke-width', 0.5)
-    .attr('stroke-opacity', 0.4);
+    laneG.append('circle')
+      .attr('class', 'tl-event-marker')
+      .attr('r', 3.5)
+      .attr('fill', colour);
 
-  // Label (angled)
-  evNodes.append('text')
-    .attr('x', 6).attr('y', 3)
-    .attr('class', 'tl-event-label')
-    .attr('fill', d => EVENT_COLORS[d.event.category])
-    .attr('fill-opacity', 0.85)
-    .attr('transform', 'rotate(-20)')
-    .text(d => d.event.label);
+    laneG.append('text')
+      .attr('class', 'tl-event-label')
+      .attr('x', 6)
+      .attr('y', d => d.above ? -6 : 13)
+      .attr('fill', colour)
+      .attr('fill-opacity', 0.9)
+      .text(d => d.ev.label);
+  });
 
   // Initial fit-to-view
   fitTimeline();
@@ -3589,13 +3719,10 @@ function fitTimeline(forceAll) {
       d3.zoomIdentity.translate(tx, ty).scale(scale)
     );
   } else {
-    // Start at a readable zoom (scale 0.7-1.0), centered on the middle of content vertically
-    // and showing the densest area horizontally
-    const scale = Math.min(
-      (height - 20) / bounds.height,
-      1.0
-    );
-    // Center horizontally on the right 60% of content (where most artworks cluster)
+    // Fit the full stack of strands vertically so they can be read against
+    // each other, but never shrink past legibility.
+    const scale = Math.max(0.4, Math.min((height - 24) / bounds.height, 1.0));
+    // Show the densest stretch horizontally
     const focusX = bounds.x + bounds.width * 0.55;
     const focusCenterY = bounds.y + bounds.height / 2;
     const tx = width / 2 - focusX * scale;
@@ -5049,19 +5176,104 @@ function handleDeleteMuseum(id) {
 /* ================================================================
    SECTION 12: TOOLTIP
 ================================================================ */
-function showTooltip(event, artwork) {
+/* ---- Wikipedia opening paragraph, fetched on hover and cached ---- */
+const WIKI_EXTRACT_KEY = 'artatlas_wiki_extracts';
+let wikiExtractCache = null;
+let tooltipToken = 0;
+
+function loadWikiCache() {
+  if (wikiExtractCache) return wikiExtractCache;
+  try { wikiExtractCache = JSON.parse(localStorage.getItem(WIKI_EXTRACT_KEY) || '{}'); }
+  catch(e) { wikiExtractCache = {}; }
+  return wikiExtractCache;
+}
+function rememberWikiExtract(title, text) {
+  const c = loadWikiCache();
+  c[title] = text;
+  try { localStorage.setItem(WIKI_EXTRACT_KEY, JSON.stringify(c)); } catch(e) {}
+}
+
+// Turn a label like "Gaudi, Casa Vicens (his first house)" into "Casa Vicens".
+function wikiTitleFor(label, explicit) {
+  if (explicit) return explicit;
+  let t = String(label || '').replace(/\s*\([^)]*\)\s*/g, ' ').trim();
+  const m = t.match(/^[^,]{2,30},\s+(.{4,})$/);
+  if (m) t = m[1].trim();
+  return t;
+}
+function wikiTitleForArtwork(a) {
+  const src = a.source || '';
+  const m = src.match(/wikipedia\.org\/wiki\/([^#?]+)/);
+  if (m) { try { return decodeURIComponent(m[1]).replace(/_/g, ' '); } catch(e) {} }
+  return a.title;
+}
+
+async function fetchWikiExtract(title) {
+  if (!title) return '';
+  const cache = loadWikiCache();
+  if (Object.prototype.hasOwnProperty.call(cache, title)) return cache[title];
+  try {
+    const res = await fetch('https://en.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(title));
+    if (!res.ok) { rememberWikiExtract(title, ''); return ''; }
+    const json = await res.json();
+    let text = (json && json.extract) ? json.extract : '';
+    if (json && json.type && json.type.indexOf('disambiguation') !== -1) text = '';
+    if (text.length > 420) text = text.slice(0, 417).trimEnd() + '\u2026';
+    rememberWikiExtract(title, text);
+    return text;
+  } catch(e) {
+    return '';
+  }
+}
+
+function positionTooltip(event) {
   const tt = document.getElementById('tooltip');
-  document.getElementById('tooltipTitle').textContent = artwork.title;
-  document.getElementById('tooltipSub').textContent =
-    (artwork.artist || 'Unknown') + (artwork.year != null ? ' \u00B7 ' + formatYear(artwork.year) : '');
+  tt.style.left = (event.clientX + 14) + 'px';
+  tt.style.top = (event.clientY + 14) + 'px';
+}
+
+// Shows straight away, then fills in the Wikipedia paragraph when it lands.
+function showRichTooltip(event, title, sub, wikiTitle) {
+  const tt = document.getElementById('tooltip');
+  const bodyEl = document.getElementById('tooltipBody');
+  document.getElementById('tooltipTitle').textContent = title;
+  document.getElementById('tooltipSub').textContent = sub;
+  const cache = loadWikiCache();
+  const known = Object.prototype.hasOwnProperty.call(cache, wikiTitle) ? cache[wikiTitle] : null;
+  bodyEl.textContent = known !== null ? known : '';
   tt.classList.remove('hidden');
-  const x = event.clientX + 14;
-  const y = event.clientY + 14;
-  tt.style.left = x + 'px';
-  tt.style.top = y + 'px';
+  positionTooltip(event);
+
+  if (known !== null) return;
+  const token = ++tooltipToken;
+  fetchWikiExtract(wikiTitle).then(text => {
+    // Only apply if the reader is still on the same item
+    if (token !== tooltipToken) return;
+    if (document.getElementById('tooltip').classList.contains('hidden')) return;
+    bodyEl.textContent = text;
+  });
+}
+
+function showTooltip(event, artwork) {
+  showRichTooltip(
+    event,
+    artwork.title,
+    (artwork.artist || 'Unknown') + (artwork.year != null ? ' \u00B7 ' + formatYear(artwork.year) : ''),
+    wikiTitleForArtwork(artwork)
+  );
+}
+
+function showEventTooltip(event, ev, laneLabel) {
+  showRichTooltip(
+    event,
+    ev.label,
+    formatYear(ev.year) + ' \u00B7 ' + laneLabel,
+    wikiTitleFor(ev.label, ev.wiki)
+  );
 }
 
 function hideTooltip() {
+  tooltipToken++;
   document.getElementById('tooltip').classList.add('hidden');
 }
 

@@ -288,6 +288,27 @@
         rgba(60, 52, 44, 0.08) 55%,
         rgba(60, 52, 44, 0) 100%);
     }
+    #clusterCursor {
+      position: absolute;
+      width: 44px;
+      height: 44px;
+      margin: -22px 0 0 -22px;
+      border-radius: 50%;
+      pointer-events: none;
+      opacity: 0;
+      z-index: 8;
+      transition: opacity 0.25s ease;
+      background: radial-gradient(closest-side,
+        rgba(60, 52, 44, 0.16) 0%,
+        rgba(60, 52, 44, 0.08) 55%,
+        rgba(60, 52, 44, 0) 100%);
+    }
+    #clusterArea.soft-cursor { cursor: none; }
+    #clusterArea.soft-cursor #clusterSvg { cursor: none; }
+    #clusterArea.soft-cursor #clusterCursor { opacity: 1; }
+    @media (pointer: coarse) {
+      #clusterCursor { display: none; }
+    }
     #timelineArea.soft-cursor { cursor: none; }
     #timelineArea.soft-cursor #timelineSvg { cursor: none; }
     #timelineArea.soft-cursor #timelineCursor { opacity: 1; }
@@ -1863,6 +1884,7 @@
       </div>
       <div id="clusterArea">
         <svg id="clusterSvg"></svg>
+        <div id="clusterCursor" aria-hidden="true"></div>
         <div id="clusterLegend"></div>
         <div class="zoom-controls" id="clZoomControls">
           <button class="zoom-btn" id="clZoomIn">+</button>
@@ -5366,18 +5388,21 @@ function init() {
     btn.addEventListener('click', () => switchView(btn.dataset.view));
   });
 
-  // Soft grey circle instead of a pointer on the timeline
-  const tlArea = document.getElementById('timelineArea');
-  const tlCursor = document.getElementById('timelineCursor');
-  if (tlArea && tlCursor && window.matchMedia('(pointer: fine)').matches) {
-    tlArea.addEventListener('pointermove', (e) => {
-      const r = tlArea.getBoundingClientRect();
-      tlCursor.style.left = (e.clientX - r.left) + 'px';
-      tlCursor.style.top = (e.clientY - r.top) + 'px';
-      tlArea.classList.add('soft-cursor');
+  // Soft grey circle instead of a pointer, on the timeline and on Play
+  function attachSoftCursor(areaId, cursorId) {
+    const area = document.getElementById(areaId);
+    const dot = document.getElementById(cursorId);
+    if (!area || !dot || !window.matchMedia('(pointer: fine)').matches) return;
+    area.addEventListener('pointermove', (e) => {
+      const r = area.getBoundingClientRect();
+      dot.style.left = (e.clientX - r.left) + 'px';
+      dot.style.top = (e.clientY - r.top) + 'px';
+      area.classList.add('soft-cursor');
     });
-    tlArea.addEventListener('pointerleave', () => tlArea.classList.remove('soft-cursor'));
+    area.addEventListener('pointerleave', () => area.classList.remove('soft-cursor'));
   }
+  attachSoftCursor('timelineArea', 'timelineCursor');
+  attachSoftCursor('clusterArea', 'clusterCursor');
 
   // Close detail panel
   document.getElementById('closePanel').addEventListener('click', closeDetailPanel);

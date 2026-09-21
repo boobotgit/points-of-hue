@@ -146,20 +146,29 @@
     .nav-group { position: relative; display: inline-flex; }
     .nav-drop {
       position: absolute;
-      top: calc(100% + 4px);
+      top: 100%;
       left: 50%;
       transform: translateX(-50%);
       display: none;
+      /* Transparent bridge so the pointer can travel from the word to the
+         menu without passing over a gap and closing it. */
+      padding-top: 6px;
+      z-index: 120;
+    }
+    .nav-drop-inner {
+      display: flex;
       flex-direction: column;
-      min-width: 142px;
+      min-width: 148px;
       background: var(--bg-main);
       border: 1px solid var(--border-light);
       border-radius: var(--radius-md);
       box-shadow: 0 10px 28px rgba(44,38,32,0.13);
       padding: 6px;
-      z-index: 120;
     }
-    .nav-group.open .nav-drop { display: flex; }
+    .nav-group.open .nav-drop { display: block; }
+    @media (hover: hover) and (pointer: fine) {
+      .nav-group:hover .nav-drop { display: block; }
+    }
     .nav-drop-item {
       background: none;
       border: none;
@@ -2019,7 +2028,7 @@
     <section id="galleryView" class="view hidden">
       <div class="view-header">
         <div>
-          <h1>Gallery</h1>
+          <h1>Artworks</h1>
           <p id="galleryCount">Your collection</p>
         </div>
         <div class="header-controls">
@@ -2090,15 +2099,15 @@
     </section>
     <section id="operasView" class="view hidden">
       <div class="view-header">
-        <div><h1>Operas</h1><p id="operasCount"></p></div>
+        <div><h1>Opera</h1><p id="operasCount"></p></div>
         <div class="header-controls"><button class="btn-add" data-add-cultural="opera">+ Add Opera</button></div>
       </div>
       <div class="cultural-scroll"><div id="operasGrid" class="cultural-grid"></div></div>
     </section>
     <section id="buildingsView" class="view hidden">
       <div class="view-header">
-        <div><h1>Buildings</h1><p id="buildingsCount"></p></div>
-        <div class="header-controls"><button class="btn-add" data-add-cultural="architecture">+ Add Building</button></div>
+        <div><h1>Structures</h1><p id="buildingsCount"></p></div>
+        <div class="header-controls"><button class="btn-add" data-add-cultural="architecture">+ Add Structure</button></div>
       </div>
       <div class="cultural-scroll"><div id="buildingsGrid" class="cultural-grid"></div></div>
     </section>
@@ -5204,12 +5213,12 @@ const NAV_TREE = [
     { view: 'patrons',   label: 'patrons' }
   ]},
   { key: 'what',  label: 'what',  items: [
-    { view: 'gallery',   label: 'works' },
-    { view: 'songs',     label: 'songs' },
-    { view: 'plays',     label: 'plays' },
+    { view: 'gallery',   label: 'artworks' },
     { view: 'ballets',   label: 'ballets' },
-    { view: 'operas',    label: 'operas' },
-    { view: 'buildings', label: 'buildings' }
+    { view: 'operas',    label: 'opera' },
+    { view: 'plays',     label: 'plays' },
+    { view: 'songs',     label: 'songs' },
+    { view: 'buildings', label: 'structures' }
   ]},
   { key: 'when',  label: 'when',  items: [ { view: 'timeline', label: 'timeline' } ]},
   { key: 'where', label: 'where', items: [
@@ -5230,9 +5239,11 @@ function buildNavInto(container) {
       '<button class="nav-btn" data-nav-toggle="' + g.key + '">' + esc(g.label) + '</button>' +
       (g.items.length > 1
         ? '<span class="nav-drop" data-nav-drop="' + g.key + '">' +
-            g.items.map(i =>
-              '<button class="nav-drop-item" data-view="' + i.view + '">' + esc(i.label) + '</button>'
-            ).join('') +
+            '<span class="nav-drop-inner">' +
+              g.items.map(i =>
+                '<button class="nav-drop-item" data-view="' + i.view + '">' + esc(i.label) + '</button>'
+              ).join('') +
+            '</span>' +
           '</span>'
         : '') +
     '</span>'
@@ -5289,7 +5300,7 @@ const CULTURAL_KINDS = {
   theatre:      { view: 'plays',     grid: 'playsGrid',     count: 'playsCount',     noun: 'play',     plural: 'plays' },
   ballet:       { view: 'ballets',   grid: 'balletsGrid',   count: 'balletsCount',   noun: 'ballet',   plural: 'ballets' },
   opera:        { view: 'operas',    grid: 'operasGrid',    count: 'operasCount',    noun: 'opera',    plural: 'operas' },
-  architecture: { view: 'buildings', grid: 'buildingsGrid', count: 'buildingsCount', noun: 'building', plural: 'buildings' }
+  architecture: { view: 'buildings', grid: 'buildingsGrid', count: 'buildingsCount', noun: 'structure', plural: 'structures' }
 };
 // The timeline category each collection is seeded from
 const CULTURAL_SOURCE = { song: 'music', theatre: 'theatre', ballet: 'ballet', opera: 'opera', architecture: 'architecture' };

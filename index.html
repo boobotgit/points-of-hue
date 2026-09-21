@@ -68,6 +68,10 @@
     ============================================================ */
     #topbar {
       flex: 0 0 auto;
+      /* Lift the bar above #mainContent, whose views are absolutely
+         positioned and would otherwise paint over the dropdowns. */
+      position: relative;
+      z-index: 140;
       /* 3 columns: home icon | centred menu | matching spacer, so the menu
          is truly centred and can never sit under the icon. */
       display: grid;
@@ -86,10 +90,10 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      overflow-x: auto;
-      scrollbar-width: none;
+      /* No scroll container here: overflow would clip the dropdowns, and
+         five words fit any screen. */
+      overflow: visible;
     }
-    #topnav::-webkit-scrollbar { display: none; }
 
     /* Same quiet serif look as the Home page menu */
     .nav-btn {
@@ -155,15 +159,15 @@
       padding-top: 6px;
       z-index: 120;
     }
+    /* No box — just the words, centred under their category. The page
+       colour sits behind them so they stay legible over content. */
     .nav-drop-inner {
       display: flex;
       flex-direction: column;
-      min-width: 148px;
+      align-items: stretch;
+      min-width: 132px;
       background: var(--bg-main);
-      border: 1px solid var(--border-light);
-      border-radius: var(--radius-md);
-      box-shadow: 0 10px 28px rgba(44,38,32,0.13);
-      padding: 6px;
+      padding: 4px 0 10px;
     }
     .nav-group.open .nav-drop { display: block; }
     @media (hover: hover) and (pointer: fine) {
@@ -172,7 +176,7 @@
     .nav-drop-item {
       background: none;
       border: none;
-      text-align: left;
+      text-align: center;
       font-family: 'Playfair Display', Georgia, serif;
       font-size: 14px;
       letter-spacing: 0.04em;
@@ -188,6 +192,16 @@
         rgba(60, 52, 44, 0.13) 0%, rgba(60, 52, 44, 0.07) 55%, rgba(60, 52, 44, 0) 100%);
     }
     .nav-drop-item.active { color: var(--accent); }
+    /* The category keeps its highlight while you move down into the list */
+    .nav-group:hover > .nav-btn,
+    .nav-group.open > .nav-btn {
+      color: var(--text-primary);
+      background: radial-gradient(closest-side,
+        rgba(60, 52, 44, 0.13) 0%, rgba(60, 52, 44, 0.07) 55%, rgba(60, 52, 44, 0) 100%);
+      border-radius: 999px;
+    }
+    .nav-group:hover > .nav-btn.active,
+    .nav-group.open > .nav-btn.active { color: var(--accent); }
 
     /* Songs / plays / ballets / operas / buildings */
     .cultural-scroll { flex: 1; overflow-y: auto; min-height: 0; }
@@ -247,6 +261,8 @@
 
     /* Home page menu — sits under "what do you see?" and the arrow */
     #homenav {
+      position: relative;
+      z-index: 140;
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
@@ -1725,6 +1741,7 @@
         flex: 1;
         min-width: 0;
         gap: 2px;
+        overflow: visible;
       }
       #topnav .nav-btn { font-size: 12px; letter-spacing: 0.02em; padding: 8px 4px; }
       .nav-btn.home-icon {

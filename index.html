@@ -5324,7 +5324,7 @@ function markNavActive(view) {
 
 /* ================================================================
    SONGS / PLAYS / BALLETS / OPERAS / BUILDINGS
-   Seeded from the timeline strands, and open to your own additions.
+   Empty until you add to them.
 ================================================================ */
 const CULTURAL_KEY = 'artatlas_cultural';
 const CULTURAL_KINDS = {
@@ -5334,8 +5334,6 @@ const CULTURAL_KINDS = {
   opera:        { view: 'operas',    grid: 'operasGrid',    count: 'operasCount',    noun: 'opera',    plural: 'operas' },
   architecture: { view: 'buildings', grid: 'buildingsGrid', count: 'buildingsCount', noun: 'structure', plural: 'structures' }
 };
-// The timeline category each collection is seeded from
-const CULTURAL_SOURCE = { song: 'music', theatre: 'theatre', ballet: 'ballet', opera: 'opera', architecture: 'architecture' };
 
 function getCultural() {
   try { return JSON.parse(localStorage.getItem(CULTURAL_KEY) || '{}'); }
@@ -5344,45 +5342,13 @@ function getCultural() {
 function saveCultural(obj) { localStorage.setItem(CULTURAL_KEY, JSON.stringify(obj)); }
 function getCulturalItems(kind) { return getCultural()[kind] || []; }
 
-// "Bach, Brandenburg Concertos" -> creator + title; "(his first house)" -> aside
-function parseCulturalLabel(label) {
-  let text = String(label || '').trim();
-  let aside = '';
-  const paren = text.match(/\s*\(([^)]*)\)\s*$/);
-  if (paren) { aside = paren[1]; text = text.slice(0, paren.index).trim(); }
-  let creator = '', title = text;
-  const m = text.match(/^([^,]{2,40}),\s+(.+)$/);
-  if (m) { creator = m[1].trim(); title = m[2].trim(); }
-  return { creator, title, aside };
-}
-
-function ensureCulturalSeeded() {
-  const store = getCultural();
-  let changed = false;
-  Object.keys(CULTURAL_KINDS).forEach(kind => {
-    const list = store[kind] || [];
-    const have = new Set(list.map(i => (i.title || '').toLowerCase()));
-    HISTORY_EVENTS
-      .filter(ev => ev.category === CULTURAL_SOURCE[kind])
-      .forEach(ev => {
-        const parsed = parseCulturalLabel(ev.label);
-        if (have.has(parsed.title.toLowerCase())) return;
-        have.add(parsed.title.toLowerCase());
-        list.push({
-          id: generateId(),
-          title: parsed.title,
-          creator: parsed.creator,
-          year: ev.year,
-          aside: parsed.aside,
-          wiki: ev.wiki || '',
-          pointOfHue: '',
-          createdAt: new Date().toISOString()
-        });
-        changed = true;
-      });
-    store[kind] = list;
-  });
-  if (changed) saveCultural(store);
+// These lists start empty on purpose — they are yours to fill.
+// This clears the old auto-seeded entries once, then never touches your own.
+const CULTURAL_PURGE_KEY = 'artatlas_cultural_purged';
+function ensureCulturalCleared() {
+  if (localStorage.getItem(CULTURAL_PURGE_KEY)) return;
+  localStorage.removeItem(CULTURAL_KEY);
+  localStorage.setItem(CULTURAL_PURGE_KEY, '1');
 }
 
 function updateCulturalItem(kind, id, data) {
@@ -5396,7 +5362,7 @@ function updateCulturalItem(kind, id, data) {
 }
 
 function renderCultural(kind) {
-  ensureCulturalSeeded();
+  ensureCulturalCleared();
   const cfg = CULTURAL_KINDS[kind];
   if (!cfg) return;
   const grid = document.getElementById(cfg.grid);
@@ -5414,7 +5380,7 @@ function renderCultural(kind) {
   }
 
   if (!items.length) {
-    grid.innerHTML = '<div class="empty-state"><div class="empty-state-text">Nothing here yet.</div></div>';
+    grid.innerHTML = '<div class="empty-state"><div class="empty-state-text">Nothing here yet — add the first one.</div></div>';
     return;
   }
 

@@ -142,6 +142,100 @@
     .nav-btn.home-icon:hover { background: none; color: var(--accent); }
     .nav-btn.home-icon.active { box-shadow: none; }
 
+    /* Dropdown menus under who / what / where */
+    .nav-group { position: relative; display: inline-flex; }
+    .nav-drop {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 50%;
+      transform: translateX(-50%);
+      display: none;
+      flex-direction: column;
+      min-width: 142px;
+      background: var(--bg-main);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-md);
+      box-shadow: 0 10px 28px rgba(44,38,32,0.13);
+      padding: 6px;
+      z-index: 120;
+    }
+    .nav-group.open .nav-drop { display: flex; }
+    .nav-drop-item {
+      background: none;
+      border: none;
+      text-align: left;
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 14px;
+      letter-spacing: 0.04em;
+      text-transform: lowercase;
+      color: var(--text-primary);
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .nav-drop-item:hover {
+      background: radial-gradient(closest-side,
+        rgba(60, 52, 44, 0.13) 0%, rgba(60, 52, 44, 0.07) 55%, rgba(60, 52, 44, 0) 100%);
+    }
+    .nav-drop-item.active { color: var(--accent); }
+
+    /* Songs / plays / ballets / operas / buildings */
+    .cultural-scroll { flex: 1; overflow-y: auto; min-height: 0; }
+    .cultural-grid {
+      padding: 8px 28px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      max-width: 780px;
+    }
+    .cultural-card {
+      display: flex;
+      gap: 18px;
+      padding: 16px 0;
+      border-top: 1px solid var(--border-light);
+    }
+    .cultural-card:first-child { border-top: none; }
+    .cultural-year {
+      flex: 0 0 74px;
+      font-size: 12px;
+      color: var(--text-dim);
+      letter-spacing: 0.06em;
+      padding-top: 3px;
+    }
+    .cultural-main { flex: 1; min-width: 0; }
+    .cultural-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 16px;
+      color: var(--text-primary);
+      line-height: 1.3;
+    }
+    .cultural-creator { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
+    .cultural-context {
+      font-size: 12.5px;
+      line-height: 1.55;
+      color: var(--text-muted);
+      margin-top: 8px;
+    }
+    .cultural-context:empty { display: none; }
+    .cultural-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+
+    /* The add-a-piece modal borrows the museum modal's shell */
+    #culturalModalOverlay {
+      position: fixed; inset: 0;
+      background: rgba(44,38,32,0.3);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 220;
+    }
+    #culturalModalOverlay.hidden { display: none; }
+    #culturalModalBox {
+      background: var(--bg-modal);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 20px 60px rgba(44,38,32,0.15);
+      width: 460px; max-width: 92vw; max-height: 86vh;
+      overflow-y: auto; padding: 28px;
+    }
+
     /* Home page menu — sits under "what do you see?" and the arrow */
     #homenav {
       display: flex;
@@ -1140,13 +1234,14 @@
     /* ============================================================
        MUSEUMS VIEW (also used by ARTISTS VIEW)
     ============================================================ */
-    #museumsView, #artistsView, #patronsView { flex-direction: column; }
-    #museumsScroll, #artistsScroll, #patronsScroll {
+    #museumsView, #artistsView, #patronsView, #sitesView,
+    #songsView, #playsView, #balletsView, #operasView, #buildingsView { flex-direction: column; }
+    #museumsScroll, #artistsScroll, #patronsScroll, #sitesScroll {
       flex: 1;
       overflow-y: auto;
       min-height: 0;
     }
-    #museumsGrid, #artistsGrid, #patronsGrid {
+    #museumsGrid, #artistsGrid, #patronsGrid, #sitesGrid {
       padding: 8px 28px 40px;
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -1652,12 +1747,12 @@
       .header-controls { width: 100%; display: flex; flex-wrap: wrap; gap: 6px; }
 
       /* Card grids: single column */
-      #galleryGrid, #museumsGrid, #artistsGrid, #patronsGrid {
+      #galleryGrid, #museumsGrid, #artistsGrid, #patronsGrid, #sitesGrid {
         grid-template-columns: 1fr !important;
         gap: 14px !important;
         padding: 12px 16px calc(env(safe-area-inset-bottom, 0px) + 40px) !important;
       }
-      #galleryScroll, #museumsScroll, #artistsScroll, #patronsScroll {
+      #galleryScroll, #museumsScroll, #artistsScroll, #patronsScroll, #sitesScroll {
         overflow: visible !important;
         height: auto !important;
       }
@@ -1706,6 +1801,9 @@
       /* Bigger touch targets, no iOS zoom on focus */
       .nav-btn { padding: 12px 16px; font-size: 15px; }
       .btn-save, .btn-cancel, .btn-edit, .btn-delete, .btn-hue, .btn-add { min-height: 40px; }
+      .cultural-grid { padding: 8px 16px 40px; }
+      .cultural-card { gap: 12px; }
+      .cultural-year { flex-basis: 58px; }
       input, select, textarea { font-size: 16px !important; }
 
       /* Timeline & Cluster: SVGs shrink to width */
@@ -1749,14 +1847,7 @@
   ============================================================ -->
   <header id="topbar">
     <button class="nav-btn home-icon" data-view="home" aria-label="Home" title="Home">&#8962;</button>
-    <nav id="topnav">
-      <button class="nav-btn" data-view="museums">Museums</button>
-      <button class="nav-btn" data-view="gallery">Gallery</button>
-      <button class="nav-btn" data-view="artists">Artists</button>
-      <button class="nav-btn" data-view="patrons">Patrons</button>
-      <button class="nav-btn" data-view="cluster">Play</button>
-      <button class="nav-btn" data-view="timeline">Timeline</button>
-    </nav>
+    <nav id="topnav"></nav>
   </header>
 
   <!-- ============================================================
@@ -1818,14 +1909,7 @@
         <section id="landing-enter">
           <p class="home-tagline">what do you see?</p>
           <button id="enter-btn" aria-label="Enter the collection">↓</button>
-          <nav id="homenav">
-            <button class="nav-btn" data-view="museums">Museums</button>
-            <button class="nav-btn" data-view="gallery">Gallery</button>
-            <button class="nav-btn" data-view="artists">Artists</button>
-            <button class="nav-btn" data-view="patrons">Patrons</button>
-            <button class="nav-btn" data-view="cluster">Play</button>
-            <button class="nav-btn" data-view="timeline">Timeline</button>
-          </nav>
+          <nav id="homenav"></nav>
         </section>
       </div>
     </section>
@@ -1966,6 +2050,57 @@
         </div>
       </div>
       <div id="artistsScroll"><div id="artistsGrid"></div></div>
+    </section>
+
+    <!-- SITES VIEW (places, as distinct from institutions) -->
+    <section id="sitesView" class="view hidden">
+      <div class="view-header">
+        <div>
+          <h1>Sites</h1>
+          <p id="sitesCount">Places, rather than institutions</p>
+        </div>
+        <div class="header-controls">
+          <button class="btn-add" id="addSiteBtn">+ Add Site</button>
+        </div>
+      </div>
+      <div id="sitesScroll"><div id="sitesGrid"></div></div>
+    </section>
+
+    <!-- SONGS / PLAYS / BALLETS / OPERAS / BUILDINGS -->
+    <section id="songsView" class="view hidden">
+      <div class="view-header">
+        <div><h1>Songs</h1><p id="songsCount"></p></div>
+        <div class="header-controls"><button class="btn-add" data-add-cultural="song">+ Add Song</button></div>
+      </div>
+      <div class="cultural-scroll"><div id="songsGrid" class="cultural-grid"></div></div>
+    </section>
+    <section id="playsView" class="view hidden">
+      <div class="view-header">
+        <div><h1>Plays</h1><p id="playsCount"></p></div>
+        <div class="header-controls"><button class="btn-add" data-add-cultural="theatre">+ Add Play</button></div>
+      </div>
+      <div class="cultural-scroll"><div id="playsGrid" class="cultural-grid"></div></div>
+    </section>
+    <section id="balletsView" class="view hidden">
+      <div class="view-header">
+        <div><h1>Ballets</h1><p id="balletsCount"></p></div>
+        <div class="header-controls"><button class="btn-add" data-add-cultural="ballet">+ Add Ballet</button></div>
+      </div>
+      <div class="cultural-scroll"><div id="balletsGrid" class="cultural-grid"></div></div>
+    </section>
+    <section id="operasView" class="view hidden">
+      <div class="view-header">
+        <div><h1>Operas</h1><p id="operasCount"></p></div>
+        <div class="header-controls"><button class="btn-add" data-add-cultural="opera">+ Add Opera</button></div>
+      </div>
+      <div class="cultural-scroll"><div id="operasGrid" class="cultural-grid"></div></div>
+    </section>
+    <section id="buildingsView" class="view hidden">
+      <div class="view-header">
+        <div><h1>Buildings</h1><p id="buildingsCount"></p></div>
+        <div class="header-controls"><button class="btn-add" data-add-cultural="architecture">+ Add Building</button></div>
+      </div>
+      <div class="cultural-scroll"><div id="buildingsGrid" class="cultural-grid"></div></div>
     </section>
 
     <!-- PATRONS VIEW -->
@@ -2170,6 +2305,35 @@
   </div>
 </div>
 
+<!-- Add a song / play / ballet / opera / building -->
+<div id="culturalModalOverlay" class="hidden">
+  <div id="culturalModalBox">
+    <div id="culturalModalTitle" style="font-family:'Playfair Display',Georgia,serif;font-size:20px;font-weight:400;margin-bottom:18px">Add</div>
+    <div class="form-grid">
+      <div class="form-field full">
+        <label class="form-label">Title *</label>
+        <input class="form-input" id="c-title" type="text" placeholder="e.g. The Rite of Spring" />
+      </div>
+      <div class="form-field">
+        <label class="form-label">Who made it</label>
+        <input class="form-input" id="c-creator" type="text" placeholder="e.g. Stravinsky" />
+      </div>
+      <div class="form-field">
+        <label class="form-label">Year</label>
+        <input class="form-input" id="c-year" type="number" placeholder="1913" />
+      </div>
+      <div class="form-field full">
+        <label class="form-label">Your point of hue</label>
+        <textarea class="form-textarea" id="c-note" rows="3" placeholder="Why does this belong here?"></textarea>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="button" class="btn-cancel" id="culturalCancelBtn">Cancel</button>
+      <button type="button" class="btn-save" id="culturalSaveBtn">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- Point of Hue note modal -->
 <div id="hueModalOverlay" class="hidden">
   <div id="hueModalBox">
@@ -2325,6 +2489,21 @@ const HISTORY_EVENTS = [
   { year: 1919,  label: 'The Three-Cornered Hat (Picasso designs)', category: 'ballet' },
   { year: 1944,  label: 'Copland, Appalachian Spring', category: 'ballet' },
   { year: 1957,  label: 'Balanchine & Stravinsky, Agon', category: 'ballet' },
+  // Theatre
+  { year: -458, label: 'Aeschylus, The Oresteia', category: 'theatre' },
+  { year: -429, label: 'Sophocles, Oedipus Rex', category: 'theatre' },
+  { year: -411, label: 'Aristophanes, Lysistrata', category: 'theatre' },
+  { year: 1592, label: 'Marlowe, Doctor Faustus', category: 'theatre' },
+  { year: 1601, label: 'Shakespeare, Hamlet', category: 'theatre' },
+  { year: 1606, label: 'Shakespeare, King Lear', category: 'theatre' },
+  { year: 1664, label: 'Moliere, Tartuffe', category: 'theatre' },
+  { year: 1677, label: 'Racine, Phedre', category: 'theatre' },
+  { year: 1879, label: "Ibsen, A Doll's House", category: 'theatre' },
+  { year: 1895, label: 'Wilde, The Importance of Being Earnest', category: 'theatre' },
+  { year: 1896, label: 'Chekhov, The Seagull', category: 'theatre' },
+  { year: 1947, label: 'Williams, A Streetcar Named Desire', category: 'theatre' },
+  { year: 1949, label: 'Miller, Death of a Salesman', category: 'theatre' },
+  { year: 1953, label: 'Beckett, Waiting for Godot', category: 'theatre' },
   // Architecture — the quieter buildings, not the famous ones
   { year: 1885,  label: 'Gaudi, Casa Vicens (his first house)', category: 'architecture' },
   { year: 1900,  label: 'Gaudi, Casa Calvet', category: 'architecture' },
@@ -2351,6 +2530,7 @@ const EVENT_LANES = [
   { key: 'music',      label: 'Music' },
   { key: 'opera',      label: 'Opera' },
   { key: 'ballet',     label: 'Ballet' },
+  { key: 'theatre',    label: 'Theatre' },
   { key: 'architecture', label: 'Architecture' }
 ];
 
@@ -2363,7 +2543,8 @@ const EVENT_COLORS = {
   music:      '#8a5a7a',
   opera:      '#aa8a5a',
   ballet:     '#6f9a9a',
-  architecture: '#8a7a6a'
+  architecture: '#8a7a6a',
+  theatre:      '#9a6a6a'
 };
 
 /* ================================================================
@@ -2535,7 +2716,7 @@ function getArtworksForMuseum(museum) {
    SECTION 3: DEMO DATA
 ================================================================ */
 function seedDemoData() {
-  const SEED_VERSION = 13;
+  const SEED_VERSION = 14;
   const meta = getMeta();
   if (meta.seeded && meta.seedVersion >= SEED_VERSION) return;
 
@@ -3123,6 +3304,18 @@ function seedDemoData() {
   }
 
 
+  // v14: some entries are places rather than institutions — split them out.
+  if (!meta.seeded || meta.seedVersion < 14) {
+    const siteNames = new Set(['ghost ranch', 'summer palace', 'palace of versailles', 'art omi']);
+    const all = getMuseums();
+    let changed = false;
+    all.forEach(m => {
+      const isSite = siteNames.has((m.name || '').toLowerCase());
+      if (isSite && m.type !== 'site') { m.type = 'site'; changed = true; }
+    });
+    if (changed) saveMuseums(all);
+  }
+
   saveMeta({ seeded: true, seedVersion: SEED_VERSION });
 }
 
@@ -3147,6 +3340,8 @@ function switchView(name) {
   const viewEl = document.getElementById(name + 'View');
   if (viewEl) viewEl.classList.remove('hidden');
   document.querySelectorAll(`[data-view="${name}"]`).forEach(b => b.classList.add('active'));
+  markNavActive(name);
+  closeNavDropdowns();
   // Home hides the top bar; every other view shows it.
   document.body.classList.toggle('view-home', name === 'home');
 
@@ -3169,6 +3364,12 @@ function switchView(name) {
   if (name === 'gallery') renderGallery();
   if (name === 'artists') renderArtists();
   if (name === 'patrons') renderPatrons();
+  if (name === 'sites') renderSites();
+  if (name === 'songs') renderCultural('song');
+  if (name === 'plays') renderCultural('theatre');
+  if (name === 'ballets') renderCultural('ballet');
+  if (name === 'operas') renderCultural('opera');
+  if (name === 'buildings') renderCultural('architecture');
   if (name === 'museums') renderMuseums();
 
   // Rendering changes the page height, which can nudge the scroll position —
@@ -4626,6 +4827,10 @@ function openHueModal(type, key, name) {
   else if (type === 'museum') { const m = getMuseumById(key); current = m ? (m.pointOfHue || '') : ''; }
   else if (type === 'artist') { current = getArtistNote(key); }
   else if (type === 'patron') { const p = getPatronById(key); current = p ? (p.pointOfHue || '') : ''; }
+  else if (type.indexOf('cultural:') === 0) {
+    const it = getCulturalItems(type.slice(9)).find(x => x.id === key);
+    current = it ? (it.pointOfHue || '') : '';
+  }
   const labels = { artwork: 'this artwork', museum: 'this museum', artist: 'this artist', patron: 'this patron' };
   document.getElementById('hueModalSubtitle').textContent = name ? `${name}` : (labels[type] || '');
   document.getElementById('hueModalText').value = current;
@@ -4643,6 +4848,11 @@ function saveHueNote() {
   else if (hueTarget.type === 'museum') updateMuseum(hueTarget.key, { pointOfHue: text });
   else if (hueTarget.type === 'artist') setArtistNote(hueTarget.key, text);
   else if (hueTarget.type === 'patron') updatePatron(hueTarget.key, { pointOfHue: text });
+  else if (hueTarget.type.indexOf('cultural:') === 0) {
+    const kind = hueTarget.type.slice(9);
+    updateCulturalItem(kind, hueTarget.key, { pointOfHue: text });
+    renderCultural(kind);
+  }
   const wasArtwork = hueTarget.type === 'artwork' ? hueTarget.key : null;
   closeHueModal();
   refreshCurrentView();
@@ -4983,6 +5193,269 @@ function renderArtists() {
   });
 }
 
+/* ================================================================
+   NAVIGATION: who / what / when / where / why
+   Groups with one child jump straight there; groups with several
+   open a dropdown under the word.
+================================================================ */
+const NAV_TREE = [
+  { key: 'who',   label: 'who',   items: [
+    { view: 'artists',   label: 'artists' },
+    { view: 'patrons',   label: 'patrons' }
+  ]},
+  { key: 'what',  label: 'what',  items: [
+    { view: 'gallery',   label: 'works' },
+    { view: 'songs',     label: 'songs' },
+    { view: 'plays',     label: 'plays' },
+    { view: 'ballets',   label: 'ballets' },
+    { view: 'operas',    label: 'operas' },
+    { view: 'buildings', label: 'buildings' }
+  ]},
+  { key: 'when',  label: 'when',  items: [ { view: 'timeline', label: 'timeline' } ]},
+  { key: 'where', label: 'where', items: [
+    { view: 'museums',   label: 'museums' },
+    { view: 'sites',     label: 'sites' }
+  ]},
+  { key: 'why',   label: 'why',   items: [ { view: 'cluster', label: 'play' } ]}
+];
+
+function navGroupForView(view) {
+  return NAV_TREE.find(g => g.items.some(i => i.view === view)) || null;
+}
+
+function buildNavInto(container) {
+  if (!container) return;
+  container.innerHTML = NAV_TREE.map(g =>
+    '<span class="nav-group" data-nav-group="' + g.key + '">' +
+      '<button class="nav-btn" data-nav-toggle="' + g.key + '">' + esc(g.label) + '</button>' +
+      (g.items.length > 1
+        ? '<span class="nav-drop" data-nav-drop="' + g.key + '">' +
+            g.items.map(i =>
+              '<button class="nav-drop-item" data-view="' + i.view + '">' + esc(i.label) + '</button>'
+            ).join('') +
+          '</span>'
+        : '') +
+    '</span>'
+  ).join('');
+
+  container.querySelectorAll('[data-nav-toggle]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const group = NAV_TREE.find(g => g.key === btn.dataset.navToggle);
+      if (!group) return;
+      if (group.items.length === 1) { closeNavDropdowns(); switchView(group.items[0].view); return; }
+      const wrap = btn.closest('.nav-group');
+      const isOpen = wrap.classList.contains('open');
+      closeNavDropdowns();
+      if (!isOpen) wrap.classList.add('open');
+    });
+  });
+  container.querySelectorAll('.nav-drop-item').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeNavDropdowns();
+      switchView(btn.dataset.view);
+    });
+  });
+}
+
+function closeNavDropdowns() {
+  document.querySelectorAll('.nav-group.open').forEach(g => g.classList.remove('open'));
+}
+
+function renderNav() {
+  buildNavInto(document.getElementById('topnav'));
+  buildNavInto(document.getElementById('homenav'));
+  markNavActive(currentView);
+}
+
+function markNavActive(view) {
+  const group = navGroupForView(view);
+  document.querySelectorAll('[data-nav-toggle]').forEach(b => {
+    b.classList.toggle('active', !!group && b.dataset.navToggle === group.key);
+  });
+  document.querySelectorAll('.nav-drop-item').forEach(b => {
+    b.classList.toggle('active', b.dataset.view === view);
+  });
+}
+
+/* ================================================================
+   SONGS / PLAYS / BALLETS / OPERAS / BUILDINGS
+   Seeded from the timeline strands, and open to your own additions.
+================================================================ */
+const CULTURAL_KEY = 'artatlas_cultural';
+const CULTURAL_KINDS = {
+  song:         { view: 'songs',     grid: 'songsGrid',     count: 'songsCount',     noun: 'song',     plural: 'songs' },
+  theatre:      { view: 'plays',     grid: 'playsGrid',     count: 'playsCount',     noun: 'play',     plural: 'plays' },
+  ballet:       { view: 'ballets',   grid: 'balletsGrid',   count: 'balletsCount',   noun: 'ballet',   plural: 'ballets' },
+  opera:        { view: 'operas',    grid: 'operasGrid',    count: 'operasCount',    noun: 'opera',    plural: 'operas' },
+  architecture: { view: 'buildings', grid: 'buildingsGrid', count: 'buildingsCount', noun: 'building', plural: 'buildings' }
+};
+// The timeline category each collection is seeded from
+const CULTURAL_SOURCE = { song: 'music', theatre: 'theatre', ballet: 'ballet', opera: 'opera', architecture: 'architecture' };
+
+function getCultural() {
+  try { return JSON.parse(localStorage.getItem(CULTURAL_KEY) || '{}'); }
+  catch(e) { return {}; }
+}
+function saveCultural(obj) { localStorage.setItem(CULTURAL_KEY, JSON.stringify(obj)); }
+function getCulturalItems(kind) { return getCultural()[kind] || []; }
+
+// "Bach, Brandenburg Concertos" -> creator + title; "(his first house)" -> aside
+function parseCulturalLabel(label) {
+  let text = String(label || '').trim();
+  let aside = '';
+  const paren = text.match(/\s*\(([^)]*)\)\s*$/);
+  if (paren) { aside = paren[1]; text = text.slice(0, paren.index).trim(); }
+  let creator = '', title = text;
+  const m = text.match(/^([^,]{2,40}),\s+(.+)$/);
+  if (m) { creator = m[1].trim(); title = m[2].trim(); }
+  return { creator, title, aside };
+}
+
+function ensureCulturalSeeded() {
+  const store = getCultural();
+  let changed = false;
+  Object.keys(CULTURAL_KINDS).forEach(kind => {
+    const list = store[kind] || [];
+    const have = new Set(list.map(i => (i.title || '').toLowerCase()));
+    HISTORY_EVENTS
+      .filter(ev => ev.category === CULTURAL_SOURCE[kind])
+      .forEach(ev => {
+        const parsed = parseCulturalLabel(ev.label);
+        if (have.has(parsed.title.toLowerCase())) return;
+        have.add(parsed.title.toLowerCase());
+        list.push({
+          id: generateId(),
+          title: parsed.title,
+          creator: parsed.creator,
+          year: ev.year,
+          aside: parsed.aside,
+          wiki: ev.wiki || '',
+          pointOfHue: '',
+          createdAt: new Date().toISOString()
+        });
+        changed = true;
+      });
+    store[kind] = list;
+  });
+  if (changed) saveCultural(store);
+}
+
+function updateCulturalItem(kind, id, data) {
+  const store = getCultural();
+  const list = store[kind] || [];
+  const i = list.findIndex(x => x.id === id);
+  if (i === -1) return;
+  list[i] = { ...list[i], ...data };
+  store[kind] = list;
+  saveCultural(store);
+}
+
+function renderCultural(kind) {
+  ensureCulturalSeeded();
+  const cfg = CULTURAL_KINDS[kind];
+  if (!cfg) return;
+  const grid = document.getElementById(cfg.grid);
+  const countEl = document.getElementById(cfg.count);
+  if (!grid) return;
+
+  const items = getCulturalItems(kind)
+    .slice()
+    .sort((a, b) => (a.year || 0) - (b.year || 0) || a.title.localeCompare(b.title));
+
+  if (countEl) {
+    countEl.textContent = items.length
+      ? items.length + ' ' + (items.length === 1 ? cfg.noun : cfg.plural)
+      : 'Nothing here yet';
+  }
+
+  if (!items.length) {
+    grid.innerHTML = '<div class="empty-state"><div class="empty-state-text">Nothing here yet.</div></div>';
+    return;
+  }
+
+  grid.innerHTML = items.map(it =>
+    '<div class="cultural-card" data-cid="' + esc(it.id) + '">' +
+      '<div class="cultural-year">' + (it.year != null ? esc(formatYear(it.year)) : '') + '</div>' +
+      '<div class="cultural-main">' +
+        '<div class="cultural-title">' + esc(it.title) + '</div>' +
+        '<div class="cultural-creator">' +
+          esc([it.creator, it.aside].filter(Boolean).join(' · ')) +
+        '</div>' +
+        (it.pointOfHue ? '<div class="hue-text">' + esc(it.pointOfHue) + '</div>' : '') +
+        '<div class="cultural-context" data-context-for="' + esc(it.id) + '"></div>' +
+        '<div class="cultural-actions">' +
+          '<button class="btn-hue" data-cultural-hue="' + esc(it.id) + '">' +
+            (it.pointOfHue ? 'Edit your point of hue' : '+ Add your point of hue') +
+          '</button>' +
+          '<button class="btn-hue" data-cultural-context="' + esc(it.id) + '">What is this?</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>'
+  ).join('');
+
+  grid.querySelectorAll('[data-cultural-hue]').forEach(b => {
+    b.addEventListener('click', () => {
+      const it = getCulturalItems(kind).find(x => x.id === b.dataset.culturalHue);
+      openHueModal('cultural:' + kind, b.dataset.culturalHue, it ? it.title : '');
+    });
+  });
+  grid.querySelectorAll('[data-cultural-context]').forEach(b => {
+    b.addEventListener('click', async () => {
+      const id = b.dataset.culturalContext;
+      const it = getCulturalItems(kind).find(x => x.id === id);
+      const target = grid.querySelector('[data-context-for="' + CSS.escape(id) + '"]');
+      if (!it || !target) return;
+      if (target.textContent) { target.textContent = ''; return; }
+      target.textContent = 'Looking it up…';
+      const text = await fetchWikiExtract(wikiTitleFor(it.title, it.wiki));
+      target.textContent = text || 'No entry found for this one.';
+    });
+  });
+}
+
+/* ---- Add your own ---- */
+let culturalTargetKind = null;
+function openCulturalModal(kind) {
+  culturalTargetKind = kind;
+  const cfg = CULTURAL_KINDS[kind];
+  document.getElementById('culturalModalTitle').textContent = 'Add a ' + (cfg ? cfg.noun : 'piece');
+  document.getElementById('c-title').value = '';
+  document.getElementById('c-creator').value = '';
+  document.getElementById('c-year').value = '';
+  document.getElementById('c-note').value = '';
+  document.getElementById('culturalModalOverlay').classList.remove('hidden');
+  setTimeout(() => document.getElementById('c-title').focus(), 30);
+}
+function closeCulturalModal() {
+  culturalTargetKind = null;
+  document.getElementById('culturalModalOverlay').classList.add('hidden');
+}
+function saveCulturalItem() {
+  if (!culturalTargetKind) return;
+  const title = document.getElementById('c-title').value.trim();
+  if (!title) { document.getElementById('c-title').focus(); return; }
+  const yearRaw = document.getElementById('c-year').value.trim();
+  const store = getCultural();
+  const list = store[culturalTargetKind] || [];
+  list.push({
+    id: generateId(),
+    title,
+    creator: document.getElementById('c-creator').value.trim(),
+    year: yearRaw === '' ? null : Number(yearRaw),
+    aside: '',
+    wiki: '',
+    pointOfHue: document.getElementById('c-note').value.trim(),
+    createdAt: new Date().toISOString()
+  });
+  store[culturalTargetKind] = list;
+  saveCultural(store);
+  const kind = culturalTargetKind;
+  closeCulturalModal();
+  renderCultural(kind);
+}
+
 function renderPatrons() {
   ensurePatronsSeeded();
   const patrons = getPatrons().sort((a, b) => a.name.localeCompare(b.name));
@@ -5077,11 +5550,21 @@ function renderPatrons() {
   });
 }
 
-function renderMuseums() {
-  const museums = getMuseums().sort((a, b) => a.name.localeCompare(b.name));
-  const grid = document.getElementById('museumsGrid');
-  document.getElementById('museumsCount').textContent =
-    museums.length === 0 ? 'No museums yet' : `${museums.length} museum${museums.length !== 1 ? 's' : ''}`;
+function renderMuseums() { renderPlaces('museum'); }
+function renderSites() { renderPlaces('site'); }
+
+// Museums and sites share a card; only the filter and the target grid differ.
+function renderPlaces(kind) {
+  const isSite = kind === 'site';
+  const museums = getMuseums()
+    .filter(m => (m.type === 'site') === isSite)
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const grid = document.getElementById(isSite ? 'sitesGrid' : 'museumsGrid');
+  const countEl = document.getElementById(isSite ? 'sitesCount' : 'museumsCount');
+  const noun = isSite ? 'site' : 'museum';
+  countEl.textContent = museums.length === 0
+    ? ('No ' + noun + 's yet')
+    : (museums.length + ' ' + noun + (museums.length !== 1 ? 's' : ''));
 
   if (museums.length === 0) {
     grid.innerHTML = `<div class="empty-state">
@@ -5190,8 +5673,10 @@ function renderMuseums() {
   });
 }
 
-function openMuseumModal(museumId) {
+let pendingPlaceType = null;
+function openMuseumModal(museumId, placeType) {
   editingMuseumId = museumId || null;
+  pendingPlaceType = placeType || null;
   const overlay = document.getElementById('museumModalOverlay');
   const form = document.getElementById('museumForm');
   form.reset();
@@ -5234,14 +5719,17 @@ function handleMuseumFormSubmit(e) {
     notes: document.getElementById('m-notes').value.trim()
   };
 
+  if (pendingPlaceType === 'site') data.type = 'site';
+
   if (editingMuseumId) {
     updateMuseum(editingMuseumId, data);
   } else {
     addMuseum(data);
   }
 
+  const wasSite = pendingPlaceType === 'site';
   closeMuseumModal();
-  renderMuseums();
+  if (wasSite || currentView === 'sites') renderSites(); else renderMuseums();
 }
 
 function handleDeleteMuseum(id) {
@@ -5425,10 +5913,25 @@ function init() {
   const homeViewEl = document.getElementById('homeView');
   if (homeViewEl) homeViewEl.addEventListener('scroll', markScrolled, { passive: true });
 
-  // Menu navigation (top bar on inner views, bottom of the Home page)
-  document.querySelectorAll('.nav-btn').forEach(btn => {
+  // Menu: who / what / when / where / why, with dropdowns
+  renderNav();
+  document.addEventListener('click', closeNavDropdowns);
+  // The home icon still navigates directly
+  document.querySelectorAll('.nav-btn.home-icon').forEach(btn => {
     btn.addEventListener('click', () => switchView(btn.dataset.view));
   });
+
+  // Add a song / play / ballet / opera / building
+  document.querySelectorAll('[data-add-cultural]').forEach(btn => {
+    btn.addEventListener('click', () => openCulturalModal(btn.dataset.addCultural));
+  });
+  document.getElementById('culturalCancelBtn').addEventListener('click', closeCulturalModal);
+  document.getElementById('culturalSaveBtn').addEventListener('click', saveCulturalItem);
+  document.getElementById('culturalModalOverlay').addEventListener('click', (e) => {
+    if (e.target.id === 'culturalModalOverlay') closeCulturalModal();
+  });
+  // Adding a site uses the museum form; it is saved with type 'site'
+  document.getElementById('addSiteBtn').addEventListener('click', () => openMuseumModal(null, 'site'));
 
   // Soft grey circle instead of a pointer, on the timeline and on Play
   function attachSoftCursor(areaId, cursorId) {

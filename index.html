@@ -1628,6 +1628,23 @@
       object-fit: cover;
       display: block;
     }
+    /* Tall standing figures crop better from the top than the middle */
+    .puzzle-item img.crop-tall { object-position: center 30%; }
+    /* An empty slot, waiting for whatever you decide to set against it */
+    .puzzle-placeholder {
+      background: var(--bg-input);
+      box-shadow: inset 0 0 0 1px var(--border-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .puzzle-placeholder::after {
+      content: '?';
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 40px;
+      color: var(--text-dim);
+      opacity: 0.55;
+    }
     .puzzle-item figcaption {
       position: absolute;
       left: 0;
@@ -1911,7 +1928,15 @@
             </div>
           </div>
 
-          <!-- Pair 3: Guernica ↔ The Two Fridas -->
+          <!-- Pair 3: Max Ernst, La belle allemande (Reina Sofia) — awaiting its partner -->
+          <div class="puzzle-pair">
+            <div class="puzzle-item" data-side="left">
+              <img class="crop-tall" alt="" src="https://recursos.museoreinasofia.es/styles/large_portrait/public/Obra/DE00498_2.jpg.webp" />
+            </div>
+            <div class="puzzle-item puzzle-placeholder" data-side="right"></div>
+          </div>
+
+          <!-- Pair 4: Guernica ↔ The Two Fridas -->
           <div class="puzzle-pair">
             <div class="puzzle-item" data-side="left">
               <img alt="" src="https://upload.wikimedia.org/wikipedia/en/thumb/7/74/PicassoGuernica.jpg/500px-PicassoGuernica.jpg" />

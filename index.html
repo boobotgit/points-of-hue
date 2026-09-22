@@ -1920,7 +1920,7 @@
         </section>
 
         <section id="landing-puzzle">
-          <!-- Pair 1: Madonna of Bruges (Michelangelo) ↔ Fountain (Duchamp) -->
+          <!-- Pair 1: Madonna of Bruges (Michelangelo) - Fountain (Duchamp) -->
           <div class="puzzle-pair">
             <div class="puzzle-item" data-side="left">
               <img alt="" src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Madonna_michelangelo.jpg/500px-Madonna_michelangelo.jpg" />
@@ -1930,33 +1930,33 @@
             </div>
           </div>
 
-          <!-- Pair 2: Vermeer's Girl Interrupted at Her Music ↔ the Girl, Interrupted book -->
+          <!-- Pair 2: Bacchanal of the Andrians (Titian) - Le Bonheur de vivre (Matisse) -->
           <div class="puzzle-pair">
             <div class="puzzle-item" data-side="left">
-              <img alt="" src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Vermeer_Girl_Interrupted_at_Her_Music.jpg/500px-Vermeer_Girl_Interrupted_at_Her_Music.jpg" />
+              <img alt="" src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Bacchanal_of_the_Andrians_by_Titian_in_the_Prado_Museum.jpg/500px-Bacchanal_of_the_Andrians_by_Titian_in_the_Prado_Museum.jpg" />
             </div>
             <div class="puzzle-item" data-side="right">
-              <img alt="" src="https://upload.wikimedia.org/wikipedia/en/4/4e/Girl_interrupted_book.jpg" />
+              <img alt="" src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Bonheur_Matisse.jpg/500px-Bonheur_Matisse.jpg" />
             </div>
           </div>
 
-          <!-- Pair 3: Max Ernst, La belle allemande (Reina Sofia) - painted portrait, E.M. -->
+          <!-- Pair 3: Women of Algiers (Delacroix) - Les Femmes d'Alger (Picasso) -->
+          <div class="puzzle-pair">
+            <div class="puzzle-item" data-side="left">
+              <img alt="" src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Femmes_d%27Alger_dans_leur_appartement%2C_Eug%C3%A8ne_Delacroix_-_Mus%C3%A9e_du_Louvre_Peintures_INV_3824.jpg/500px-Femmes_d%27Alger_dans_leur_appartement%2C_Eug%C3%A8ne_Delacroix_-_Mus%C3%A9e_du_Louvre_Peintures_INV_3824.jpg" />
+            </div>
+            <div class="puzzle-item" data-side="right">
+              <img alt="" src="https://upload.wikimedia.org/wikipedia/en/b/b5/Les_femmes_d%E2%80%99Alger%2C_Picasso%2C_version_O.jpg" />
+            </div>
+          </div>
+
+          <!-- Pair 4: Max Ernst, La belle allemande (Reina Sofia) - painted portrait, E.M. -->
           <div class="puzzle-pair">
             <div class="puzzle-item puzzle-whole" data-side="left">
               <img alt="" src="images/ernst-belle-allemande.jpg" />
             </div>
             <div class="puzzle-item" data-side="right">
               <img class="crop-left" alt="" src="images/portrait-em.jpg" />
-            </div>
-          </div>
-
-          <!-- Pair 4: Guernica ↔ The Two Fridas -->
-          <div class="puzzle-pair">
-            <div class="puzzle-item" data-side="left">
-              <img alt="" src="https://upload.wikimedia.org/wikipedia/en/thumb/7/74/PicassoGuernica.jpg/500px-PicassoGuernica.jpg" />
-            </div>
-            <div class="puzzle-item" data-side="right">
-              <img alt="" src="https://upload.wikimedia.org/wikipedia/en/f/f9/The_Two_Fridas.jpg" />
             </div>
           </div>
         </section>
@@ -2714,12 +2714,24 @@ function ensurePatronsSeeded() {
   if (added.length) savePatrons([...existing, ...added]);
 }
 
+// A cover for an artist whose card is better fronted by something other than
+// the first artwork in the collection. Kept in the file so it travels.
+const ARTIST_COVERS = {
+  'Sol LeWitt': 'images/lewitt-whirls-and-twirls.jpg'
+};
+
+// Points of hue written into the site itself. Anything typed in the browser
+// takes precedence over the note seeded here.
+const SEED_ARTIST_NOTES = {
+  'Sol LeWitt': 'Conceptual and minimal art. Born in CT, lived in NYC. I saw an exhibition of his in Chelsea. He believed art was a thought, not a physical thing - which is why he painted on walls that would then be painted over. To buy one of these pieces, you bought the instructions, not the piece itself. He started off as a cartoonist, moved to large flat sculptures - as his work matured, his hand became less visible and lines became cleaner and work more abstract. He favored primary colors.'
+};
+
 const ARTIST_NOTES_KEY = 'artatlas_artist_notes';
 function getArtistNotes() {
   try { return JSON.parse(localStorage.getItem(ARTIST_NOTES_KEY) || '{}'); }
   catch(e) { return {}; }
 }
-function getArtistNote(name) { return getArtistNotes()[name] || ''; }
+function getArtistNote(name) { return getArtistNotes()[name] || SEED_ARTIST_NOTES[name] || ''; }
 function setArtistNote(name, text) {
   const notes = getArtistNotes();
   if (text) notes[name] = text; else delete notes[name];
@@ -3544,6 +3556,9 @@ function esc(v) {
 // Only allow http(s) links and images — blocks javascript: and other schemes.
 function safeUrl(u) {
   const s = String(u ?? '').trim();
+  // Images kept in the site's own folder are addressed relatively; nothing
+  // else relative gets through, so a javascript: url can never pass here.
+  if (/^images\/[A-Za-z0-9._-]+$/.test(s)) return esc(s);
   return /^https?:\/\//i.test(s) ? esc(s) : '';
 }
 
@@ -5170,7 +5185,8 @@ function renderArtists() {
   grid.innerHTML = artists.map(ar => {
     const works = ar.works;
     const coverWork = works.find(w => w.thumbnailUrl || w.imageUrl);
-    const coverUrl = coverWork ? (coverWork.thumbnailUrl || coverWork.imageUrl) : '';
+    const coverUrl = ARTIST_COVERS[ar.name] ||
+      (coverWork ? (coverWork.thumbnailUrl || coverWork.imageUrl) : '');
     const movements = [...new Set(works.map(w => w.movement).filter(Boolean))];
     const years = works.map(w => w.year).filter(y => y != null);
     let yearRange = '';

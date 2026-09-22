@@ -1628,8 +1628,18 @@
       object-fit: cover;
       display: block;
     }
-    /* Tall standing figures crop better from the top than the middle */
-    .puzzle-item img.crop-tall { object-position: center 30%; }
+    /* A tall figure that has to be seen whole: the image is fitted rather than
+       cropped, and the bars either side are painted with gradients sampled
+       from the photo's own edges so the studio backdrop simply continues. */
+    .puzzle-whole {
+      background-image:
+        linear-gradient(to bottom, #686c6f 4.2%, #707378 12.5%, #74787c 20.8%, #767a7e 29.2%, #777a7f 37.5%, #74777c 45.8%, #707377 54.2%, #686b6f 62.5%, #5a5e60 70.8%, #515554 79.2%, #5f6266 87.5%, #7a7e88 95.8%),
+        linear-gradient(to bottom, #9598a1 4.2%, #9da0a9 12.5%, #a2a5af 20.8%, #a7abb7 29.2%, #abafbb 37.5%, #abafbb 45.8%, #aaaeba 54.2%, #a1a5b0 62.5%, #979ba4 70.8%, #999da8 79.2%, #a8adba 87.5%, #b5bacb 95.8%);
+      background-size: 51% 100%, 51% 100%;
+      background-position: left center, right center;
+      background-repeat: no-repeat;
+    }
+    .puzzle-whole img { object-fit: contain; }
     /* Anchored left so nothing on that side of the painting is cropped away */
     .puzzle-item img.crop-left { object-position: left center; }
     /* An empty slot, waiting for whatever you decide to set against it */
@@ -1932,8 +1942,8 @@
 
           <!-- Pair 3: Max Ernst, La belle allemande (Reina Sofia) - painted portrait, E.M. -->
           <div class="puzzle-pair">
-            <div class="puzzle-item" data-side="left">
-              <img class="crop-tall" alt="" src="https://recursos.museoreinasofia.es/styles/large_portrait/public/Obra/DE00498_2.jpg.webp" />
+            <div class="puzzle-item puzzle-whole" data-side="left">
+              <img alt="" src="images/ernst-belle-allemande.jpg" />
             </div>
             <div class="puzzle-item" data-side="right">
               <img class="crop-left" alt="" src="images/portrait-em.jpg" />

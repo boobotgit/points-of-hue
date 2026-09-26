@@ -1598,8 +1598,9 @@
        corner at their shared midpoint. Between pairs, a small connection
        note explains the surprising link. */
     #landing-puzzle {
-      --puzzle-img: min(52vw, 320px);
-      --puzzle-w: calc(var(--puzzle-img) * 2);
+      --puzzle-cap: 22px;
+      --puzzle-img: min(calc(50vw - var(--puzzle-cap)), 320px);
+      --puzzle-w: calc(var(--puzzle-img) * 2 + var(--puzzle-cap) * 2);
       max-width: var(--puzzle-w);
       margin: 0 auto;
       padding: 40px 0 60px;
@@ -1620,8 +1621,33 @@
       box-shadow: 0 8px 24px rgba(44,38,32,0.10);
       margin: 0;
     }
-    .puzzle-item[data-side="left"]  { left: 0; top: 0; }
-    .puzzle-item[data-side="right"] { right: 0; top: calc(var(--puzzle-img) * 0.5); }
+    .puzzle-item[data-side="left"]  { left: var(--puzzle-cap); top: 0; }
+    .puzzle-item[data-side="right"] { right: var(--puzzle-cap); top: calc(var(--puzzle-img) * 0.5); }
+
+    /* Title and maker set sideways in the outer margin, reading upward:
+       down the left of the left images, down the right of the right ones. */
+    .puzzle-label {
+      position: absolute;
+      width: var(--puzzle-cap);
+      height: var(--puzzle-img);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      font-family: 'Playfair Display', Georgia, serif;
+      /* Shrinks with the tile so a long title still fits its height */
+      font-size: clamp(7.5px, 2.2vw, 10.5px);
+      letter-spacing: 0.06em;
+      line-height: 1;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .puzzle-label .puzzle-label-by { color: var(--text-dim); }
+    .puzzle-label[data-side="left"]  { left: 0; top: 0; }
+    .puzzle-label[data-side="right"] { right: 0; top: calc(var(--puzzle-img) * 0.5); }
     .puzzle-item img {
       width: 100%;
       height: 100%;
@@ -1922,6 +1948,8 @@
         <section id="landing-puzzle">
           <!-- Pair 1: Madonna of Bruges (Michelangelo) - Fountain (Duchamp) -->
           <div class="puzzle-pair">
+            <span class="puzzle-label" data-side="left">Madonna of Bruges <span class="puzzle-label-by">· Michelangelo</span></span>
+            <span class="puzzle-label" data-side="right">Fountain <span class="puzzle-label-by">· Marcel Duchamp</span></span>
             <div class="puzzle-item" data-side="left">
               <img alt="" src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Madonna_michelangelo.jpg/500px-Madonna_michelangelo.jpg" />
             </div>
@@ -1932,6 +1960,8 @@
 
           <!-- Pair 2: Bacchanal of the Andrians (Titian) - Le Bonheur de vivre (Matisse) -->
           <div class="puzzle-pair">
+            <span class="puzzle-label" data-side="left">Bacchanal of the Andrians <span class="puzzle-label-by">· Titian</span></span>
+            <span class="puzzle-label" data-side="right">Le Bonheur de vivre <span class="puzzle-label-by">· Henri Matisse</span></span>
             <div class="puzzle-item" data-side="left">
               <img alt="" src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Bacchanal_of_the_Andrians_by_Titian_in_the_Prado_Museum.jpg/500px-Bacchanal_of_the_Andrians_by_Titian_in_the_Prado_Museum.jpg" />
             </div>
@@ -1942,6 +1972,8 @@
 
           <!-- Pair 3: Women of Algiers (Delacroix) - Les Femmes d'Alger (Picasso) -->
           <div class="puzzle-pair">
+            <span class="puzzle-label" data-side="left">Women of Algiers <span class="puzzle-label-by">· Eugène Delacroix</span></span>
+            <span class="puzzle-label" data-side="right">Les Femmes d'Alger <span class="puzzle-label-by">· Pablo Picasso</span></span>
             <div class="puzzle-item" data-side="left">
               <img alt="" src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/74/Femmes_d%27Alger_dans_leur_appartement%2C_Eug%C3%A8ne_Delacroix_-_Mus%C3%A9e_du_Louvre_Peintures_INV_3824.jpg/500px-Femmes_d%27Alger_dans_leur_appartement%2C_Eug%C3%A8ne_Delacroix_-_Mus%C3%A9e_du_Louvre_Peintures_INV_3824.jpg" />
             </div>
@@ -1952,6 +1984,8 @@
 
           <!-- Pair 4: Max Ernst, La belle allemande (Reina Sofia) - painted portrait, E.M. -->
           <div class="puzzle-pair">
+            <span class="puzzle-label" data-side="left">La belle allemande <span class="puzzle-label-by">· Max Ernst</span></span>
+            <span class="puzzle-label" data-side="right">Untitled <span class="puzzle-label-by">· E.M.</span></span>
             <div class="puzzle-item puzzle-whole" data-side="left">
               <img alt="" src="images/ernst-belle-allemande.jpg" />
             </div>
@@ -2783,7 +2817,7 @@ function getArtworksForMuseum(museum) {
    SECTION 3: DEMO DATA
 ================================================================ */
 function seedDemoData() {
-  const SEED_VERSION = 14;
+  const SEED_VERSION = 15;
   const meta = getMeta();
   if (meta.seeded && meta.seedVersion >= SEED_VERSION) return;
 
@@ -3139,6 +3173,70 @@ function seedDemoData() {
       tags: ['photography', 'conceptual', 'contemporary', 'documentary'],
       notes: '',
       source: 'https://en.wikipedia.org/wiki/Taryn_Simon'
+    },
+    {
+      title: 'The Matter of Time',
+      artist: 'Richard Serra',
+      year: 2005,
+      yearEnd: null,
+      medium: 'Weathering steel',
+      movement: 'Minimalism',
+      location: 'Guggenheim Museum Bilbao, Bilbao',
+      coordinates: { lat: 43.2687, lng: -2.934 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/The_Matter_of_Time_by_Richard_Serra.jpg/500px-The_Matter_of_Time_by_Richard_Serra.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/The_Matter_of_Time_by_Richard_Serra.jpg/250px-The_Matter_of_Time_by_Richard_Serra.jpg',
+      description: 'Eight torqued steel ellipses and spirals filling the 130-metre Arcelor Gallery, rusted to a deep orange. You do not look at this one so much as walk through it, and the walls lean in and away as you go, so the piece is really made of the time it takes to cross.',
+      tags: ['sculpture', 'serra', 'steel', 'minimalism', 'immersive'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/The_Matter_of_Time'
+    },
+    {
+      title: 'The Swing',
+      artist: 'Jean-Honoré Fragonard',
+      year: 1767,
+      yearEnd: null,
+      medium: 'Oil on canvas',
+      movement: 'Rococo',
+      location: 'Wallace Collection, London',
+      coordinates: { lat: 51.5175, lng: -0.1527 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Jean-Honor%C3%A9_Fragonard_-_The_Swing_-_Google_Art_Project.jpg/500px-Jean-Honor%C3%A9_Fragonard_-_The_Swing_-_Google_Art_Project.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Jean-Honor%C3%A9_Fragonard_-_The_Swing_-_Google_Art_Project.jpg/250px-Jean-Honor%C3%A9_Fragonard_-_The_Swing_-_Google_Art_Project.jpg',
+      description: 'A young woman on a swing kicks off her slipper while her lover, hidden in the bushes below, looks up her skirts and an unwitting older man works the ropes behind her. The most charming picture of the Rococo, and one of the most indecent.',
+      tags: ['rococo', 'fragonard', 'garden', 'flirtation'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/The_Swing_(Fragonard)'
+    },
+    {
+      title: 'The Progress of Love',
+      artist: 'Jean-Honoré Fragonard',
+      year: 1771,
+      yearEnd: 1773,
+      medium: 'Oil on canvas',
+      movement: 'Rococo',
+      location: 'The Frick Collection, New York',
+      coordinates: { lat: 40.7712, lng: -73.9673 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/The_Progress_of_Love_-_The_Meeting_-_Fragonard_1771-72.jpg/500px-The_Progress_of_Love_-_The_Meeting_-_Fragonard_1771-72.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/The_Progress_of_Love_-_The_Meeting_-_Fragonard_1771-72.jpg/250px-The_Progress_of_Love_-_The_Meeting_-_Fragonard_1771-72.jpg',
+      description: 'Four great canvases following a courtship from pursuit to the love letters, painted for Madame du Barry, who rejected them. They hang together in their own room at the Frick, which bought the set in 1915.',
+      tags: ['rococo', 'fragonard', 'series', 'courtship', 'frick'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/The_Progress_of_Love'
+    },
+    {
+      title: 'Untitled (Looped-Wire Sculpture)',
+      artist: 'Ruth Asawa',
+      year: 1958,
+      yearEnd: null,
+      medium: 'Looped galvanised wire',
+      movement: 'Contemporary',
+      location: 'de Young Museum, San Francisco',
+      coordinates: { lat: 37.7715, lng: -122.4686 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Untitled_Looped_Wire_Sculpture%2C_Ruth_Asawa%2C_De_Young_Museum_Permanent_Collection.jpg/500px-Untitled_Looped_Wire_Sculpture%2C_Ruth_Asawa%2C_De_Young_Museum_Permanent_Collection.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Untitled_Looped_Wire_Sculpture%2C_Ruth_Asawa%2C_De_Young_Museum_Permanent_Collection.jpg/250px-Untitled_Looped_Wire_Sculpture%2C_Ruth_Asawa%2C_De_Young_Museum_Permanent_Collection.jpg',
+      description: 'A hanging form crocheted from a single continuous wire, shapes nested inside other shapes. Asawa learned the looping from basket weavers in Mexico, and the sculpture is as much the shadow it throws on the wall as the wire itself.',
+      tags: ['sculpture', 'asawa', 'wire', 'shadow', 'craft'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/Ruth_Asawa'
     }
   ];
 
@@ -5277,7 +5375,7 @@ const NAV_TREE = [
   { key: 'what',  label: 'what',  items: [
     { view: 'gallery',   label: 'artworks' },
     { view: 'ballets',   label: 'ballets' },
-    { view: 'operas',    label: 'opera' },
+    { view: 'operas',    label: 'operas' },
     { view: 'plays',     label: 'plays' },
     { view: 'songs',     label: 'songs' },
     { view: 'buildings', label: 'structures' }
@@ -5372,6 +5470,51 @@ function getCultural() {
 function saveCultural(obj) { localStorage.setItem(CULTURAL_KEY, JSON.stringify(obj)); }
 function getCulturalItems(kind) { return getCultural()[kind] || []; }
 
+// Operas and plays written into the site itself, so they travel with it.
+// Anything added in the browser sits alongside these untouched.
+const SEED_CULTURAL = {
+  opera: [
+    { title: 'The Hours',     creator: 'Kevin Puts',        year: 2022, aside: 'seen at the Met Opera' },
+    { title: 'Akhnaten',      creator: 'Philip Glass',      year: 1983, aside: 'seen at the Met Opera' },
+    { title: 'La Traviata',   creator: 'Giuseppe Verdi',    year: 1853, aside: 'seen at the Met Opera' },
+    { title: 'The Magic Flute', creator: 'Wolfgang Amadeus Mozart', year: 1791, aside: '' }
+  ],
+  theatre: [
+    { title: 'Wicked',        creator: 'Stephen Schwartz',  year: 2003, aside: '' },
+    { title: 'Illinoise',     creator: 'Justin Peck',       year: 2024, aside: '' },
+    { title: 'The Ferryman',  creator: 'Jez Butterworth',   year: 2017, aside: '' }
+  ]
+};
+
+// Idempotent: matches on title, so it will not duplicate on a second run
+// and it never disturbs anything added by hand.
+const CULTURAL_SEED_KEY = 'artatlas_cultural_seeded';
+function ensureCulturalSeeds() {
+  if (localStorage.getItem(CULTURAL_SEED_KEY) === SEED_CULTURAL_VERSION) return;
+  const store = getCultural();
+  Object.keys(SEED_CULTURAL).forEach(kind => {
+    const list = store[kind] || [];
+    const have = new Set(list.map(i => (i.title || "").toLowerCase()));
+    SEED_CULTURAL[kind].forEach(seed => {
+      if (have.has(seed.title.toLowerCase())) return;
+      list.push({
+        id: generateId(),
+        title: seed.title,
+        creator: seed.creator,
+        year: seed.year,
+        aside: seed.aside,
+        wiki: '',
+        pointOfHue: '',
+        createdAt: new Date().toISOString()
+      });
+    });
+    store[kind] = list;
+  });
+  saveCultural(store);
+  localStorage.setItem(CULTURAL_SEED_KEY, SEED_CULTURAL_VERSION);
+}
+const SEED_CULTURAL_VERSION = '1';
+
 // These lists start empty on purpose — they are yours to fill.
 // This clears the old auto-seeded entries once, then never touches your own.
 const CULTURAL_PURGE_KEY = 'artatlas_cultural_purged';
@@ -5393,6 +5536,7 @@ function updateCulturalItem(kind, id, data) {
 
 function renderCultural(kind) {
   ensureCulturalCleared();
+  ensureCulturalSeeds();
   const cfg = CULTURAL_KINDS[kind];
   if (!cfg) return;
   const grid = document.getElementById(cfg.grid);

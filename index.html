@@ -2864,7 +2864,7 @@ function getArtworksForMuseum(museum) {
    SECTION 3: DEMO DATA
 ================================================================ */
 function seedDemoData() {
-  const SEED_VERSION = 20;
+  const SEED_VERSION = 22;
   const meta = getMeta();
   if (meta.seeded && meta.seedVersion >= SEED_VERSION) return;
 
@@ -2996,22 +2996,6 @@ function seedDemoData() {
       tags: ['triptych', 'surreal', 'bosch'],
       notes: '',
       source: 'https://en.wikipedia.org/wiki/The_Garden_of_Earthly_Delights'
-    },
-    {
-      title: 'The Third of May 1808',
-      artist: 'Francisco Goya',
-      year: 1814,
-      yearEnd: null,
-      medium: 'Oil on canvas',
-      movement: 'Romanticism',
-      location: 'Museo del Prado, Madrid',
-      coordinates: { lat: 40.4138, lng: -3.6921 },
-      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/El_Tres_de_Mayo%2C_by_Francisco_de_Goya%2C_from_Prado_thin_black_margin.jpg/450px-El_Tres_de_Mayo%2C_by_Francisco_de_Goya%2C_from_Prado_thin_black_margin.jpg',
-      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/El_Tres_de_Mayo%2C_by_Francisco_de_Goya%2C_from_Prado_thin_black_margin.jpg/220px-El_Tres_de_Mayo%2C_by_Francisco_de_Goya%2C_from_Prado_thin_black_margin.jpg',
-      description: 'A powerful depiction of the execution of Spanish resisters by Napoleon\'s soldiers, a landmark of anti-war art.',
-      tags: ['war', 'goya', 'romanticism'],
-      notes: '',
-      source: 'https://en.wikipedia.org/wiki/The_Third_of_May_1808'
     },
     {
       title: 'Washington Crossing the Delaware',
@@ -3364,6 +3348,38 @@ function seedDemoData() {
       tags: ['sculpture', 'bronze', 'horse and rider', 'marini'],
       notes: '',
       source: 'https://www.guggenheim-venice.it/en/art/works/the-angel-of-the-city/'
+    },
+    {
+      title: 'Infinity Mirrored Room: Dreaming of Earth\'s Sphericity, I Would Offer My Love',
+      artist: 'Yayoi Kusama',
+      year: 2023,
+      yearEnd: null,
+      medium: 'Mirrors, glass, wood, LED lights',
+      movement: 'Contemporary',
+      location: 'David Zwirner, New York',
+      coordinates: { lat: 40.7458, lng: -74.0064 },
+      imageUrl: 'images/kusama-infinity-room.jpg',
+      thumbnailUrl: 'images/kusama-infinity-room.jpg',
+      description: 'A white chamber pierced with coloured glass portholes. Step inside and the mirrors turn the light through the holes into an endless flickering field. Made for her 2023 show at David Zwirner, ten years after her first there.',
+      tags: ['installation', 'infinity room', 'mirrors', 'light', 'kusama'],
+      notes: 'Saw this in July 2023. Had the chance to privately view this mirror room with a friend. An exquisite experience that I hope to do again sometime.',
+      source: 'https://www.davidzwirner.com/exhibitions/2023/yayoi-kusama-i-spend-each-day-embracing-flowers'
+    },
+    {
+      title: 'Witches\' Sabbath (The Great He-Goat)',
+      artist: 'Francisco Goya',
+      year: 1820,
+      yearEnd: 1823,
+      medium: 'Oil mural transferred to canvas',
+      movement: 'Romanticism',
+      location: 'Museo del Prado, Madrid',
+      coordinates: { lat: 40.4138, lng: -3.6921 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Francisco_de_Goya_y_Lucientes_-_Witches%27_Sabbath_%28The_Great_He-Goat%29.jpg/500px-Francisco_de_Goya_y_Lucientes_-_Witches%27_Sabbath_%28The_Great_He-Goat%29.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Francisco_de_Goya_y_Lucientes_-_Witches%27_Sabbath_%28The_Great_He-Goat%29.jpg/330px-Francisco_de_Goya_y_Lucientes_-_Witches%27_Sabbath_%28The_Great_He-Goat%29.jpg',
+      description: 'One of the Black Paintings Goya made on the walls of his own house in his seventies, alone and ill. Satan, a goat in silhouette, presides over a crowd of terrified old women. Never meant to be seen; cut from the plaster and moved to canvas decades later.',
+      tags: ['black paintings', 'goya', 'witchcraft', 'romanticism', 'dark'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/Witches%27_Sabbath_(The_Great_He-Goat)'
     }
   ];
 
@@ -3594,6 +3610,13 @@ function seedDemoData() {
       ]);
       const all = getArtworks();
       const kept = all.filter(a => !removed.has((a.title || '').toLowerCase()));
+      if (kept.length !== all.length) saveArtworks(kept);
+    }
+
+    // v22: Goya's Third of May replaced by Witches' Sabbath.
+    if (meta.seedVersion < 22) {
+      const all = getArtworks();
+      const kept = all.filter(a => (a.title || '').toLowerCase() !== 'the third of may 1808');
       if (kept.length !== all.length) saveArtworks(kept);
     }
   }

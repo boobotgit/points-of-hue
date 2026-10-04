@@ -2895,7 +2895,7 @@ function getArtworksForMuseum(museum) {
    SECTION 3: DEMO DATA
 ================================================================ */
 function seedDemoData() {
-  const SEED_VERSION = 23;
+  const SEED_VERSION = 24;
   const meta = getMeta();
   if (meta.seeded && meta.seedVersion >= SEED_VERSION) return;
 
@@ -3109,20 +3109,20 @@ function seedDemoData() {
       source: 'https://en.wikipedia.org/wiki/The_Two_Fridas'
     },
     {
-      title: 'Cubes in Color on Color',
+      title: 'Whirls and Twirls (MTA)',
       artist: 'Sol LeWitt',
-      year: 1991,
+      year: 2009,
       yearEnd: null,
-      medium: 'Mixed media',
+      medium: 'Porcelain tile',
       movement: 'Minimalism',
-      location: 'MASS MoCA, North Adams',
-      coordinates: { lat: 42.7012, lng: -73.1088 },
-      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Sol_LeWitt_Isometric%2C_Dimetric%2C_and_Trimetric_Drawings_%281980%29.jpg/400px-Sol_LeWitt_Isometric%2C_Dimetric%2C_and_Trimetric_Drawings_%281980%29.jpg',
-      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Sol_LeWitt_Isometric%2C_Dimetric%2C_and_Trimetric_Drawings_%281980%29.jpg/200px-Sol_LeWitt_Isometric%2C_Dimetric%2C_and_Trimetric_Drawings_%281980%29.jpg',
-      description: 'One of LeWitt\'s signature modular sculptures built from painted open cubes arranged in systematic variations — a landmark of Minimalism and Conceptual Art that proves complex visual experience can emerge from simple rules repeated rigorously.',
-      tags: ['minimalism', 'conceptual', 'lewitt', 'sculpture'],
+      location: '59th St-Columbus Circle subway station, New York',
+      coordinates: { lat: 40.7681, lng: -73.9819 },
+      imageUrl: 'images/lewitt-whirls-and-twirls.jpg',
+      thumbnailUrl: 'images/lewitt-whirls-and-twirls.jpg',
+      description: 'Fifty-three feet of porcelain tile in six colours, bands that swell and twist across the wall above the stairs down to the A, C, B, D and 1 trains. LeWitt drew it and approved the colours before he died in 2007; it was finished in 2009.',
+      tags: ['minimalism', 'conceptual', 'lewitt', 'mosaic', 'public art'],
       notes: '',
-      source: 'https://en.wikipedia.org/wiki/Sol_LeWitt'
+      source: 'https://www.mta.info/agency/arts-design/collection/whirls-and-twirls-mta'
     },
     {
       title: 'Girl Interrupted at Her Music',
@@ -3625,6 +3625,14 @@ function seedDemoData() {
       ]);
       const all = getArtworks();
       const kept = all.filter(a => !removed.has((a.title || '').toLowerCase()));
+      if (kept.length !== all.length) saveArtworks(kept);
+    }
+
+    // v24: LeWitt's Cubes in Color on Color (its image had become his portrait)
+    // replaced by Whirls and Twirls, his Columbus Circle mosaic.
+    if (meta.seedVersion < 24) {
+      const all = getArtworks();
+      const kept = all.filter(a => (a.title || '').toLowerCase() !== 'cubes in color on color');
       if (kept.length !== all.length) saveArtworks(kept);
     }
 

@@ -2775,7 +2775,7 @@ function getArtworksForMuseum(museum) {
    SECTION 3: DEMO DATA
 ================================================================ */
 function seedDemoData() {
-  const SEED_VERSION = 16;
+  const SEED_VERSION = 17;
   const meta = getMeta();
   if (meta.seeded && meta.seedVersion >= SEED_VERSION) return;
 
@@ -3211,6 +3211,22 @@ function seedDemoData() {
       tags: ['sculpture', 'relief', 'granite', 'horse', 'contemporary'],
       notes: 'Learned about this piece on October 1st, 2026 at the Met\'s Registrar\'s talk. We learned that this piece was made in China, sold to a museum in LA, then acquired by the Met. It weighs 16,000 pounds and took hours to install, as it had to be craned into Petrie Court, hoisted up a mechanical hoist, pushed down a hallway on metal sheets (so as not to damage the floor), and ultimately hung onto the wall. This piece has its own custom holder in its own freight box that lives in the Met\'s archive warehouse.',
       source: 'https://www.metmuseum.org/art/collection/search/825497'
+    },
+    {
+      title: 'Play Technique',
+      artist: 'Victoria Colmegna',
+      year: 2025,
+      yearEnd: null,
+      medium: 'Altered dollhouses, watercolor, readymades, textiles',
+      movement: 'Contemporary',
+      location: 'Aspen Art Museum, Aspen',
+      coordinates: { lat: 39.1897, lng: -106.8193 },
+      imageUrl: 'images/colmegna-play-technique.jpg',
+      thumbnailUrl: 'images/colmegna-play-technique.jpg',
+      description: 'Second-hand dollhouses turned into small psychoanalytic chambers, alongside watercolors and clinical tools. The title is borrowed from Melanie Klein, who used toys in the 1940s to reach the fantasies of children.',
+      tags: ['installation', 'dollhouse', 'psychoanalysis', 'memory', 'contemporary'],
+      notes: 'I found this haunting - dollhouses converted into nightmare-like setups.',
+      source: 'https://aspenartmuseum.org/exhibition/victoria-colmegna-play-technique/'
     }
   ];
 
@@ -3240,6 +3256,7 @@ function seedDemoData() {
     { name: 'Philadelphia Museum of Art', city: 'Philadelphia', country: 'United States', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/PhiladelphiaMuseumOfArt2017.jpg/500px-PhiladelphiaMuseumOfArt2017.jpg', notes: 'One of the largest art museums in the United States, housed in a Greek Revival landmark on Fairmount overlooking the Benjamin Franklin Parkway (of Rocky-steps fame); holds the world\'s greatest Duchamp collection.' },
     { name: 'British Museum', city: 'London', country: 'United Kingdom', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/British_Museum_from_NE_2.JPG/500px-British_Museum_from_NE_2.JPG', notes: 'The first national public museum in the world, covering two million years of human history; home to the Rosetta Stone, the Parthenon sculptures and Layard\'s Assyrian reliefs from Nimrud and Nineveh.' },
     { name: 'Wallace Collection', city: 'London', country: 'United Kingdom', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/70/Front_entrance_to_the_Wallace_Collection%2C_Manchester_Square_-_geograph.org.uk_-_1600012.jpg/500px-Front_entrance_to_the_Wallace_Collection%2C_Manchester_Square_-_geograph.org.uk_-_1600012.jpg', notes: 'A single family\'s collection left intact in their Marylebone townhouse — French eighteenth-century painting, armour and Frans Hals\'s Laughing Cavalier. Nothing may ever be loaned out.' },
+    { name: 'Aspen Art Museum', city: 'Aspen', country: 'United States', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Aspen_Art_Museum_by_Shigeru_Ban.jpg/500px-Aspen_Art_Museum_by_Shigeru_Ban.jpg', notes: 'A non-collecting museum in a mountain town: Shigeru Ban wrapped its building in a woven lattice of paper-composite and resin, with a rooftop terrace looking straight at Aspen Mountain. Admission is always free.' },
     { name: 'National Portrait Gallery, London', city: 'London', country: 'United Kingdom', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/National_Portrait_Gallery%2C_London%2C_June_2023_34.jpg/500px-National_Portrait_Gallery%2C_London%2C_June_2023_34.jpg', notes: 'The first portrait gallery of its kind, collecting likenesses of the people who shaped Britain — chosen for the sitter\'s significance rather than the artist\'s.' },
     { name: 'National Gallery of Art', city: 'Washington D.C.', country: 'United States', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/National_Gallery_of_Art_-_2026_%2855255088792%29.jpg/500px-National_Gallery_of_Art_-_2026_%2855255088792%29.jpg', notes: 'Andrew Mellon\'s gift to the nation on the National Mall, holding the only Leonardo da Vinci painting in the Americas.' },
     { name: 'National Gallery of Art, East Building', city: 'Washington D.C.', country: 'United States', dateVisited: '', rating: '', imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/National_Gallery_of_Art%2C_East_Building.jpg/500px-National_Gallery_of_Art%2C_East_Building.jpg', notes: 'I. M. Pei\'s sharp-angled modern wing, built on an awkward trapezoid of land and devoted to modern and contemporary art.' },
@@ -3276,6 +3293,7 @@ function seedDemoData() {
     'Neue Galerie': { founded: '2001', founders: 'Ronald S. Lauder & Serge Sabarsky' },
     'Philadelphia Museum of Art': { founded: '1876 (Fairmount building opened 1928)', founders: 'Chartered by the Pennsylvania legislature after the 1876 Centennial Exhibition; Fairmount building by architects Horace Trumbauer, Zantzinger, Borie & Medary' },
     'British Museum': { founded: '1753 (opened 1759)', founders: 'Founded on the bequest of physician and collector Sir Hans Sloane; Assyrian galleries built on Sir Austen Henry Layard\'s excavations' },
+    'Aspen Art Museum': { founded: '1979 (Shigeru Ban building, 2014)', founders: 'Grew out of a festival started by local artists Dick Carter, Laura Thorne and Diane Lewy; opened as the Aspen Center for the Visual Arts in an 1885 hydroelectric plant on North Mill Street, renamed in 1984' },
     'Wallace Collection': { founded: '1897 (opened 1900)', founders: 'Bequeathed to the nation by Lady Wallace, widow of Sir Richard Wallace; assembled over four generations by the Marquesses of Hertford' },
     'National Portrait Gallery, London': { founded: '1856', founders: 'Proposed by Philip Henry Stanhope, 5th Earl Stanhope, with Thomas Babington Macaulay and Thomas Carlyle' },
     'National Gallery of Art': { founded: '1937 (opened 1941)', founders: 'Andrew W. Mellon, who gave his collection and the building to the nation; architect John Russell Pope' },

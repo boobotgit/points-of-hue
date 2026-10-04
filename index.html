@@ -2775,7 +2775,7 @@ function getArtworksForMuseum(museum) {
    SECTION 3: DEMO DATA
 ================================================================ */
 function seedDemoData() {
-  const SEED_VERSION = 17;
+  const SEED_VERSION = 19;
   const meta = getMeta();
   if (meta.seeded && meta.seedVersion >= SEED_VERSION) return;
 
@@ -3227,6 +3227,54 @@ function seedDemoData() {
       tags: ['installation', 'dollhouse', 'psychoanalysis', 'memory', 'contemporary'],
       notes: 'I found this haunting - dollhouses converted into nightmare-like setups.',
       source: 'https://aspenartmuseum.org/exhibition/victoria-colmegna-play-technique/'
+    },
+    {
+      title: 'Today Series',
+      artist: 'On Kawara',
+      year: 1966,
+      yearEnd: 2013,
+      medium: 'Acrylic on canvas',
+      movement: 'Contemporary',
+      location: 'Dia Beacon, Beacon',
+      coordinates: { lat: 41.5004, lng: -73.9823 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Oct_31%2C_1973_%28Today_Series%2C_Tuesday%29_On_Kawara.png/500px-Oct_31%2C_1973_%28Today_Series%2C_Tuesday%29_On_Kawara.png',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Oct_31%2C_1973_%28Today_Series%2C_Tuesday%29_On_Kawara.png/250px-Oct_31%2C_1973_%28Today_Series%2C_Tuesday%29_On_Kawara.png',
+      description: 'Nearly three thousand paintings, each showing nothing but the date it was made, lettered in white on a dark ground in the language of whatever country he was in. A painting not finished by midnight was destroyed. He kept it up for almost fifty years.',
+      tags: ['conceptual', 'date paintings', 'time', 'series', 'text'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/On_Kawara'
+    },
+    {
+      title: 'Angel of the Citadel',
+      artist: 'Marino Marini',
+      year: 1948,
+      yearEnd: null,
+      medium: 'Bronze',
+      movement: 'Contemporary',
+      location: 'Getty Center, Los Angeles',
+      coordinates: { lat: 34.078, lng: -118.4741 },
+      imageUrl: 'images/marini-angel-getty.jpg',
+      thumbnailUrl: 'images/marini-angel-getty.jpg',
+      description: 'A rider flung back on a horse with stiff legs, arms thrown wide. Marini made his horses and riders more anxious after the war, and this one is all exposure. Designed in 1948, cast in 1950, a gift of Fran and Ray Stark.',
+      tags: ['sculpture', 'bronze', 'horse and rider', 'marini'],
+      notes: '',
+      source: 'https://www.getty.edu/art/collection/object/10989K'
+    },
+    {
+      title: 'The Angel of the City',
+      artist: 'Marino Marini',
+      year: 1948,
+      yearEnd: null,
+      medium: 'Bronze',
+      movement: 'Contemporary',
+      location: 'Peggy Guggenheim Collection, Venice',
+      coordinates: { lat: 45.4309, lng: 12.3315 },
+      imageUrl: 'images/marini-angel-venice.jpg',
+      thumbnailUrl: 'images/marini-angel-venice.jpg',
+      description: 'Another cast of the same rider, set on the terrace over the Grand Canal, arms out to the boats going by. Peggy Guggenheim had the phallus made removable, and it was taken off when nuns passed by on the water.',
+      tags: ['sculpture', 'bronze', 'horse and rider', 'marini'],
+      notes: '',
+      source: 'https://www.guggenheim-venice.it/en/art/works/the-angel-of-the-city/'
     }
   ];
 

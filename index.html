@@ -790,7 +790,8 @@
     #galleryGrid.scatter {
       display: block;
       position: relative;
-      padding: 12px 0 34vh;
+      /* enough runway for the last picture to reach the middle of the screen */
+      padding: 12px 0 80vh;
       overflow-x: hidden;
     }
     .sc-item {
@@ -1526,6 +1527,32 @@
 
     /* Personal "point of hue" note blocks on cards & panel */
     .museum-card-hue { padding: 0 18px 16px; }
+    /* Back-to-top arrow: appears once you have scrolled a little way down */
+    #toTopBtn {
+      position: fixed;
+      right: 18px;
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: 1px solid var(--border-light);
+      background: var(--bg-main);
+      color: var(--text-muted);
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 19px;
+      line-height: 1;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(44,38,32,0.10);
+      z-index: 160;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(8px);
+      transition: opacity 0.35s ease, transform 0.35s ease, color 0.15s;
+    }
+    #toTopBtn.show { opacity: 1; pointer-events: auto; transform: none; }
+    #toTopBtn:hover { color: var(--accent); }
+    .artist-bio { padding: 0 18px 14px; }
+    .artist-bio .art-card-meta-label { min-width: 74px; display: inline-block; }
     .hue-label {
       font-size: 10px;
       letter-spacing: 0.1em;
@@ -1898,6 +1925,11 @@
         grid-template-columns: 1fr !important;
         gap: 14px !important;
         padding: 12px 16px calc(env(safe-area-inset-bottom, 0px) + 40px) !important;
+      }
+      /* the scattered gallery sets its own sides, and needs room below the last
+         picture so it can rise to the middle of the screen and come into colour */
+      #galleryGrid.scatter {
+        padding: 12px 0 calc(env(safe-area-inset-bottom, 0px) + 80vh) !important;
       }
       #galleryScroll, #museumsScroll, #artistsScroll, #patronsScroll, #sitesScroll {
         overflow: visible !important;
@@ -2484,6 +2516,9 @@
 </div>
 
 <!-- Tooltip -->
+<!-- Back to the top of whichever page you are on -->
+<button type="button" id="toTopBtn" aria-label="Back to top" title="Back to top">&uarr;</button>
+
 <div class="tooltip hidden" id="tooltip">
   <div class="tooltip-title" id="tooltipTitle"></div>
   <div class="tooltip-sub" id="tooltipSub"></div>
@@ -2795,6 +2830,399 @@ function ensurePatronsSeeded() {
   if (added.length) savePatrons([...existing, ...added]);
 }
 
+// Life, birth country, where most of the work was made, movements and
+// favoured mediums, for each artist card. Written here, not fetched.
+const ARTIST_BIO = {
+ "Alexandros of Antioch": {
+  "life": "active c. 150–100 BCE",
+  "born": "Turkey (Antioch on the Maeander)",
+  "worked": "Melos, Greece",
+  "movements": [
+   "Hellenistic"
+  ],
+  "mediums": [
+   "Marble"
+  ],
+  "interests": []
+ },
+ "Charles Ray": {
+  "life": "b. 1953",
+  "born": "United States",
+  "worked": "Los Angeles",
+  "movements": [
+   "Contemporary sculpture",
+   "Conceptual art"
+  ],
+  "mediums": [
+   "Fiberglass",
+   "Stainless steel",
+   "Stone"
+  ],
+  "interests": [
+   "Classical Greek sculpture"
+  ]
+ },
+ "Diego Velázquez": {
+  "life": "1599–1660",
+  "born": "Spain",
+  "worked": "Madrid",
+  "movements": [
+   "Baroque",
+   "Spanish Golden Age"
+  ],
+  "mediums": [
+   "Oil"
+  ],
+  "interests": [
+   "Buying art in Italy for the king"
+  ]
+ },
+ "Emanuel Leutze": {
+  "life": "1816–1868",
+  "born": "Germany",
+  "worked": "Düsseldorf",
+  "movements": [
+   "Düsseldorf School",
+   "Romanticism"
+  ],
+  "mediums": [
+   "Oil"
+  ],
+  "interests": [
+   "American history"
+  ]
+ },
+ "Francisco Goya": {
+  "life": "1746–1828",
+  "born": "Spain",
+  "worked": "Madrid",
+  "movements": [
+   "Rococo",
+   "Romanticism"
+  ],
+  "mediums": [
+   "Oil",
+   "Etching and aquatint",
+   "Fresco"
+  ],
+  "interests": [
+   "Hunting",
+   "Bullfighting"
+  ]
+ },
+ "Frida Kahlo": {
+  "life": "1907–1954",
+  "born": "Mexico",
+  "worked": "Mexico City",
+  "movements": [
+   "Surrealism",
+   "Mexicanidad",
+   "Magic realism"
+  ],
+  "mediums": [
+   "Oil"
+  ],
+  "interests": [
+   "Communist politics",
+   "Mexican folk art",
+   "Her monkeys and parrots"
+  ]
+ },
+ "Hieronymus Bosch": {
+  "life": "c. 1450–1516",
+  "born": "Netherlands",
+  "worked": "'s-Hertogenbosch",
+  "movements": [
+   "Early Netherlandish",
+   "Northern Renaissance"
+  ],
+  "mediums": [
+   "Oil on panel"
+  ],
+  "interests": [
+   "His religious brotherhood"
+  ]
+ },
+ "Jean-Honoré Fragonard": {
+  "life": "1732–1806",
+  "born": "France",
+  "worked": "Paris",
+  "movements": [
+   "Rococo"
+  ],
+  "mediums": [
+   "Oil",
+   "Chalk"
+  ],
+  "interests": []
+ },
+ "Johannes Vermeer": {
+  "life": "1632–1675",
+  "born": "Netherlands",
+  "worked": "Delft",
+  "movements": [
+   "Dutch Golden Age",
+   "Baroque"
+  ],
+  "mediums": [
+   "Oil"
+  ],
+  "interests": [
+   "Art dealing"
+  ]
+ },
+ "Leonardo da Vinci": {
+  "life": "1452–1519",
+  "born": "Italy",
+  "worked": "Florence and Milan",
+  "movements": [
+   "High Renaissance"
+  ],
+  "mediums": [
+   "Oil",
+   "Tempera",
+   "Ink and chalk"
+  ],
+  "interests": [
+   "Anatomy",
+   "Engineering",
+   "Flight"
+  ]
+ },
+ "Marcel Duchamp": {
+  "life": "1887–1968",
+  "born": "France",
+  "worked": "New York and Paris",
+  "movements": [
+   "Dada",
+   "Cubism",
+   "Conceptual art"
+  ],
+  "mediums": [
+   "Readymades",
+   "Oil",
+   "Glass"
+  ],
+  "interests": [
+   "Chess"
+  ]
+ },
+ "Marino Marini": {
+  "life": "1901–1980",
+  "born": "Italy",
+  "worked": "Milan",
+  "movements": [
+   "Modernism"
+  ],
+  "mediums": [
+   "Bronze",
+   "Wood",
+   "Oil"
+  ],
+  "interests": [
+   "Etruscan sculpture"
+  ]
+ },
+ "Michelangelo": {
+  "life": "1475–1564",
+  "born": "Italy",
+  "worked": "Rome and Florence",
+  "movements": [
+   "High Renaissance",
+   "Mannerism"
+  ],
+  "mediums": [
+   "Marble",
+   "Fresco"
+  ],
+  "interests": [
+   "Poetry",
+   "Architecture"
+  ]
+ },
+ "On Kawara": {
+  "life": "1932–2014",
+  "born": "Japan",
+  "worked": "New York",
+  "movements": [
+   "Conceptual art"
+  ],
+  "mediums": [
+   "Acrylic",
+   "Postcards and telegrams"
+  ],
+  "interests": []
+ },
+ "Pablo Picasso": {
+  "life": "1881–1973",
+  "born": "Spain",
+  "worked": "France",
+  "movements": [
+   "Cubism",
+   "Surrealism",
+   "Neoclassicism"
+  ],
+  "mediums": [
+   "Oil",
+   "Ceramics",
+   "Sculpture"
+  ],
+  "interests": [
+   "Bullfighting",
+   "Poetry"
+  ]
+ },
+ "Raphael": {
+  "life": "1483–1520",
+  "born": "Italy",
+  "worked": "Rome",
+  "movements": [
+   "High Renaissance"
+  ],
+  "mediums": [
+   "Fresco",
+   "Oil"
+  ],
+  "interests": [
+   "Architecture",
+   "The ruins of ancient Rome"
+  ]
+ },
+ "Richard Serra": {
+  "life": "1938–2024",
+  "born": "United States",
+  "worked": "New York",
+  "movements": [
+   "Minimalism",
+   "Process art"
+  ],
+  "mediums": [
+   "Weathering steel",
+   "Lead",
+   "Paintstick"
+  ],
+  "interests": []
+ },
+ "Ruth Asawa": {
+  "life": "1926–2013",
+  "born": "United States",
+  "worked": "San Francisco",
+  "movements": [
+   "Modernism",
+   "Abstract sculpture"
+  ],
+  "mediums": [
+   "Looped wire",
+   "Tied wire",
+   "Bronze"
+  ],
+  "interests": [
+   "Arts education",
+   "Origami"
+  ]
+ },
+ "Salvador Dali": {
+  "life": "1904–1989",
+  "born": "Spain",
+  "worked": "Catalonia (Portlligat)",
+  "movements": [
+   "Surrealism",
+   "Cubism"
+  ],
+  "mediums": [
+   "Oil",
+   "Sculpture",
+   "Film"
+  ],
+  "interests": [
+   "Science",
+   "His pet ocelot, Babou"
+  ]
+ },
+ "Sandro Botticelli": {
+  "life": "c. 1445–1510",
+  "born": "Italy",
+  "worked": "Florence",
+  "movements": [
+   "Early Renaissance"
+  ],
+  "mediums": [
+   "Tempera"
+  ],
+  "interests": [
+   "Dante"
+  ]
+ },
+ "Sol LeWitt": {
+  "life": "1928–2007",
+  "born": "United States",
+  "worked": "New York",
+  "movements": [
+   "Conceptual art",
+   "Minimalism"
+  ],
+  "mediums": [
+   "Wall drawings",
+   "Modular structures",
+   "Gouache"
+  ],
+  "interests": [
+   "Collecting other artists' work"
+  ]
+ },
+ "Victoria Colmegna": {
+  "life": "b. 1986",
+  "born": "Argentina",
+  "worked": "Buenos Aires and Los Angeles",
+  "movements": [
+   "Contemporary"
+  ],
+  "mediums": [
+   "Watercolor",
+   "Installation"
+  ],
+  "interests": [
+   "Psychoanalysis",
+   "Astrology"
+  ]
+ },
+ "Vincent van Gogh": {
+  "life": "1853–1890",
+  "born": "Netherlands",
+  "worked": "France",
+  "movements": [
+   "Post-Impressionism"
+  ],
+  "mediums": [
+   "Oil"
+  ],
+  "interests": [
+   "Writing letters",
+   "Reading",
+   "Japanese prints"
+  ]
+ },
+ "Yayoi Kusama": {
+  "life": "b. 1929",
+  "born": "Japan",
+  "worked": "Tokyo and New York",
+  "movements": [
+   "Pop art",
+   "Minimalism",
+   "Feminist art"
+  ],
+  "mediums": [
+   "Installation",
+   "Painting",
+   "Soft sculpture"
+  ],
+  "interests": [
+   "Writing poetry and novels",
+   "Fashion"
+  ]
+ }
+};
+
 // A portrait of each artist for their card on the artists page. Ancient makers
 // and artists with no published likeness fall back to one of their works.
 const ARTIST_PORTRAITS = {
@@ -2895,7 +3323,7 @@ function getArtworksForMuseum(museum) {
    SECTION 3: DEMO DATA
 ================================================================ */
 function seedDemoData() {
-  const SEED_VERSION = 24;
+  const SEED_VERSION = 25;
   const meta = getMeta();
   if (meta.seeded && meta.seedVersion >= SEED_VERSION) return;
 
@@ -3203,22 +3631,6 @@ function seedDemoData() {
       tags: ['dada', 'readymade', 'iconic'],
       notes: '',
       source: 'https://en.wikipedia.org/wiki/L.H.O.O.Q.'
-    },
-    {
-      title: 'Étant donnés',
-      artist: 'Marcel Duchamp',
-      year: 1946,
-      yearEnd: 1966,
-      medium: 'Mixed-media installation',
-      movement: 'Surrealism',
-      location: 'Philadelphia Museum of Art, Philadelphia',
-      coordinates: { lat: 39.9656, lng: -75.1810 },
-      imageUrl: 'https://upload.wikimedia.org/wikipedia/en/2/25/Etant_donnes.jpg',
-      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/en/2/25/Etant_donnes.jpg',
-      description: 'A secretive final work: a peephole in a weathered wooden door reveals a hyperrealistic tableau of a nude figure in a landscape, constructed over twenty years and only unveiled after Duchamp\'s death.',
-      tags: ['surrealism', 'installation', 'conceptual'],
-      notes: '',
-      source: 'https://en.wikipedia.org/wiki/%C3%89tant_donn%C3%A9s'
     },
     {
       title: 'The Matter of Time',
@@ -3628,6 +4040,13 @@ function seedDemoData() {
       if (kept.length !== all.length) saveArtworks(kept);
     }
 
+    // v25: Duchamp's Étant donnés removed at the owner's request.
+    if (meta.seedVersion < 25) {
+      const all = getArtworks();
+      const kept = all.filter(a => (a.title || '').toLowerCase() !== 'étant donnés');
+      if (kept.length !== all.length) saveArtworks(kept);
+    }
+
     // v24: LeWitt's Cubes in Color on Color (its image had become his portrait)
     // replaced by Whirls and Twirls, his Columbus Circle mosaic.
     if (meta.seedVersion < 24) {
@@ -3704,6 +4123,8 @@ function switchView(name) {
     }
   };
   toTop();
+  const ttb = document.getElementById('toTopBtn');
+  if (ttb) ttb.classList.remove('show');
   // The Home scroll cue should be waiting again whenever Home is revisited.
   if (name === 'home') document.body.classList.remove('has-scrolled');
 
@@ -5208,7 +5629,7 @@ function updateScatter() {
       el.style.transform = 'translate(' + tx.toFixed(1) + 'px,' + ty.toFixed(1) + 'px) scale(' + scale.toFixed(3) + ')';
       el.style.opacity = (1 - 0.7 * e).toFixed(3);
       // colour lags the motion: still mostly grey until the picture is near the middle
-      const grey = Math.min(1, Math.max(0, (p + 0.12) * 1.6));
+      const grey = Math.min(1, Math.max(0, (p - 0.04) * 1.7));
       const img = el.querySelector('img');
       if (img) img.style.filter = 'grayscale(' + grey.toFixed(2) + ') brightness(' + (1 + 0.08 * grey).toFixed(3) + ')';
     });
@@ -5573,6 +5994,18 @@ function renderArtists() {
         ${works.length > 5 ? `<div style="font-size:11px;color:var(--text-dim);margin-top:4px">+${works.length - 5} more</div>` : ''}
       </div>`;
 
+    const bio = ARTIST_BIO[ar.name];
+    const bioRow = (label, value) => value
+      ? `<div class="art-card-meta-row"><span class="art-card-meta-label">${label}</span><span>${esc(value)}</span></div>` : '';
+    const bioHtml = bio ? `<div class="artist-bio art-card-meta">
+        ${bioRow('Life', bio.life)}
+        ${bioRow('Born', bio.born)}
+        ${bioRow('Worked', bio.worked)}
+        ${bioRow(bio.movements.length > 1 ? 'Movements' : 'Movement', bio.movements.join(', '))}
+        ${bioRow(bio.mediums.length > 1 ? 'Mediums' : 'Medium', bio.mediums.join(', '))}
+        ${bioRow('Interests', bio.interests.join(', '))}
+      </div>` : '';
+
     const note = getArtistNote(ar.name);
     const hueHtml = `<div class="museum-card-hue">
         ${note ? `<div class="hue-label">Your point of hue</div><div class="hue-text">${esc(note)}</div>` : ''}
@@ -5586,6 +6019,7 @@ function renderArtists() {
           <div class="museum-card-city">${esc(metaParts.join(' · '))}</div>
         </div>
       </div>
+      ${bioHtml}
       ${worksHtml}
       ${hueHtml}
     </div>`;
@@ -5724,6 +6158,8 @@ function getCulturalItems(kind) { return getCultural()[kind] || []; }
 // Anything added in the browser sits alongside these untouched.
 const SEED_CULTURAL = {
   ballet: [
+    { title: 'Firebird', creator: 'George Balanchine & Jerome Robbins', year: 1949, aside: 'New York City Ballet',
+      pointOfHue: 'Saw this in 2026. Loved the costumes and set by Chagall. Wished the performances were 10 times as long so I could soak in the colors.' },
     { title: 'Copland Dance Episodes', creator: 'Justin Peck', year: 2023, aside: 'New York City Ballet',
       pointOfHue: 'Saw this in February 2023. Hands down my favorite ballet of all time. The backdrop (done by Choctaw-Cherokee artist Jeffrey Gibson) made you feel like you were moving through a kaleidoscope via the dancers. There was so much emotion in the dance - I have never laughed and cried (so much) in the same ballet performance.' },
     { title: 'Coppélia', creator: 'George Balanchine & Alexandra Danilova', year: 1974, aside: 'New York City Ballet',
@@ -5787,7 +6223,7 @@ function ensureCulturalSeeds() {
   saveCultural(store);
   localStorage.setItem(CULTURAL_SEED_KEY, SEED_CULTURAL_VERSION);
 }
-const SEED_CULTURAL_VERSION = '12';
+const SEED_CULTURAL_VERSION = '13';
 
 // These lists start empty on purpose — they are yours to fill.
 // This clears the old auto-seeded entries once, then never touches your own.
@@ -6406,6 +6842,28 @@ function init() {
   document.getElementById('museumCancelBtn').addEventListener('click', closeMuseumModal);
   document.getElementById('museumForm').addEventListener('submit', handleMuseumFormSubmit);
 
+
+  // Back-to-top arrow
+  const toTopBtn = document.getElementById('toTopBtn');
+  const pageScrollers = () => {
+    const view = document.querySelector('.view:not(.hidden)');
+    const list = [document.scrollingElement || document.documentElement];
+    if (view) { list.push(view); view.querySelectorAll('*').forEach(el => { if (el.scrollHeight > el.clientHeight + 40 && /auto|scroll/.test(getComputedStyle(el).overflowY)) list.push(el); }); }
+    return list;
+  };
+  let toTopTick = false;
+  document.addEventListener('scroll', () => {
+    if (toTopTick) return;
+    toTopTick = true;
+    requestAnimationFrame(() => {
+      toTopTick = false;
+      const down = pageScrollers().some(el => el.scrollTop > 420);
+      toTopBtn.classList.toggle('show', down);
+    });
+  }, { passive: true, capture: true });
+  toTopBtn.addEventListener('click', () => {
+    pageScrollers().forEach(el => { if (el.scrollTop > 0) el.scrollTo({ top: 0, behavior: 'smooth' }); });
+  });
 
   // Gallery: scatter / list, and the approach effect while scrolling
   document.querySelectorAll('#galleryMode button').forEach(b =>

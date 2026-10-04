@@ -1437,27 +1437,6 @@
       padding: 28px;
     }
 
-    /* Point-of-hue note modal */
-    #hueModalOverlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(44,38,32,0.3);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 300;
-    }
-    #hueModalOverlay.hidden { display: none; }
-    #hueModalBox {
-      background: var(--bg-modal);
-      border-radius: var(--radius-lg);
-      box-shadow: 0 20px 60px rgba(44,38,32,0.15);
-      width: 460px;
-      max-width: 92vw;
-      max-height: 80vh;
-      overflow-y: auto;
-      padding: 28px;
-    }
     /* Personal "point of hue" note blocks on cards & panel */
     .museum-card-hue { padding: 0 18px 16px; }
     .hue-label {
@@ -1869,7 +1848,7 @@
       }
 
       /* Modals: near-full-width */
-      #modalBox, #museumModalBox, #hueModalBox {
+      #modalBox, #museumModalBox {
         width: 94vw !important;
         max-width: 460px !important;
         max-height: 90vh !important;
@@ -2327,10 +2306,6 @@
           <label class="form-label">Tags (comma-separated)</label>
           <input class="form-input" id="f-tags" type="text" placeholder="portrait, iconic, favorite" />
         </div>
-        <div class="form-field full">
-          <label class="form-label">Personal Notes</label>
-          <textarea class="form-textarea" id="f-notes" rows="2" placeholder="Your thoughts..."></textarea>
-        </div>
       </div>
       <input type="hidden" id="f-source" value="manual" />
       <input type="hidden" id="f-thumbUrl" value="" />
@@ -2411,27 +2386,10 @@
         <label class="form-label">Year</label>
         <input class="form-input" id="c-year" type="number" placeholder="1913" />
       </div>
-      <div class="form-field full">
-        <label class="form-label">Your point of hue</label>
-        <textarea class="form-textarea" id="c-note" rows="3" placeholder="Why does this belong here?"></textarea>
-      </div>
     </div>
     <div class="form-actions">
       <button type="button" class="btn-cancel" id="culturalCancelBtn">Cancel</button>
       <button type="button" class="btn-save" id="culturalSaveBtn">Save</button>
-    </div>
-  </div>
-</div>
-
-<!-- Point of Hue note modal -->
-<div id="hueModalOverlay" class="hidden">
-  <div id="hueModalBox">
-    <div id="hueModalTitle" style="font-family:'Playfair Display',Georgia,serif;font-size:20px;font-weight:400;margin-bottom:4px">Your point of hue</div>
-    <div id="hueModalSubtitle" style="font-size:13px;color:var(--text-muted);margin-bottom:18px"></div>
-    <textarea class="form-textarea" id="hueModalText" rows="6" placeholder="Your thoughts, reactions, memories — what's your point of hue?"></textarea>
-    <div class="form-actions">
-      <button type="button" class="btn-cancel" id="hueCancelBtn">Cancel</button>
-      <button type="button" class="btn-save" id="hueSaveBtn">Save</button>
     </div>
   </div>
 </div>
@@ -4972,19 +4930,15 @@ function openDetailPanel(artwork) {
   document.getElementById('panelTagsSection').innerHTML = (artwork.tags?.length)
     ? `<div class="panel-section-title">Tags</div><div class="panel-tags">${artwork.tags.map(t => `<span class="tag-pill">${esc(t)}</span>`).join('')}</div>` : '';
 
-  // Personal "point of hue" note
-  document.getElementById('panelNotesSection').innerHTML =
-    `<div class="panel-section-title">Your point of hue</div>` +
-    (artwork.notes
-      ? `<div class="panel-notes">${esc(artwork.notes)}</div>`
-      : `<div class="panel-notes" style="color:var(--text-dim);font-style:italic">No notes yet — add your point of hue.</div>`) +
-    `<button class="btn-hue" id="panelHueBtn" style="margin-top:8px">${artwork.notes ? 'Edit your point of hue' : '+ Add your point of hue'}</button>`;
+  // Personal "point of hue" note — shown when there is one; written on the laptop
+  document.getElementById('panelNotesSection').innerHTML = artwork.notes
+    ? `<div class="panel-section-title">Your point of hue</div><div class="panel-notes">${esc(artwork.notes)}</div>`
+    : '';
 
   // Source
   document.getElementById('panelSource').innerHTML = (artwork.source && artwork.source !== 'manual')
     ? `<div class="panel-section-title">Source</div><div class="panel-source"><a href="${safeUrl(artwork.source)}" target="_blank" rel="noopener">Wikipedia</a></div>` : '';
 
-  document.getElementById('panelHueBtn').onclick = () => openHueModal('artwork', artwork.id, artwork.title);
   document.getElementById('editArtworkBtn').onclick = () => openAddModal(artwork.id);
   document.getElementById('deleteArtworkBtn').onclick = () => {
     if (confirm(`Remove "${artwork.title}" from your collection?`)) {
@@ -5000,51 +4954,6 @@ function openDetailPanel(artwork) {
 function closeDetailPanel() {
   activePanelArtworkId = null;
   document.getElementById('detailPanel').classList.add('hidden');
-}
-
-/* ---- Personal "point of hue" notes (artwork / museum / artist) ---- */
-let hueTarget = null;
-function openHueModal(type, key, name) {
-  hueTarget = { type, key };
-  let current = '';
-  if (type === 'artwork') { const a = getArtworkById(key); current = a ? (a.notes || '') : ''; }
-  else if (type === 'museum') { const m = getMuseumById(key); current = m ? (m.pointOfHue || '') : ''; }
-  else if (type === 'artist') { current = getArtistNote(key); }
-  else if (type === 'patron') { const p = getPatronById(key); current = p ? (p.pointOfHue || '') : ''; }
-  else if (type.indexOf('cultural:') === 0) {
-    const it = getCulturalItems(type.slice(9)).find(x => x.id === key);
-    current = it ? (it.pointOfHue || '') : '';
-  }
-  const labels = { artwork: 'this artwork', museum: 'this museum', artist: 'this artist', patron: 'this patron' };
-  document.getElementById('hueModalSubtitle').textContent = name ? `${name}` : (labels[type] || '');
-  document.getElementById('hueModalText').value = current;
-  document.getElementById('hueModalOverlay').classList.remove('hidden');
-  setTimeout(() => document.getElementById('hueModalText').focus(), 30);
-}
-function closeHueModal() {
-  hueTarget = null;
-  document.getElementById('hueModalOverlay').classList.add('hidden');
-}
-function saveHueNote() {
-  if (!hueTarget) return;
-  const text = document.getElementById('hueModalText').value.trim();
-  if (hueTarget.type === 'artwork') updateArtwork(hueTarget.key, { notes: text });
-  else if (hueTarget.type === 'museum') updateMuseum(hueTarget.key, { pointOfHue: text });
-  else if (hueTarget.type === 'artist') setArtistNote(hueTarget.key, text);
-  else if (hueTarget.type === 'patron') updatePatron(hueTarget.key, { pointOfHue: text });
-  else if (hueTarget.type.indexOf('cultural:') === 0) {
-    const kind = hueTarget.type.slice(9);
-    updateCulturalItem(kind, hueTarget.key, { pointOfHue: text });
-    renderCultural(kind);
-  }
-  const wasArtwork = hueTarget.type === 'artwork' ? hueTarget.key : null;
-  closeHueModal();
-  refreshCurrentView();
-  // If the artwork detail panel is open, re-render it so the note shows immediately.
-  if (wasArtwork && activePanelArtworkId === wasArtwork) {
-    const a = getArtworkById(wasArtwork);
-    if (a) openDetailPanel(a);
-  }
 }
 
 /* ================================================================
@@ -5078,7 +4987,6 @@ function openAddModal(artworkId) {
     document.getElementById('f-imageUrl').value = a.imageUrl || '';
     document.getElementById('f-description').value = a.description || '';
     document.getElementById('f-tags').value = (a.tags || []).join(', ');
-    document.getElementById('f-notes').value = a.notes || '';
     document.getElementById('f-source').value = a.source || 'manual';
     document.getElementById('f-thumbUrl').value = a.thumbnailUrl || '';
     if (a.coordinates) {
@@ -5121,7 +5029,6 @@ function handleFormSubmit(e) {
     thumbnailUrl: document.getElementById('f-thumbUrl').value.trim() || document.getElementById('f-imageUrl').value.trim(),
     description: document.getElementById('f-description').value.trim(),
     tags: document.getElementById('f-tags').value.split(',').map(t => t.trim()).filter(Boolean),
-    notes: document.getElementById('f-notes').value.trim(),
     source: document.getElementById('f-source').value || 'manual'
   };
 
@@ -5335,7 +5242,6 @@ function renderArtists() {
     const note = getArtistNote(ar.name);
     const hueHtml = `<div class="museum-card-hue">
         ${note ? `<div class="hue-label">Your point of hue</div><div class="hue-text">${esc(note)}</div>` : ''}
-        <button class="btn-hue" data-artist-hue="${esc(ar.name)}">${note ? 'Edit your point of hue' : '+ Add your point of hue'}</button>
       </div>`;
 
     return `<div class="museum-card artist-card">
@@ -5358,12 +5264,6 @@ function renderArtists() {
     });
   });
 
-  grid.querySelectorAll('[data-artist-hue]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      openHueModal('artist', btn.dataset.artistHue, btn.dataset.artistHue);
-    });
-  });
 
   // Broken cover images (e.g. non-free Wikipedia thumbs) fall back to artist initials.
   grid.querySelectorAll('.museum-card-cover img').forEach(img => {
@@ -5597,21 +5497,12 @@ function renderCultural(kind) {
         (it.pointOfHue ? '<div class="hue-text">' + esc(it.pointOfHue) + '</div>' : '') +
         '<div class="cultural-context" data-context-for="' + esc(it.id) + '"></div>' +
         '<div class="cultural-actions">' +
-          '<button class="btn-hue" data-cultural-hue="' + esc(it.id) + '">' +
-            (it.pointOfHue ? 'Edit your point of hue' : '+ Add your point of hue') +
-          '</button>' +
           '<button class="btn-hue" data-cultural-context="' + esc(it.id) + '">What is this?</button>' +
         '</div>' +
       '</div>' +
     '</div>'
   ).join('');
 
-  grid.querySelectorAll('[data-cultural-hue]').forEach(b => {
-    b.addEventListener('click', () => {
-      const it = getCulturalItems(kind).find(x => x.id === b.dataset.culturalHue);
-      openHueModal('cultural:' + kind, b.dataset.culturalHue, it ? it.title : '');
-    });
-  });
   grid.querySelectorAll('[data-cultural-context]').forEach(b => {
     b.addEventListener('click', async () => {
       const id = b.dataset.culturalContext;
@@ -5635,7 +5526,6 @@ function openCulturalModal(kind) {
   document.getElementById('c-title').value = '';
   document.getElementById('c-creator').value = '';
   document.getElementById('c-year').value = '';
-  document.getElementById('c-note').value = '';
   document.getElementById('culturalModalOverlay').classList.remove('hidden');
   setTimeout(() => document.getElementById('c-title').focus(), 30);
 }
@@ -5657,7 +5547,7 @@ function saveCulturalItem() {
     year: yearRaw === '' ? null : Number(yearRaw),
     aside: '',
     wiki: '',
-    pointOfHue: document.getElementById('c-note').value.trim(),
+    pointOfHue: '',
     createdAt: new Date().toISOString()
   });
   store[culturalTargetKind] = list;
@@ -5728,7 +5618,6 @@ function renderPatrons() {
 
     const hueHtml = `<div class="museum-card-hue">
         ${p.pointOfHue ? `<div class="hue-label">Your point of hue</div><div class="hue-text">${esc(p.pointOfHue)}</div>` : ''}
-        <button class="btn-hue" data-patron-hue="${esc(p.id)}">${p.pointOfHue ? 'Edit your point of hue' : '+ Add your point of hue'}</button>
       </div>`;
 
     return `<div class="museum-card patron-card">
@@ -5750,13 +5639,6 @@ function renderPatrons() {
     row.addEventListener('click', () => {
       const a = getArtworkById(row.dataset.artworkId);
       if (a) openDetailPanel(a);
-    });
-  });
-  grid.querySelectorAll('[data-patron-hue]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const p = getPatronById(btn.dataset.patronHue);
-      openHueModal('patron', btn.dataset.patronHue, p ? p.name : '');
     });
   });
 }
@@ -5833,7 +5715,6 @@ function renderPlaces(kind) {
 
     const hueHtml = `<div class="museum-card-hue">
         ${m.pointOfHue ? `<div class="hue-label">Your point of hue</div><div class="hue-text">${esc(m.pointOfHue)}</div>` : ''}
-        <button class="btn-hue" data-museum-hue="${esc(m.id)}">${m.pointOfHue ? 'Edit your point of hue' : '+ Add your point of hue'}</button>
       </div>`;
 
     return `<div class="museum-card" data-museum-id="${esc(m.id)}">
@@ -5864,14 +5745,6 @@ function renderPlaces(kind) {
     });
   });
 
-  // Point-of-hue note buttons
-  grid.querySelectorAll('[data-museum-hue]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const m = getMuseumById(btn.dataset.museumHue);
-      openHueModal('museum', btn.dataset.museumHue, m ? m.name : '');
-    });
-  });
 
   // Auto-fetch images: trigger on broken URLs and empty slots
   grid.querySelectorAll('.museum-cover-img').forEach(img => {
@@ -6187,12 +6060,6 @@ function init() {
   document.getElementById('museumCancelBtn').addEventListener('click', closeMuseumModal);
   document.getElementById('museumForm').addEventListener('submit', handleMuseumFormSubmit);
 
-  // Point-of-hue note modal
-  document.getElementById('hueCancelBtn').addEventListener('click', closeHueModal);
-  document.getElementById('hueSaveBtn').addEventListener('click', saveHueNote);
-  document.getElementById('hueModalOverlay').addEventListener('click', (e) => {
-    if (e.target.id === 'hueModalOverlay') closeHueModal();
-  });
 
   // Gallery add + search/filter
   document.getElementById('galleryAddBtn').addEventListener('click', () => openAddModal(null));

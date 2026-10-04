@@ -2817,7 +2817,7 @@ function getArtworksForMuseum(museum) {
    SECTION 3: DEMO DATA
 ================================================================ */
 function seedDemoData() {
-  const SEED_VERSION = 15;
+  const SEED_VERSION = 16;
   const meta = getMeta();
   if (meta.seeded && meta.seedVersion >= SEED_VERSION) return;
 
@@ -3237,6 +3237,22 @@ function seedDemoData() {
       tags: ['sculpture', 'asawa', 'wire', 'shadow', 'craft'],
       notes: '',
       source: 'https://en.wikipedia.org/wiki/Ruth_Asawa'
+    },
+    {
+      title: 'Two Horses',
+      artist: 'Charles Ray',
+      year: 2019,
+      yearEnd: null,
+      medium: 'Granite',
+      movement: 'Contemporary',
+      location: 'The Met, New York',
+      coordinates: { lat: 40.7794, lng: -73.9632 },
+      imageUrl: 'images/ray-two-horses.jpg',
+      thumbnailUrl: 'images/ray-two-horses.jpg',
+      description: 'A ten-by-fifteen-foot relief cut from a single block of black granite: one horse in full profile, and behind it a second, only partly there, like a ghost. Ray\'s first work in stone.',
+      tags: ['sculpture', 'relief', 'granite', 'horse', 'contemporary'],
+      notes: 'Learned about this piece on October 1st, 2026 at the Met\'s Registrar\'s talk. We learned that this piece was made in China, sold to a museum in LA, then acquired by the Met. It weighs 16,000 pounds and took hours to install, as it had to be craned into Petrie Court, hoisted up a mechanical hoist, pushed down a hallway on metal sheets (so as not to damage the floor), and ultimately hung onto the wall. This piece has its own custom holder in its own freight box that lives in the Met\'s archive warehouse.',
+      source: 'https://www.metmuseum.org/art/collection/search/825497'
     }
   ];
 

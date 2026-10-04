@@ -5390,6 +5390,8 @@ function getCulturalItems(kind) { return getCultural()[kind] || []; }
 // Anything added in the browser sits alongside these untouched.
 const SEED_CULTURAL = {
   ballet: [
+    { title: 'Copland Dance Episodes', creator: 'Justin Peck', year: 2023, aside: 'New York City Ballet',
+      pointOfHue: 'Saw this in February 2023. Hands down my favorite ballet of all time. The backdrop (done by Choctaw-Cherokee artist Jeffrey Gibson) made you feel like you were moving through a kaleidoscope via the dancers. There was so much emotion in the dance - I have never laughed and cried (so much) in the same ballet performance.' },
     { title: 'Coppélia', creator: 'George Balanchine & Alexandra Danilova', year: 1974, aside: 'New York City Ballet',
       pointOfHue: 'I saw this in October 2024.' },
     { title: 'The Nutcracker', creator: 'George Balanchine', year: 1954, aside: 'New York City Ballet',
@@ -5449,7 +5451,7 @@ function ensureCulturalSeeds() {
   saveCultural(store);
   localStorage.setItem(CULTURAL_SEED_KEY, SEED_CULTURAL_VERSION);
 }
-const SEED_CULTURAL_VERSION = '10';
+const SEED_CULTURAL_VERSION = '11';
 
 // These lists start empty on purpose — they are yours to fill.
 // This clears the old auto-seeded entries once, then never touches your own.

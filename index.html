@@ -2555,6 +2555,7 @@ const MOVEMENTS = {
   'High Renaissance':       { color: '#d4b870', start: 1490,  end: 1530 },
   'Northern Renaissance':   { color: '#9a8a6a', start: 1430,  end: 1580 },
   'Mexican Muralism':       { color: '#c46a45', start: 1920,  end: 1960 },
+  'American Regionalism':   { color: '#a8834f', start: 1928,  end: 1945 },
   'Other':                  { color: '#9e9890', start: -3000, end: 2030 }
 };
 
@@ -2833,6 +2834,8 @@ function ensurePatronsSeeded() {
 // Life, birth country, where most of the work was made, movements and
 // favoured mediums, for each artist card. Written here, not fetched.
 const ARTIST_BIO = {
+ "Grant Wood": {"life":"1891–1942","born":"United States","worked":"Iowa (Cedar Rapids and Iowa City)","movements":["American Regionalism"],"mediums":["Oil","Lithography","Metalwork"],"interests":["Teaching (the Stone City art colony)","Iowa farm life"]},
+ "Thomas Hart Benton": {"life":"1889–1975","born":"United States","worked":"Kansas City and New York","movements":["American Regionalism","Synchromism"],"mediums":["Egg tempera","Oil","Murals"],"interests":["Folk music (he played the harmonica)","Summers on Martha's Vineyard","Politics"]},
  "Alexandros of Antioch": {
   "life": "active c. 150–100 BCE",
   "born": "Turkey (Antioch on the Maeander)",
@@ -3226,6 +3229,8 @@ const ARTIST_BIO = {
 // A portrait of each artist for their card on the artists page. Ancient makers
 // and artists with no published likeness fall back to one of their works.
 const ARTIST_PORTRAITS = {
+  'Grant Wood': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Grant_Wood.jpg/500px-Grant_Wood.jpg',
+  'Thomas Hart Benton': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Tom_benton.jpg/500px-Tom_benton.jpg',
   'Diego Velázquez': 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Diego_Vel%C3%A1zquez_Autorretrato_45_x_38_cm_-_Colecci%C3%B3n_Real_Academia_de_Bellas_Artes_de_San_Carlos_-_Museo_de_Bellas_Artes_de_Valencia.jpg/500px-Diego_Vel%C3%A1zquez_Autorretrato_45_x_38_cm_-_Colecci%C3%B3n_Real_Academia_de_Bellas_Artes_de_San_Carlos_-_Museo_de_Bellas_Artes_de_Valencia.jpg',
   'Emanuel Leutze': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Emanuel_Leutze.jpg/500px-Emanuel_Leutze.jpg',
   'Francisco Goya': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Vicente_L%C3%B3pez_Porta%C3%B1a_-_el_pintor_Francisco_de_Goya.jpg/500px-Vicente_L%C3%B3pez_Porta%C3%B1a_-_el_pintor_Francisco_de_Goya.jpg',
@@ -3323,7 +3328,7 @@ function getArtworksForMuseum(museum) {
    SECTION 3: DEMO DATA
 ================================================================ */
 function seedDemoData() {
-  const SEED_VERSION = 25;
+  const SEED_VERSION = 26;
   const meta = getMeta();
   if (meta.seeded && meta.seedVersion >= SEED_VERSION) return;
 
@@ -3807,6 +3812,38 @@ function seedDemoData() {
       tags: ['black paintings', 'goya', 'witchcraft', 'romanticism', 'dark'],
       notes: '',
       source: 'https://en.wikipedia.org/wiki/Witches%27_Sabbath_(The_Great_He-Goat)'
+    },
+    {
+      title: 'American Gothic',
+      artist: 'Grant Wood',
+      year: 1930,
+      yearEnd: null,
+      medium: 'Oil on beaverboard',
+      movement: 'American Regionalism',
+      location: 'Art Institute of Chicago, Chicago',
+      coordinates: { lat: 41.8796, lng: -87.6237 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Grant_Wood_-_American_Gothic_-_Google_Art_Project.jpg/500px-Grant_Wood_-_American_Gothic_-_Google_Art_Project.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Grant_Wood_-_American_Gothic_-_Google_Art_Project.jpg/330px-Grant_Wood_-_American_Gothic_-_Google_Art_Project.jpg',
+      description: 'A farmer with a pitchfork and his daughter (not his wife) in front of a little Iowa house with a Gothic window. Wood used his sister and his dentist as models. Whether it honours the Midwest or mocks it has been argued ever since.',
+      tags: ['regionalism', 'farm', 'iowa', 'portrait', 'grant wood'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/American_Gothic'
+    },
+    {
+      title: 'Achelous and Hercules',
+      artist: 'Thomas Hart Benton',
+      year: 1947,
+      yearEnd: null,
+      medium: 'Tempera and oil on canvas mounted on plywood',
+      movement: 'American Regionalism',
+      location: 'Smithsonian American Art Museum, Washington',
+      coordinates: { lat: 38.8979, lng: -77.0229 },
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Thomas_Hart_Benton_-_Achelous_and_Hercules_-_Smithsonian.jpg/500px-Thomas_Hart_Benton_-_Achelous_and_Hercules_-_Smithsonian.jpg',
+      thumbnailUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Thomas_Hart_Benton_-_Achelous_and_Hercules_-_Smithsonian.jpg/330px-Thomas_Hart_Benton_-_Achelous_and_Hercules_-_Smithsonian.jpg',
+      description: 'A Greek myth moved to the Missouri River valley: Hercules wrestles the river god, who has taken the shape of a bull, and breaks off the horn that becomes a cornucopia of farm plenty. Painted as a mural for a Kansas City department store.',
+      tags: ['regionalism', 'mural', 'myth', 'missouri', 'benton'],
+      notes: '',
+      source: 'https://en.wikipedia.org/wiki/Achelous_and_Hercules'
     }
   ];
 
@@ -4225,6 +4262,7 @@ function guessMovement(infobox, description) {
     'Cubism': ['cubist', 'cubism'],
     'Pop Art': ['pop art'],
     'Abstract Expressionism': ['abstract expressionism'],
+    'American Regionalism': ['regionalism', 'regionalist'],
     'Expressionism': ['expressionist', 'expressionism'],
     'Romanticism': ['romantic', 'romanticism'],
     'Neoclassicism': ['neoclassical', 'neoclassicism'],

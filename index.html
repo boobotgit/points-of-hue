@@ -5507,6 +5507,8 @@ const SEED_CULTURAL = {
     { title: 'The Ferryman',  creator: 'Jez Butterworth',   year: 2017, aside: '' },
     { title: 'Oh, Mary!', creator: 'Cole Escola', year: 2024, aside: 'seen on Broadway',
       pointOfHue: 'Saw this with my sister-in-law on August 15th, and Mary was played by Meg Salter. I have never laughed so hard for so long. An absolutely ridiculous time that has me looking at tickets to see the next Mary.' },
+    { title: 'Girl, Interrupted', creator: 'Martyna Majok', year: 2026, aside: 'seen at the Public Theater',
+      pointOfHue: 'Saw on May 22, 2026. While the play takes place in an ominous setting (an institution for women in the 1960s), the story had a levity to it that allowed you to work with the themes (over-medication, mental illness, women\'s rights, etc.) without feeling unwell. Certain scenes were disturbing, but were well balanced with lighter scenes. This play was adapted from Susanna Kaysen\'s psychiatric memoir, not the film. I especially liked learning about the Vermeer painting that the play was named after.' },
     { title: 'Good Time Charlie', creator: 'Ryan J. Haddad', year: 2026, aside: 'seen at the Public Theater',
       pointOfHue: 'Saw this on September 30th - refreshing play dealing with themes like gender, aging, love (friendship and romantic) and disabilities. We met the director, and the writer was also the narrator and a character in the play. Not overdone as many Public Theater plays are these days. Sweet. Charming. Walked away satisfied - having shed a tear and laughed.' }
   ]
@@ -5539,7 +5541,7 @@ function ensureCulturalSeeds() {
   saveCultural(store);
   localStorage.setItem(CULTURAL_SEED_KEY, SEED_CULTURAL_VERSION);
 }
-const SEED_CULTURAL_VERSION = '5';
+const SEED_CULTURAL_VERSION = '6';
 
 // These lists start empty on purpose — they are yours to fill.
 // This clears the old auto-seeded entries once, then never touches your own.

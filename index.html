@@ -784,6 +784,75 @@
       gap: 40px 24px;
       align-content: start;
     }
+    /* ---- Gallery: scattered view ----
+       Pictures fall left, centre-right and right down the page, roughly three
+       to a phone screen, and swell toward you as they rise into the middle. */
+    #galleryGrid.scatter {
+      display: block;
+      position: relative;
+      padding: 12px 0 34vh;
+      overflow-x: hidden;
+    }
+    .sc-item {
+      position: relative;
+      width: var(--w);
+      margin: var(--gap) 0 0 var(--x);
+      cursor: pointer;
+      transform-origin: 50% 30%;
+      will-change: transform, opacity;
+    }
+    .sc-item img {
+      width: 100%;
+      height: auto;
+      display: block;
+      background: var(--bg-input);
+      box-shadow: 0 10px 28px rgba(44,38,32,0.12);
+    }
+    .sc-item .sc-none {
+      aspect-ratio: 4 / 5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-input);
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 22px;
+      color: var(--text-dim);
+    }
+    .sc-cap { margin-top: 8px; }
+    .sc-item.sc-right .sc-cap { text-align: right; }
+    .sc-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 13px;
+      line-height: 1.25;
+      color: var(--text-primary);
+    }
+    .sc-meta {
+      font-size: 10.5px;
+      line-height: 1.45;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .gallery-mode { display: inline-flex; gap: 2px; margin-right: 6px; }
+    .gallery-mode button {
+      background: none;
+      border: none;
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 14px;
+      text-transform: lowercase;
+      color: var(--text-muted);
+      padding: 6px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .gallery-mode button:hover {
+      background: radial-gradient(closest-side,
+        rgba(60, 52, 44, 0.13) 0%, rgba(60, 52, 44, 0.07) 55%, rgba(60, 52, 44, 0) 100%);
+    }
+    .gallery-mode button.active { color: var(--accent); }
+    @media (prefers-reduced-motion: reduce) {
+      .sc-item { transform: none !important; opacity: 1 !important; }
+    }
+
     .art-card {
       background: transparent;
       border: none;
@@ -2102,6 +2171,10 @@
           <p id="galleryCount">Your collection</p>
         </div>
         <div class="header-controls">
+          <span class="gallery-mode" id="galleryMode">
+            <button type="button" data-mode="scatter">scatter</button>
+            <button type="button" data-mode="list">list</button>
+          </span>
           <button class="btn-add" id="galleryAddBtn">+ Add Artwork</button>
         </div>
       </div>
@@ -4926,7 +4999,9 @@ function renderGallery() {
   document.getElementById('galleryCount').textContent = `${filtered.length} of ${artworks.length} artworks`;
   const grid = document.getElementById('galleryGrid');
 
+  markGalleryMode();
   if (filtered.length === 0) {
+    grid.classList.remove('scatter');
     grid.innerHTML = `<div class="empty-state">
       <div class="empty-state-icon">&#9671;</div>
       <div class="empty-state-text">${artworks.length === 0 ? 'No artworks yet. Add your first!' : 'No artworks match your search.'}</div>
@@ -4934,6 +5009,8 @@ function renderGallery() {
     return;
   }
 
+  if (getGalleryMode() === 'scatter') { renderGalleryScatter(grid, filtered); return; }
+  grid.classList.remove('scatter');
   grid.innerHTML = filtered.map(a => {
     const mvColor = MOVEMENTS[a.movement]?.color || '#9e9890';
     const imgHtml = (a.imageUrl || a.thumbnailUrl)
@@ -4962,6 +5039,123 @@ function renderGallery() {
     });
   });
   attachArtCardListeners(grid);
+}
+
+
+/* ---- Gallery: scattered view ---- */
+const GALLERY_MODE_KEY = 'artatlas_gallery_mode';
+function getGalleryMode() {
+  try { return localStorage.getItem(GALLERY_MODE_KEY) === 'list' ? 'list' : 'scatter'; }
+  catch (e) { return 'scatter'; }
+}
+function setGalleryMode(mode) {
+  try { localStorage.setItem(GALLERY_MODE_KEY, mode); } catch (e) {}
+  renderGallery();
+  const sc = document.getElementById('galleryScroll');
+  if (sc) sc.scrollTop = 0;
+}
+function markGalleryMode() {
+  const mode = getGalleryMode();
+  document.querySelectorAll('#galleryMode button').forEach(b =>
+    b.classList.toggle('active', b.dataset.mode === mode));
+}
+
+// A small stable random number per artwork, so a picture keeps its place
+// between visits instead of reshuffling every time the page draws.
+function scatterRand(id, salt) {
+  let h = 2166136261;
+  const str = String(id) + ':' + salt;
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return ((h >>> 0) % 10000) / 10000;
+}
+
+function renderGalleryScatter(grid, works) {
+  grid.classList.add('scatter');
+  const phone = (grid.clientWidth || window.innerWidth) < 700;
+  // left, centre-right, right
+  const slots = phone
+    ? [{ x: 4, w: 50 }, { x: 34, w: 46 }, { x: 50, w: 46 }]
+    : [{ x: 6, w: 30 }, { x: 38, w: 28 }, { x: 64, w: 30 }];
+
+  grid.innerHTML = works.map((a, i) => {
+    const slot = slots[i % 3];
+    const jx = (scatterRand(a.id, 'x') - 0.5) * (phone ? 6 : 8);
+    const jw = (scatterRand(a.id, 'w') - 0.5) * (phone ? 6 : 6);
+    const w = slot.w + jw;
+    const x = Math.max(1, Math.min(99 - w, slot.x + jx));
+    const gap = i === 0 ? 8 : Math.round(10 + scatterRand(a.id, 'g') * 46);
+    const side = i % 3 === 2 ? ' sc-right' : '';
+    const src = a.imageUrl || a.thumbnailUrl;
+    const pic = src
+      ? '<img alt="" loading="lazy" src="' + safeUrl(src) + '" />'
+      : '<div class="sc-none">' + esc(a.title.slice(0, 2).toUpperCase()) + '</div>';
+    const line1 = [a.artist || 'Unknown artist', a.year != null ? formatYear(a.year) : ''].filter(Boolean).join(' \u00b7 ');
+    const line2 = [a.location || '', a.movement || ''].filter(Boolean).join(' \u00b7 ');
+    return '<figure class="sc-item' + side + '" data-id="' + esc(a.id) + '"' +
+      ' style="--x:' + x.toFixed(1) + '%;--w:' + w.toFixed(1) + '%;--gap:' + gap + 'px"' +
+      ' data-depth="' + (0.6 + scatterRand(a.id, 'd') * 0.8).toFixed(2) + '"' +
+      ' data-drift="' + ((scatterRand(a.id, 'r') - 0.5) * 2).toFixed(2) + '">' +
+        pic +
+        '<figcaption class="sc-cap">' +
+          '<div class="sc-title">' + esc(a.title) + '</div>' +
+          '<div class="sc-meta">' + esc(line1) + (line2 ? '<br>' + esc(line2) : '') + '</div>' +
+        '</figcaption>' +
+      '</figure>';
+  }).join('');
+
+  grid.querySelectorAll('.sc-item').forEach(el => {
+    el.addEventListener('click', () => {
+      const a = getArtworkById(el.dataset.id);
+      if (a) openDetailPanel(a);
+    });
+    const img = el.querySelector('img');
+    if (img) {
+      const fail = () => {
+        const a = getArtworkById(el.dataset.id);
+        img.outerHTML = '<div class="sc-none">' + esc(((a && a.title) || '?').slice(0, 2).toUpperCase()) + '</div>';
+      };
+      img.addEventListener('error', fail);
+      img.addEventListener('load', updateScatter);
+    }
+  });
+  updateScatter();
+}
+
+// Scroll-linked approach: below the middle of the screen a picture is further
+// away (smaller, fainter, lower, drifting a little to one side); it arrives at
+// full size as it reaches the middle and stays put once it has passed.
+let scatterTick = false;
+function updateScatter() {
+  if (scatterTick) return;
+  scatterTick = true;
+  requestAnimationFrame(() => {
+    scatterTick = false;
+    const sc = document.getElementById('galleryScroll');
+    const grid = document.getElementById('galleryGrid');
+    if (!sc || !grid || !grid.classList.contains('scatter')) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    // Measure against what is actually on screen: on a phone the whole page
+    // scrolls, on a desktop only the gallery box does.
+    const box = sc.getBoundingClientRect();
+    const top = Math.max(box.top, 0);
+    const bottom = Math.min(box.bottom, window.innerHeight);
+    const height = Math.max(1, bottom - top);
+    const mid = top + height * 0.5;
+    grid.querySelectorAll('.sc-item').forEach(el => {
+      const r = el.getBoundingClientRect();
+      const centre = r.top + r.height * 0.35;
+      let p = (centre - mid) / (height * 0.6);
+      p = Math.max(0, Math.min(1, p));
+      const e = p * p * (3 - 2 * p);
+      const depth = parseFloat(el.dataset.depth) || 1;
+      const drift = parseFloat(el.dataset.drift) || 0;
+      const scale = 1 - 0.3 * e * depth;
+      const ty = 70 * e * depth;
+      const tx = 26 * e * drift;
+      el.style.transform = 'translate(' + tx.toFixed(1) + 'px,' + ty.toFixed(1) + 'px) scale(' + scale.toFixed(3) + ')';
+      el.style.opacity = (1 - 0.65 * e).toFixed(3);
+    });
+  });
 }
 
 /* ================================================================
@@ -6155,6 +6349,13 @@ function init() {
   document.getElementById('museumCancelBtn').addEventListener('click', closeMuseumModal);
   document.getElementById('museumForm').addEventListener('submit', handleMuseumFormSubmit);
 
+
+  // Gallery: scatter / list, and the approach effect while scrolling
+  document.querySelectorAll('#galleryMode button').forEach(b =>
+    b.addEventListener('click', () => setGalleryMode(b.dataset.mode)));
+  // capture: picks up whichever element is scrolling (page on phones, box on desktop)
+  document.addEventListener('scroll', updateScatter, { passive: true, capture: true });
+  window.addEventListener('resize', () => { if (currentView === 'gallery') renderGallery(); });
 
   // Gallery add + search/filter
   document.getElementById('galleryAddBtn').addEventListener('click', () => openAddModal(null));

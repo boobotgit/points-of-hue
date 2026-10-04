@@ -5489,6 +5489,10 @@ function getCulturalItems(kind) { return getCultural()[kind] || []; }
 // Operas and plays written into the site itself, so they travel with it.
 // Anything added in the browser sits alongside these untouched.
 const SEED_CULTURAL = {
+  ballet: [
+    { title: 'Swan Lake', creator: 'Pyotr Ilyich Tchaikovsky', year: 1877, aside: 'American Ballet Theatre',
+      pointOfHue: 'Saw this for my wedding anniversary on July 18th, 2026. Fantastical set. I much appreciated this over the stripped-down version put on by NYCB.' }
+  ],
   opera: [
     { title: 'The Hours',     creator: 'Kevin Puts',        year: 2022, aside: 'seen at the Met Opera' },
     { title: 'Akhnaten',      creator: 'Philip Glass',      year: 1983, aside: 'seen at the Met Opera' },
@@ -5533,7 +5537,7 @@ function ensureCulturalSeeds() {
   saveCultural(store);
   localStorage.setItem(CULTURAL_SEED_KEY, SEED_CULTURAL_VERSION);
 }
-const SEED_CULTURAL_VERSION = '3';
+const SEED_CULTURAL_VERSION = '4';
 
 // These lists start empty on purpose — they are yours to fill.
 // This clears the old auto-seeded entries once, then never touches your own.

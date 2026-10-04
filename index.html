@@ -2708,6 +2708,11 @@ function ensurePatronsSeeded() {
 
 // A cover for an artist whose card is better fronted by something other than
 // the first artwork in the collection. Kept in the file so it travels.
+// Museum points of hue written into the site itself.
+const SEED_MUSEUM_NOTES = {
+  'Institute of Contemporary Art, Boston': 'I found this museum\'s permanent collection unmemorable, but I appreciated the Virgil Abloh exhibition (Figures of Speech) at the museum, commemorating the artist and celebrating his life shortly after he\'d passed away.'
+};
+
 const ARTIST_COVERS = {
   'Sol LeWitt': 'images/lewitt-whirls-and-twirls.jpg'
 };
@@ -3255,7 +3260,7 @@ function seedDemoData() {
       coordinates: { lat: 34.078, lng: -118.4741 },
       imageUrl: 'images/marini-angel-getty.jpg',
       thumbnailUrl: 'images/marini-angel-getty.jpg',
-      description: 'A rider flung back on a horse with stiff legs, arms thrown wide. Marini made his horses and riders more anxious after the war, and this one is all exposure. Designed in 1948, cast in 1950, a gift of Fran and Ray Stark.',
+      description: 'A rider flung back on a horse with stiff legs, arms thrown wide. Marini made his horses and riders more anxious after the war, and this one is all exposure. Designed in 1948, cast in 1950, a gift of Fran and Ray Stark. Shown here in the Venice cast, as the Getty publishes no photograph of its own.',
       tags: ['sculpture', 'bronze', 'horse and rider', 'marini'],
       notes: '',
       source: 'https://www.getty.edu/art/collection/object/10989K'
@@ -5792,7 +5797,7 @@ function renderPlaces(kind) {
       : '';
 
     const hueHtml = `<div class="museum-card-hue">
-        ${m.pointOfHue ? `<div class="hue-label">Your point of hue</div><div class="hue-text">${esc(m.pointOfHue)}</div>` : ''}
+        ${(m.pointOfHue || SEED_MUSEUM_NOTES[m.name]) ? `<div class="hue-label">Your point of hue</div><div class="hue-text">${esc(m.pointOfHue || SEED_MUSEUM_NOTES[m.name])}</div>` : ''}
       </div>`;
 
     return `<div class="museum-card" data-museum-id="${esc(m.id)}">

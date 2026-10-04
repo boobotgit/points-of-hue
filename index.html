@@ -5498,7 +5498,9 @@ const SEED_CULTURAL = {
   theatre: [
     { title: 'Wicked',        creator: 'Stephen Schwartz',  year: 2003, aside: '' },
     { title: 'Illinoise',     creator: 'Justin Peck',       year: 2024, aside: '' },
-    { title: 'The Ferryman',  creator: 'Jez Butterworth',   year: 2017, aside: '' }
+    { title: 'The Ferryman',  creator: 'Jez Butterworth',   year: 2017, aside: '' },
+    { title: 'Good Time Charlie', creator: 'Ryan J. Haddad', year: 2026, aside: 'seen at the Public Theater',
+      pointOfHue: 'Saw this on September 30th - refreshing play dealing with themes like gender, aging, love (friendship and romantic) and disabilities. We met the director, and the writer was also the narrator and a character in the play. Not overdone as many Public Theater plays are these days. Sweet. Charming. Walked away satisfied - having shed a tear and laughed.' }
   ]
 };
 
@@ -5520,7 +5522,7 @@ function ensureCulturalSeeds() {
         year: seed.year,
         aside: seed.aside,
         wiki: '',
-        pointOfHue: '',
+        pointOfHue: seed.pointOfHue || '',
         createdAt: new Date().toISOString()
       });
     });
@@ -5529,7 +5531,7 @@ function ensureCulturalSeeds() {
   saveCultural(store);
   localStorage.setItem(CULTURAL_SEED_KEY, SEED_CULTURAL_VERSION);
 }
-const SEED_CULTURAL_VERSION = '1';
+const SEED_CULTURAL_VERSION = '2';
 
 // These lists start empty on purpose — they are yours to fill.
 // This clears the old auto-seeded entries once, then never touches your own.

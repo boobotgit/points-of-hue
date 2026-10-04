@@ -2795,6 +2795,32 @@ function ensurePatronsSeeded() {
   if (added.length) savePatrons([...existing, ...added]);
 }
 
+// A portrait of each artist for their card on the artists page. Ancient makers
+// and artists with no published likeness fall back to one of their works.
+const ARTIST_PORTRAITS = {
+  'Diego Velázquez': 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/Diego_Vel%C3%A1zquez_Autorretrato_45_x_38_cm_-_Colecci%C3%B3n_Real_Academia_de_Bellas_Artes_de_San_Carlos_-_Museo_de_Bellas_Artes_de_Valencia.jpg/500px-Diego_Vel%C3%A1zquez_Autorretrato_45_x_38_cm_-_Colecci%C3%B3n_Real_Academia_de_Bellas_Artes_de_San_Carlos_-_Museo_de_Bellas_Artes_de_Valencia.jpg',
+  'Emanuel Leutze': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Emanuel_Leutze.jpg/500px-Emanuel_Leutze.jpg',
+  'Francisco Goya': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Vicente_L%C3%B3pez_Porta%C3%B1a_-_el_pintor_Francisco_de_Goya.jpg/500px-Vicente_L%C3%B3pez_Porta%C3%B1a_-_el_pintor_Francisco_de_Goya.jpg',
+  'Frida Kahlo': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Frida_Kahlo%2C_by_Guillermo_Kahlo.jpg/500px-Frida_Kahlo%2C_by_Guillermo_Kahlo.jpg',
+  'Hieronymus Bosch': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Jheronimus_Bosch_%28cropped%29.jpg/500px-Jheronimus_Bosch_%28cropped%29.jpg',
+  'Jean-Honoré Fragonard': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Jean-Honor%C3%A9_Fragonard_-_Self-portrait_with_smiling_face.jpg/500px-Jean-Honor%C3%A9_Fragonard_-_Self-portrait_with_smiling_face.jpg',
+  'Johannes Vermeer': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Cropped_version_of_Jan_Vermeer_van_Delft_002.jpg/500px-Cropped_version_of_Jan_Vermeer_van_Delft_002.jpg',
+  'Leonardo da Vinci': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Francesco_Melzi_-_Portrait_of_Leonardo_%28colour_correction%29.png/500px-Francesco_Melzi_-_Portrait_of_Leonardo_%28colour_correction%29.png',
+  'Marcel Duchamp': 'images/artist-duchamp.jpg',
+  'Marino Marini': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Paolo_Monti_-_Servizio_fotografico_%28Milano%2C_1958%29_-_BEIC_6340602.jpg/500px-Paolo_Monti_-_Servizio_fotografico_%28Milano%2C_1958%29_-_BEIC_6340602.jpg',
+  'Michelangelo': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Michelangelo_Daniele_da_Volterra_%28dettaglio%29.jpg/500px-Michelangelo_Daniele_da_Volterra_%28dettaglio%29.jpg',
+  'On Kawara': 'images/artist-kawara.png',
+  'Pablo Picasso': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Pablo_picasso_1.jpg/500px-Pablo_picasso_1.jpg',
+  'Raphael': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Raffaello_Sanzio.jpg/500px-Raffaello_Sanzio.jpg',
+  'Richard Serra': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Oliver_Mark_-_Richard_Serra%2C_Siegen_2005.jpg/500px-Oliver_Mark_-_Richard_Serra%2C_Siegen_2005.jpg',
+  'Ruth Asawa': 'images/artist-asawa.jpg',
+  'Salvador Dali': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Salvador_Dal%C3%AD_1939.jpg/500px-Salvador_Dal%C3%AD_1939.jpg',
+  'Sandro Botticelli': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Sandro_Botticelli_083.jpg/500px-Sandro_Botticelli_083.jpg',
+  'Sol LeWitt': 'images/artist-lewitt.jpg',
+  'Vincent van Gogh': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Vincent_van_Gogh_-_Self-Portrait_-_Google_Art_Project_%28454045%29.jpg/500px-Vincent_van_Gogh_-_Self-Portrait_-_Google_Art_Project_%28454045%29.jpg',
+  'Yayoi Kusama': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Yayoi_Kusama_in_2005.jpg/500px-Yayoi_Kusama_in_2005.jpg'
+};
+
 // A cover for an artist whose card is better fronted by something other than
 // the first artwork in the collection. Kept in the file so it travels.
 // Museum points of hue written into the site itself.
@@ -5506,7 +5532,7 @@ function renderArtists() {
   grid.innerHTML = artists.map(ar => {
     const works = ar.works;
     const coverWork = works.find(w => w.thumbnailUrl || w.imageUrl);
-    const coverUrl = ARTIST_COVERS[ar.name] ||
+    const coverUrl = ARTIST_PORTRAITS[ar.name] || ARTIST_COVERS[ar.name] ||
       (coverWork ? (coverWork.imageUrl || coverWork.thumbnailUrl) : '');
     const movements = [...new Set(works.map(w => w.movement).filter(Boolean))];
     const years = works.map(w => w.year).filter(y => y != null);

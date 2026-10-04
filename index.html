@@ -5499,6 +5499,8 @@ const SEED_CULTURAL = {
     { title: 'Wicked',        creator: 'Stephen Schwartz',  year: 2003, aside: '' },
     { title: 'Illinoise',     creator: 'Justin Peck',       year: 2024, aside: '' },
     { title: 'The Ferryman',  creator: 'Jez Butterworth',   year: 2017, aside: '' },
+    { title: 'Oh, Mary!', creator: 'Cole Escola', year: 2024, aside: 'seen on Broadway',
+      pointOfHue: 'Saw this with my sister-in-law on August 15th, and Mary was played by Meg Salter. I have never laughed so hard for so long. An absolutely ridiculous time that has me looking at tickets to see the next Mary.' },
     { title: 'Good Time Charlie', creator: 'Ryan J. Haddad', year: 2026, aside: 'seen at the Public Theater',
       pointOfHue: 'Saw this on September 30th - refreshing play dealing with themes like gender, aging, love (friendship and romantic) and disabilities. We met the director, and the writer was also the narrator and a character in the play. Not overdone as many Public Theater plays are these days. Sweet. Charming. Walked away satisfied - having shed a tear and laughed.' }
   ]
@@ -5531,7 +5533,7 @@ function ensureCulturalSeeds() {
   saveCultural(store);
   localStorage.setItem(CULTURAL_SEED_KEY, SEED_CULTURAL_VERSION);
 }
-const SEED_CULTURAL_VERSION = '2';
+const SEED_CULTURAL_VERSION = '3';
 
 // These lists start empty on purpose — they are yours to fill.
 // This clears the old auto-seeded entries once, then never touches your own.

@@ -5390,6 +5390,8 @@ function getCulturalItems(kind) { return getCultural()[kind] || []; }
 // Anything added in the browser sits alongside these untouched.
 const SEED_CULTURAL = {
   ballet: [
+    { title: 'The Nutcracker', creator: 'George Balanchine', year: 1954, aside: 'New York City Ballet',
+      pointOfHue: 'A classic. Fun, charming, and delightful. I saw this in December 2024.' },
     { title: 'A Midsummer Night\'s Dream', creator: 'George Balanchine', year: 1962, aside: 'New York City Ballet',
       pointOfHue: 'Saw this in May 2025. Excellent but not entirely memorable.' },
     { title: 'The Naked King', creator: 'Alexei Ratmansky', year: 2026, aside: 'New York City Ballet',
@@ -5445,7 +5447,7 @@ function ensureCulturalSeeds() {
   saveCultural(store);
   localStorage.setItem(CULTURAL_SEED_KEY, SEED_CULTURAL_VERSION);
 }
-const SEED_CULTURAL_VERSION = '8';
+const SEED_CULTURAL_VERSION = '9';
 
 // These lists start empty on purpose — they are yours to fill.
 // This clears the old auto-seeded entries once, then never touches your own.

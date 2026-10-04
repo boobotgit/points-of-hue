@@ -5490,6 +5490,8 @@ function getCulturalItems(kind) { return getCultural()[kind] || []; }
 // Anything added in the browser sits alongside these untouched.
 const SEED_CULTURAL = {
   ballet: [
+    { title: 'Don Quixote', creator: 'Ludwig Minkus', year: 1869, aside: 'American Ballet Theatre',
+      pointOfHue: 'My first ABT production. The moves impressed me, as did the scale of the set and company. We got to see Jake Roxander get promoted on stage to Principal Dancer on July 3rd. I have no connection to ballet, but Jake\'s emotion was so strong and the crowd was so enthusiastic, I started to cry. It was a beautiful celebration after a charming dance.' },
     { title: 'Swan Lake', creator: 'Pyotr Ilyich Tchaikovsky', year: 1877, aside: 'American Ballet Theatre',
       pointOfHue: 'Saw this for my wedding anniversary on July 18th, 2026. Fantastical set. I much appreciated this over the stripped-down version put on by NYCB.' }
   ],
@@ -5537,7 +5539,7 @@ function ensureCulturalSeeds() {
   saveCultural(store);
   localStorage.setItem(CULTURAL_SEED_KEY, SEED_CULTURAL_VERSION);
 }
-const SEED_CULTURAL_VERSION = '4';
+const SEED_CULTURAL_VERSION = '5';
 
 // These lists start empty on purpose — they are yours to fill.
 // This clears the old auto-seeded entries once, then never touches your own.

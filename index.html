@@ -5710,7 +5710,8 @@ function oneSentence(text) {
   return s;
 }
 
-const doneYear = a => (a.yearEnd != null ? a.yearEnd : (a.year != null ? a.year : -Infinity));
+// Ordered by the date shown on each card: the year a work was begun.
+const doneYear = a => (a.year != null ? a.year : -Infinity);
 
 function renderGallery() {
   const artworks = getArtworks();
@@ -5740,7 +5741,6 @@ function renderGallery() {
   });
 
   switch (fSort) {
-    // Ordered by when a work was finished: the end year if it took several, else its year
     case 'year-asc': filtered.sort((a, b) => doneYear(a) - doneYear(b) || a.title.localeCompare(b.title)); break;
     case 'year-desc': filtered.sort((a, b) => doneYear(b) - doneYear(a) || a.title.localeCompare(b.title)); break;
     case 'title': filtered.sort((a, b) => a.title.localeCompare(b.title)); break;

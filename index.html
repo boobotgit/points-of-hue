@@ -2228,7 +2228,7 @@
         <input id="gallerySearch" type="text" placeholder="Search by title, artist, movement..." />
         <select class="filter-select" id="filterMovement"><option value="">All movements</option></select>
         <select class="filter-select" id="filterMedium"><option value="">All mediums</option></select>
-        <select class="filter-select" id="sortBy">
+        <select class="filter-select" id="sortBy" autocomplete="off">
           <option value="year-desc" selected>Newest first</option>
           <option value="year-asc">Oldest first</option>
           <option value="title">Title (A–Z)</option>
@@ -2852,6 +2852,7 @@ function ensurePatronsSeeded() {
 // Life, birth country, where most of the work was made, movements and
 // favoured mediums, for each artist card. Written here, not fetched.
 const ARTIST_BIO = {
+ "Helen Frankenthaler": {"life":"1928–2011","born":"United States","worked":"New York and Stamford, Connecticut","movements":["Abstract Expressionism","Color Field"],"mediums":["Acrylic","Oil","Woodcut prints"],"interests":["The sea (her studio at Shippan Point)","Printmaking"]},
  "Lee Krasner": {"life":"1908–1984","born":"United States","worked":"New York and Springs, Long Island","movements":["Abstract Expressionism","Cubism"],"mediums":["Oil","Collage","Mosaic"],"interests":["Poetry (Rimbaud)","Her garden at Springs"]},
  "Jackson Pollock": {"life":"1912–1956","born":"United States","worked":"New York and Springs, Long Island","movements":["Abstract Expressionism","Action painting"],"mediums":["Enamel house paint","Oil","Aluminum paint"],"interests":["Jazz records","Native American sand painting","Jungian psychoanalysis"]},
  "David Reed": {"life":"b. 1946","born":"United States","worked":"New York","movements":["Abstract painting"],"mediums":["Oil and alkyd on linen"],"interests":["Baroque painting","Film (Hitchcock's Vertigo)","Architecture"]},
@@ -3250,6 +3251,7 @@ const ARTIST_BIO = {
 // A portrait of each artist for their card on the artists page. Ancient makers
 // and artists with no published likeness fall back to one of their works.
 const ARTIST_PORTRAITS = {
+  'Helen Frankenthaler': 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/%C2%A9lynngilbert_Helen_Frankenthaler_1978.jpg/500px-%C2%A9lynngilbert_Helen_Frankenthaler_1978.jpg',
   'Lee Krasner': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Lee_Krasner%2C_artist%2C_cropped.jpg/500px-Lee_Krasner%2C_artist%2C_cropped.jpg',
   'Jackson Pollock': 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Jackson_Pollock_by_Hans_Namuth_%28cropped%29.jpg/500px-Jackson_Pollock_by_Hans_Namuth_%28cropped%29.jpg',
   'Grant Wood': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/Grant_Wood.jpg/500px-Grant_Wood.jpg',
@@ -3291,6 +3293,7 @@ const ARTIST_COVERS = {
 // Points of hue written into the site itself. Anything typed in the browser
 // takes precedence over the note seeded here.
 const SEED_ARTIST_NOTES = {
+  'Helen Frankenthaler': 'Saw her show at Guggenheim Bilbao in June 2025 with Jessica.',
   'Lee Krasner': 'Raised in an affluent family in Brooklyn, Lee was determined to be an artist from childhood. Trained by a Cubist master Hans Hofmann and working in the WPA, Lee had set herself up for a career in the art world. However, she put her career on hold when she met and married Jackson Pollock. Spending her time managing his career and alcoholism, she helped propel Pollock to fame. However, Lee never stopped painting, and her work and Pollock\'s were in a constant conversation, ever shaping one another. When Pollock passed in 1956, Krasner entered one of her most creative periods - before losing her mother and diving into a dark period of grief and insomnia (which heavily influenced her painting: she didn\'t trust herself to paint in color under the synthetic lighting she bathed in each evening). She lived to see her own retrospective open in 1983, which went on to MoMA, where she was honored as one of the most influential women in Modern Art. She passed away the following year in 1984.',
   'Jackson Pollock': 'Saw the Krasner and Pollock: Past Continuous in October of 2026. Fascinated by Jackson\'s life: grew up out West in a highly dysfunctional and large family, where he was largely ignored. His brother moved to NY to become an artist - part of Jackson\'s inspiration to move to NY himself. He was unsuccessful, inspired by muralists like Mexican painter Siqueiros, and mentored by Thomas Hart Benton. Known for his alcoholism and disagreeable (and sometimes illegal) behavior, Jackson spent his early years bouncing from apartment to apartment of family. He met Lee Krasner when the two were both featured at a show by John Graham in 1941. Krasner had never heard of Pollock (despite having gone home with him after a party years earlier) and was overtaken by the power of his work. She began to introduce him to prominent voices in the art scene; the two married in 1945. While a janitor at the Museum of Non-Objective Art (now the Guggenheim), he was discovered by Peggy Guggenheim in 1943, who was convinced of his genius by Howard Putzel (art dealer) along with Duchamp and Mondrian. Peggy commissioned one of his most famous works, "Mural," the same year. Lee and Pollock moved to Long Island in 1945, to provide distance from the tempting bar scene in NYC. By 1949 he\'d peaked, being featured in Life magazine: "Jackson Pollock: Is he the greatest living painter in the United States?" This brought huge exposure to his drip painting (a technique brought into being thanks to newly invented alkyd paints that were fluid and not stiff/buttery - allowing them to flow rather than hold the texture of a brush stroke). After the Life article, and a documentary, Jackson became extremely wealthy and successful - hitting his peak in 1950, which propelled him back into alcoholism after several years of sobriety, and an affair. This period led to the demise of his marriage - Lee separated from him, moving to Europe, where a few months later, in 1956, she heard of Jackson\'s death from a drunk driving accident.',
   'David Reed': 'Saw his works in October 2026 at the Rodder Gallery in UES. Fascinated by his use of Baroque paintings for inspiration - he loved the shapes captured in the fabrics. Was inspired by his uncle (who designed his childhood home in San Diego) and worked with Frank Lloyd Wright and Lloyd Ruocco. He painted during a time where painting wasn\'t popular - he was encouraged to pick a new medium or become irrelevant. He painted his works to help you, the viewer, to have freedom to create and move within his paintings as you please: no restraints. He wanted colors to be used in new ways - not to control you (as in marketing) and not in limiting ways (as Impressionism demanded) but in ways that created illusions - further making the viewer the designer of their experience (for example: reds and blues next to one another, creating purple where there is no purple on the canvas). He studied in NYC at the Art Studio on 8th Street in Greenwich Village - one of his teachers taught him a most important lesson: he would create an ugly grey paint and smudge it over the portion of David\'s paintings that had clearly been given the most attention. The lesson? You must focus on the entire painting - and to do so, you sometimes need to destroy the portion that\'s been given the most attention so you can see more broadly. The Vogels collected his art early on - they encouraged him to see his intricate studies as true drawings and works of art.',
@@ -3354,7 +3357,7 @@ function getArtworksForMuseum(museum) {
    SECTION 3: DEMO DATA
 ================================================================ */
 function seedDemoData() {
-  const SEED_VERSION = 32;
+  const SEED_VERSION = 33;
   const meta = getMeta();
   if (meta.seeded && meta.seedVersion >= SEED_VERSION) return;
 
@@ -4030,6 +4033,54 @@ function seedDemoData() {
       tags: ['abstract expressionism', 'krasner', 'collage'],
       notes: '',
       source: 'https://www.nga.gov/artworks/72298-imperative'
+    },
+    {
+      title: 'Tutti-Frutti',
+      artist: 'Helen Frankenthaler',
+      year: 1966,
+      yearEnd: null,
+      medium: 'Acrylic on canvas',
+      movement: 'Abstract Expressionism',
+      location: 'Buffalo AKG Art Museum, Buffalo',
+      coordinates: { lat: 42.9324, lng: -78.8763 },
+      imageUrl: 'images/frankenthaler-tutti-frutti.jpg',
+      thumbnailUrl: 'images/frankenthaler-tutti-frutti.jpg',
+      description: 'Thinned paint poured and soaked straight into raw canvas, so colour and cloth become one surface. Named after the ice cream that mixes bright fruit flavours.',
+      tags: ['colour field', 'frankenthaler', 'soak stain', 'abstract'],
+      notes: '',
+      source: 'https://buffaloakg.org/artworks/k19768-tutti-frutti'
+    },
+    {
+      title: 'Ocean Drive West #1',
+      artist: 'Helen Frankenthaler',
+      year: 1974,
+      yearEnd: null,
+      medium: 'Acrylic on canvas',
+      movement: 'Abstract Expressionism',
+      location: 'Private collection',
+      coordinates: null,
+      imageUrl: 'images/frankenthaler-ocean-drive-west-1.jpg',
+      thumbnailUrl: 'images/frankenthaler-ocean-drive-west-1.jpg',
+      description: 'Named for the address of her seaside studio at Shippan Point in Stamford, Connecticut: a wash of cerulean blue crossed by thin white and prismatic bands, like currents.',
+      tags: ['colour field', 'frankenthaler', 'soak stain', 'abstract'],
+      notes: '',
+      source: 'https://www.frankenthalerfoundation.org/artworks/ocean-drive-west-1/details/all'
+    },
+    {
+      title: 'Borrowed Dream',
+      artist: 'Helen Frankenthaler',
+      year: 1992,
+      yearEnd: null,
+      medium: 'Acrylic on canvas',
+      movement: 'Abstract Expressionism',
+      location: 'Helen Frankenthaler Foundation, New York',
+      coordinates: { lat: 40.7404, lng: -74.0033 },
+      imageUrl: 'images/frankenthaler-borrowed-dream.jpg',
+      thumbnailUrl: 'images/frankenthaler-borrowed-dream.jpg',
+      description: 'A late, heavier painting: a swathe of creamy blue on the left, hemmed in by thick ridges of dark red and brown that rise off the canvas.',
+      tags: ['colour field', 'frankenthaler', 'soak stain', 'abstract'],
+      notes: '',
+      source: 'https://www.frankenthalerfoundation.org/artworks/borrowed-dream/details/all'
     }
   ];
 
@@ -7106,6 +7157,8 @@ function init() {
   document.getElementById('gallerySearch').addEventListener('input', renderGallery);
   document.getElementById('filterMovement').addEventListener('change', renderGallery);
   document.getElementById('filterMedium').addEventListener('change', renderGallery);
+  // Safari restores a menu's last choice on reload; always open newest first.
+  document.getElementById('sortBy').value = 'year-desc';
   document.getElementById('sortBy').addEventListener('change', renderGallery);
 
   // Cluster group-by & filters

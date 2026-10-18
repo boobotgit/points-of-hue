@@ -2220,10 +2220,10 @@
         <select class="filter-select" id="filterMovement"><option value="">All movements</option></select>
         <select class="filter-select" id="filterMedium"><option value="">All mediums</option></select>
         <select class="filter-select" id="sortBy">
+          <option value="year-desc" selected>Newest first</option>
+          <option value="year-asc">Oldest first</option>
           <option value="title">Title (A–Z)</option>
           <option value="artist">Artist (A–Z)</option>
-          <option value="year-asc">Oldest first</option>
-          <option value="year-desc">Newest first</option>
           <option value="added">Recently added</option>
         </select>
       </div>
@@ -5650,6 +5650,8 @@ function oneSentence(text) {
   return s;
 }
 
+const doneYear = a => (a.yearEnd != null ? a.yearEnd : (a.year != null ? a.year : -Infinity));
+
 function renderGallery() {
   const artworks = getArtworks();
   const search = document.getElementById('gallerySearch').value.toLowerCase().trim();
@@ -5678,8 +5680,9 @@ function renderGallery() {
   });
 
   switch (fSort) {
-    case 'year-asc': filtered.sort((a, b) => (a.year || 0) - (b.year || 0)); break;
-    case 'year-desc': filtered.sort((a, b) => (b.year || 0) - (a.year || 0)); break;
+    // Ordered by when a work was finished: the end year if it took several, else its year
+    case 'year-asc': filtered.sort((a, b) => doneYear(a) - doneYear(b) || a.title.localeCompare(b.title)); break;
+    case 'year-desc': filtered.sort((a, b) => doneYear(b) - doneYear(a) || a.title.localeCompare(b.title)); break;
     case 'title': filtered.sort((a, b) => a.title.localeCompare(b.title)); break;
     case 'artist': filtered.sort((a, b) => (a.artist || '').localeCompare(b.artist || '')); break;
     case 'added': filtered.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || '')); break;

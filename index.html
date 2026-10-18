@@ -2834,6 +2834,7 @@ function ensurePatronsSeeded() {
 // Life, birth country, where most of the work was made, movements and
 // favoured mediums, for each artist card. Written here, not fetched.
 const ARTIST_BIO = {
+ "David Reed": {"life":"b. 1946","born":"United States","worked":"New York","movements":["Abstract painting"],"mediums":["Oil and alkyd on linen"],"interests":["Baroque painting","Film (Hitchcock's Vertigo)","Architecture"]},
  "Grant Wood": {"life":"1891–1942","born":"United States","worked":"Iowa (Cedar Rapids and Iowa City)","movements":["American Regionalism"],"mediums":["Oil","Lithography","Metalwork"],"interests":["Teaching (the Stone City art colony)","Iowa farm life"]},
  "Thomas Hart Benton": {"life":"1889–1975","born":"United States","worked":"Kansas City and New York","movements":["American Regionalism","Synchromism"],"mediums":["Egg tempera","Oil","Murals"],"interests":["Folk music (he played the harmonica)","Summers on Martha's Vineyard","Politics"]},
  "Alexandros of Antioch": {
@@ -3268,6 +3269,7 @@ const ARTIST_COVERS = {
 // Points of hue written into the site itself. Anything typed in the browser
 // takes precedence over the note seeded here.
 const SEED_ARTIST_NOTES = {
+  'David Reed': 'Saw his works in October 2026 at the Rodder Gallery in UES. Fascinated by his use of Baroque paintings for inspiration - he loved the shapes captured in the fabrics. Was inspired by his uncle (who designed his childhood home in San Diego) and worked with Frank Lloyd Wright and Lloyd Ruocco. He painted during a time where painting wasn\'t popular - he was encouraged to pick a new medium or become irrelevant. He painted his works to help you, the viewer, to have freedom to create and move within his paintings as you please: no restraints. He wanted colors to be used in new ways - not to control you (as in marketing) and not in limiting ways (as Impressionism demanded) but in ways that created illusions - further making the viewer the designer of their experience (for example: reds and blues next to one another, creating purple where there is no purple on the canvas). He studied in NYC at the Art Studio on 8th Street in Greenwich Village - one of his teachers taught him a most important lesson: he would create an ugly grey paint and smudge it over the portion of David\'s paintings that had clearly been given the most attention. The lesson? You must focus on the entire painting - and to do so, you sometimes need to destroy the portion that\'s been given the most attention so you can see more broadly.',
   'Sol LeWitt': 'Conceptual and minimal art. Born in CT, lived in NYC. I saw an exhibition of his in Chelsea. He believed art was a thought, not a physical thing - which is why he painted on walls that would then be painted over. To buy one of these pieces, you bought the instructions, not the piece itself. He started off as a cartoonist, moved to large flat sculptures - as his work matured, his hand became less visible and lines became cleaner and work more abstract. He favored primary colors.'
 };
 
@@ -3328,7 +3330,7 @@ function getArtworksForMuseum(museum) {
    SECTION 3: DEMO DATA
 ================================================================ */
 function seedDemoData() {
-  const SEED_VERSION = 26;
+  const SEED_VERSION = 27;
   const meta = getMeta();
   if (meta.seeded && meta.seedVersion >= SEED_VERSION) return;
 
@@ -3844,6 +3846,22 @@ function seedDemoData() {
       tags: ['regionalism', 'mural', 'myth', 'missouri', 'benton'],
       notes: '',
       source: 'https://en.wikipedia.org/wiki/Achelous_and_Hercules'
+    },
+    {
+      title: '#809',
+      artist: 'David Reed',
+      year: 2025,
+      yearEnd: 2026,
+      medium: 'Oil and alkyd on linen',
+      movement: 'Contemporary',
+      location: 'Rodder, New York',
+      coordinates: { lat: 40.7736, lng: -73.9640 },
+      imageUrl: 'images/reed-809.jpg',
+      thumbnailUrl: 'images/reed-809.jpg',
+      description: 'A recent painting from his show Terrible Idea at Rodder: a band of pink and orange against a field of acid green, brushstrokes so smooth and glossy they look like photographed folds of satin. Reed numbers his paintings rather than naming them.',
+      tags: ['abstract', 'painting', 'colour', 'baroque', 'reed'],
+      notes: '',
+      source: 'https://www.culturedmag.com/article/2026/09/23/art-david-reed-paintings-rodder-gallery/'
     }
   ];
 

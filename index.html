@@ -170,6 +170,15 @@
       padding: 4px 0 10px;
     }
     .nav-group.open .nav-drop { display: block; }
+    /* The home menu sits at the foot of the page, so its lists open upward
+       where there is room, instead of running off the bottom of the screen. */
+    #homenav .nav-drop {
+      top: auto;
+      bottom: 100%;
+      padding-top: 0;
+      padding-bottom: 6px;
+    }
+    #homenav .nav-drop-inner { padding: 10px 0 4px; }
     @media (hover: hover) and (pointer: fine) {
       .nav-group:hover .nav-drop { display: block; }
     }

@@ -3339,7 +3339,7 @@ function getArtworksForMuseum(museum) {
    SECTION 3: DEMO DATA
 ================================================================ */
 function seedDemoData() {
-  const SEED_VERSION = 28;
+  const SEED_VERSION = 29;
   const meta = getMeta();
   if (meta.seeded && meta.seedVersion >= SEED_VERSION) return;
 
@@ -3919,6 +3919,22 @@ function seedDemoData() {
       tags: ['abstract', 'painting', 'colour', 'reed'],
       notes: '',
       source: 'https://rodder.nyc/exhibitions/terrible-idea'
+    },
+    {
+      title: 'Wall Drawing No. 681 C',
+      artist: 'Sol LeWitt',
+      year: 1993,
+      yearEnd: null,
+      medium: 'Colour ink washes on wall',
+      movement: 'Minimalism',
+      location: 'National Gallery of Art, East Building, Washington',
+      coordinates: { lat: 38.8913, lng: -77.0198 },
+      imageUrl: 'images/lewitt-wall-drawing-681c.jpg',
+      thumbnailUrl: 'images/lewitt-wall-drawing-681c.jpg',
+      description: 'A wall 37 feet long split into four squares with black bands, each square filled with stripes running one way, built up from layers of coloured ink. LeWitt wrote the instructions; other hands paint it. A gift of Dorothy and Herbert Vogel in 1993.',
+      tags: ['conceptual', 'wall drawing', 'lewitt', 'vogel collection', 'minimalism'],
+      notes: '',
+      source: 'https://www.nga.gov/artworks/82836-wall-drawing-no-681-c-wall-divided-vertically-four-equal-squares-separated-and-bordered-black-bands'
     }
   ];
 
